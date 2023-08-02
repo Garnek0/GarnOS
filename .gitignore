@@ -1,4 +1,5 @@
 /.vscode
+/limine
 *.txt
 /kernel/limine.h
 *.elf
