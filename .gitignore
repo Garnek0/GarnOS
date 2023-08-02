@@ -1,0 +1,7 @@
+/.vscode
+*.txt
+/kernel/limine.h
+*.elf
+*.txt
+*.o
+*.d
