@@ -46,19 +46,16 @@ ovmf:
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v5.x-branch-binary --depth=1
 	$(MAKE) -C limine CC="$(HOST_CC)"
-
-#This is here for use on my system. You may remove this
-.PHONY: build-virtman
-build-virtman: $(IMAGE_NAME).hdd
-	qemu-img convert -O qcow2 $(IMAGE_NAME).hdd $(IMAGE_NAME).qcow2
-	sudo cp $(IMAGE_NAME).qcow2 /var/lib/libvirt/images/$(IMAGE_NAME).qcow2
-	rm -rf $(IMAGE_NAME).qcow2
 	
 .PHONY: kernel
 kernel:
 	$(MAKE) -C kernel
 
-$(IMAGE_NAME).iso: limine kernel
+.PHONY: modules
+modules:
+	$(MAKE) -C modules
+
+$(IMAGE_NAME).iso: limine kernel modules
 	rm -rf iso_root
 	mkdir -p iso_root
 	cp -v kernel/kernel.elf \
@@ -74,7 +71,7 @@ $(IMAGE_NAME).iso: limine kernel
 	./limine/limine bios-install $(IMAGE_NAME).iso
 	rm -rf iso_root
 
-$(IMAGE_NAME).hdd: limine kernel
+$(IMAGE_NAME).hdd: limine kernel modules
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	parted -s $(IMAGE_NAME).hdd mklabel gpt
@@ -86,7 +83,7 @@ $(IMAGE_NAME).hdd: limine kernel
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v kernel/kernel.elf limine.cfg limine/limine-bios.sys img_mount/
+	sudo cp -v kernel/kernel.elf modules/initrd.grd limine.cfg limine/limine-bios.sys img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sudo cp -v limine/BOOTIA32.EFI img_mount/EFI/BOOT/
 	sync
@@ -98,6 +95,7 @@ $(IMAGE_NAME).hdd: limine kernel
 clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
 	$(MAKE) -C kernel clean
+	$(MAKE) -C modules clean
 
 .PHONY: distclean
 distclean: clean

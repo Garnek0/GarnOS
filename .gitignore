@@ -1,8 +1,9 @@
 /.vscode
 /limine
-*.txt
 /kernel/limine.h
 *.elf
 *.txt
+*.hdd
+*.iso
 *.o
 *.d
