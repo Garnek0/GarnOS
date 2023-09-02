@@ -9,18 +9,82 @@
 #include <sys/panic.h>
 
 void exception_handler(stack_frame_t* regs){
-
-    //TODO: Remake this
-
-    if(regs->intn == 0){
+    switch (regs->intn){
+    case 0:
         panic("Exception: Divide Error!");
-    } else if (regs->intn == 13){
+        break;
+    case 1:
+        klog("Exception: Debug!\n", KLOG_INFO);
+        break;
+    case 2:
+        panic("NMI Triggered!");
+        break;
+    case 3:
+        klog("Exception: Breakpoint!\n", KLOG_INFO);
+        break;
+    case 4:
+        panic("Exception: Overflow!");
+        break;
+    case 5:
+        panic("Exception: Bound Range Exceeded!");
+        break;
+    case 6:
+        panic("Exception: Invalid Opcode!");
+        break;
+    case 7:
+        panic("Exception: Device Not Available!");
+        break;
+    case 8:
+        panic("Exception: Double Fault!");
+        break;
+    case 9:
+        panic("Exception: Coprocessor Segment Overrun!");
+        break;
+    case 10:
+        panic("Exception: Invalid TSS!");
+        break;
+    case 11:
+        panic("Exception: Segment Not Present!");
+        break;
+    case 12:
+        panic("Exception: Stack Segment Fault!");
+        break;
+    case 13:
         panic("Exception: General Protection Fault!");
-    } else if (regs->intn == 14){
+        break;
+    case 14:
         panic("Exception: Page Fault!");
-        
-    } else {
-        panic("Exception: Undefined Exception!");
+        break;
+    case 16:
+        panic("Exception: x87 Floating-Point Fault!");
+        break;
+    case 17:
+        panic("Exception: Alignment Check!");
+        break;
+    case 18:
+        panic("Exception: Machine Check!");
+        break;
+    case 19:
+        panic("Exception: SIMD Floating-Point Fault!");
+        break;
+    case 20:
+        panic("Exception: Virtualisation Fault!");
+        break;
+    case 21:
+        panic("Exception: Control Protection Fault!");
+        break;
+    case 28:
+        panic("Exception: Hypervisor Injection!");
+        break;
+    case 29:
+        panic("Exception: VMM Communication!");
+        break;
+    case 30:
+        panic("Exception: Security Fault!");
+        break;
+    default:
+        panic("Exception: (Reserved)");
+        break;
     }
 }
 
