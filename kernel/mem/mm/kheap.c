@@ -12,6 +12,7 @@ size_t kheapSize;
 static void kheap_extend(size_t size){
     size = ALIGN_UP((size+sizeof(kheap_block_header_t)), PAGE_SIZE);
     kheap_block_header_t* newh = (kheap_block_header_t*)pmm_allocate(size/PAGE_SIZE);
+    memset(start, 0, sizeof(kheap_block_header_t));
     newh->size = size - sizeof(kheap_block_header_t);
     newh->flags = 0;
     newh->prev = end;
@@ -47,6 +48,7 @@ static void kheap_create_block(kheap_block_header_t* h, size_t size){
 
 void kheap_init(){
     start = end = (kheap_block_header_t*)pmm_allocate(KHEAP_INIT_PAGES); //Initial kernel heap size is 16KiB
+    memset(start, 0, sizeof(kheap_block_header_t));
     start->size = KHEAP_INIT_PAGES * PAGE_SIZE - sizeof(kheap_block_header_t);
     start->prev = NULL;
     start->flags = KHEAP_FLAGS_FREE;

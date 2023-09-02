@@ -13,6 +13,7 @@ void module_init(){
     initrd_init(); //initialise initial ramdisk
 
     modListEntryLast = modListEntryFirst = kmalloc(sizeof(loaded_mod_list_entry_t));
+    memset(modListEntryFirst, 0, sizeof(loaded_mod_list_entry_t));
 
     //init should always be 0:
 

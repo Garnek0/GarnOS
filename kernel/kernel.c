@@ -55,7 +55,7 @@ void _start(void) {
 
     vmm_init(); //Initialise VMM
 
-    kheap_init(); //initialise Kernel Heap;
+    kheap_init(); //initialise Kernel Heap
 
     acpi_tables_parse(); //Parse ACPI Tables
 
