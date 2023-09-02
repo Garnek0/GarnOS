@@ -172,6 +172,8 @@ char* kreadline(char* prompt){
     size_t i = 0;
     size_t backspaces = 0;
 
+    char chr;
+
     stdin = 0;
     while(stdin!='\n'){
         stdin = 0;
@@ -184,7 +186,8 @@ char* kreadline(char* prompt){
         } else if (stdin == '\b' && !backspaces){
             continue;
         }
-        kputchar(stdin);
+        chr = kputchar(stdin);
+        if(tc.escape || chr == 0) continue;
         line[i] = stdin;
         i++;
         backspaces++;

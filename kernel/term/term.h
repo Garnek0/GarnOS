@@ -24,6 +24,7 @@ typedef struct {
     uint32_t backgroundColour;
     cursor_t cursor;
 } term_context_t;
+extern term_context_t tc;
 
 void term_init();
 char term_putchar(char chr);

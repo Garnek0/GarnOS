@@ -157,7 +157,7 @@ char term_putchar(char chr){
     if(tc.escape){
         tc.escapeOffset++;
         term_handle_esc(chr);
-        return;
+        return 0;
     }
 
     switch(chr){
