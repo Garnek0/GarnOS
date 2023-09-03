@@ -5,6 +5,9 @@
 
 //RSDP
 
+#define ACPI_RSDP_1_SZ 20
+#define ACPI_RSDP_2_SZ 16
+
 typedef struct {
     char signature[8];
     uint8_t checksum;
@@ -36,7 +39,7 @@ typedef struct {
 
 typedef struct {
     acpi_sdt_hdr_t header;
-    uint64_t tableArea[];
+    uint32_t tableArea[];
 }__attribute__((packed)) acpi_xsdt_t;
 extern acpi_xsdt_t* XSDT;
 
