@@ -36,7 +36,7 @@ void ksym_add(char* name, Elf64_Addr address){
     ksym_entry_t* newKsym = (ksym_entry_t*)kmalloc(sizeof(ksym_entry_t));
     memset(newKsym, 0, sizeof(ksym_entry_t));
 
-    ksymLast->address = address;
+    ksymLast->address = (address - 0xFFFFFFFF80000000 + bl_get_kernel_virt_base());
     ksymLast->name = name;
     ksymLast->next = newKsym;
 

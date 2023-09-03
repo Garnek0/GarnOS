@@ -3,7 +3,6 @@
 #include <term/term.h>
 #include <display/fb.h>
 
-//advance cursor by n pixels
 void cursor_advance(cursor_t* cursor){
     if(cursor->posX+GLYPH_X >= framebuffer_info.width){
         if(cursor->posY+GLYPH_Y >= framebuffer_info.heigth){

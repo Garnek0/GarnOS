@@ -38,7 +38,7 @@ static bool acpi_tables_validate_checksum(uint64_t ptr, size_t length){
 static uint64_t acpi_tables_find(const char* sig){
     int entries = (XSDT->header.length - sizeof(XSDT->header)) / (4 * ACPIVer);
     for(int i = 0; i < entries; i++){
-        acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)XSDT->tableArea[i];
+        acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)XSDT->tableArea[i*ACPIVer];
         if(!strncmp(h->signature, sig, 4)) return (uint64_t)h;
     }
     return NULL;
@@ -50,7 +50,7 @@ void acpi_tables_parse(){
 
     RSDP = (acpi_rsdp_t*)rsdp_request.response->address;
 
-    if(!acpi_tables_validate_checksum((uint64_t)RSDP, sizeof(acpi_rsdp_t))){
+    if(!acpi_tables_validate_checksum((uint64_t)RSDP, (ACPI_RSDP_1_SZ + (RSDP->revision*(ACPI_RSDP_2_SZ/2))))){
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
         panic("Invalid RSDP or RSDP Pointer!");
     }
@@ -89,10 +89,10 @@ void acpi_tables_parse(){
     }
     kprintf("MADT ");
 
-    if(FADT->X_DSDT != 0){
-        DSDT = FADT->X_DSDT;
-    } else {
+    if(FADT->DSDT != 0){
         DSDT = FADT->DSDT;
+    } else {
+        DSDT = FADT->X_DSDT;
     }
     if(DSDT == NULL || !acpi_tables_validate_checksum((uint64_t)DSDT, DSDT->header.length)){
         kprintf("\n");

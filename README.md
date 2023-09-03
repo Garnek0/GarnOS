@@ -62,4 +62,4 @@ See LICENSE.md for details.
 
 # Acknowledgments
 
-- toaruos
+- toaruos (module loader)

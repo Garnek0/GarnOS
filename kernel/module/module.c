@@ -29,9 +29,7 @@ void module_init(){
         elf_load_module("0:/pic.mod");
     }
 
-    outb(0x64, 0xAA);
-    uint8_t res = inb(0x60);
-    if(res == 0x55){
+    if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
         elf_load_module("0:/ps2.mod");
         elf_load_module("0:/ps2kb.mod");
     }
