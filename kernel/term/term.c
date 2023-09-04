@@ -75,21 +75,15 @@ static void term_sgr(){
 }
 
 void term_scroll(uint16_t pix){
-    uint32_t* newfb = kmalloc(framebuffer_info.width*framebuffer_info.heigth);
-    
-    for(size_t i = (framebuffer_info.width*pix); i < framebuffer_info.width*framebuffer_info.heigth; i++){
-        newfb[i-(framebuffer_info.width*pix)] = framebuffer_info.address[i];
+    uint64_t cpySrc;
+    uint64_t cpyDest;
+    size_t cpySize = framebuffer_info.pitch*pix;
+    for(int i = 1; i < framebuffer_info.heigth/pix; i++){
+        cpySrc = (framebuffer_info.pitch*pix)*i;
+        cpyDest = (framebuffer_info.pitch*pix)*(i-1);
+        memcpy((void*)(cpyDest+(uint64_t)framebuffer_info.address), (void*)(cpySrc+(uint64_t)framebuffer_info.address), cpySize);
     }
-
-    for(size_t i = framebuffer_info.width*framebuffer_info.heigth-(framebuffer_info.width*pix); i < framebuffer_info.width*framebuffer_info.heigth; i++){
-        newfb[i] = 0x00000000;
-    }
-
-    for(size_t i = 0; i < framebuffer_info.width*framebuffer_info.heigth; i++){
-        framebuffer_info.address[i] = newfb[i];
-    }
-
-    kmfree(newfb);
+    memset((void*)(cpySrc+(uint64_t)framebuffer_info.address), 0, cpySize);
 }
 
 static void term_putchar_raw(char chr){
