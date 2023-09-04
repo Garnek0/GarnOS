@@ -1,83 +1,62 @@
+#include "ps2.h"
 #include <module/module.h>
-#include <drivers/ports.h>
 #include <cpu/interrupts/interrupts.h>
-#include <kstdio.h>
-
-#define PS2_DATA 0x60
-#define PS2_COMMAND 0x64
 
 void init(){
 
+    uint8_t configByte; //used to store the configuration byte
+    uint8_t res; //used to store test results
+    bool dualChannel = false; //self explanatory
+
     asm volatile("cli");
 
-    bool dualChannel = false;
+    ps2_write(PS2_COMMAND, PS2_COMMAND_DISABLE_PORT1);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_DISABLE_PORT2);
 
-    outb(PS2_COMMAND, 0xAD);
-    outb(PS2_COMMAND, 0xA7);
+    inb(PS2_DATA); //Discard leftover data
 
-    inb(PS2_DATA);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_GET_CONFIG);
+    configByte = ps2_read(PS2_DATA);
+    if(configByte & PS2_CONFIG_PORT2_CLK) dualChannel = true;
+    configByte &= ~(PS2_CONFIG_PORT1_IEN | PS2_CONFIG_PORT2_IEN | PS2_CONFIG_TRANSLATION);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_SET_CONFIG);
+    ps2_write(PS2_DATA, configByte);
 
-    outb(PS2_COMMAND, 0x20);            //get old config byte
-    uint8_t configByte = inb(PS2_DATA); //
-    configByte &= ~(1 | (1 << 1) | (1 << 6)); //clear some bits and set the new config byte
-    outb(PS2_COMMAND, 0x60);                  //
-    outb(PS2_DATA, configByte);               //
-
-    outb(PS2_COMMAND, 0xAA);
-    if(inb(PS2_DATA) != 0x55){
-        klog("PS2: PS2 Self-test failed!\n", KLOG_WARNING);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_SELFTEST);
+    res = ps2_read(PS2_DATA);
+    if(res != 0x55){
+        klog("PS2: PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, res);
         return;
     }
-    outb(PS2_COMMAND, 0x60);
-    outb(PS2_DATA, configByte);
 
-    outb(PS2_COMMAND, 0xA8);
-    outb(PS2_COMMAND, 0x20);
-    configByte = inb(PS2_DATA);
-
-    if(!(configByte & (1 << 5))){
-        dualChannel = true;
-        outb(PS2_COMMAND, 0xA7);
-    }
-
-    outb(PS2_COMMAND, 0xAB);
-    if(inb(PS2_DATA)){
-        klog("PS2: PS2 Port 1 faulty!\n", KLOG_WARNING);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_TEST_PORT1);
+    res = ps2_read(PS2_DATA);
+    if(res){
+        klog("PS2: PS2 Port 1 Faulty! Test returned 0x%x.\n", KLOG_WARNING, res);
     }
 
     if(dualChannel){
-        outb(PS2_COMMAND, 0xA9);
-        if(inb(PS2_DATA)){
-            klog("PS2: PS2 Port 2 faulty!\n", KLOG_WARNING);
+        ps2_write(PS2_COMMAND, PS2_COMMAND_TEST_PORT2);
+        res = ps2_read(PS2_DATA);
+        if(res){
+            klog("PS2: PS2 Port 2 Faulty! Test returned 0x%x.\n", KLOG_WARNING, res);
         }
     }
 
-    outb(PS2_DATA, 0xFF);
-    io_wait();
-    inb(PS2_DATA);
-    inb(PS2_DATA);
-    inb(PS2_DATA);
-    inb(PS2_DATA);
+    ps2_write(PS2_COMMAND, PS2_COMMAND_ENABLE_PORT1);
+    if(dualChannel) ps2_write(PS2_COMMAND, PS2_COMMAND_ENABLE_PORT2);
 
-    outb(PS2_COMMAND, 0x20);
-    configByte = inb(PS2_DATA);
-    configByte |= (1 | (1 << 6));
-    outb(PS2_COMMAND, 0x60);
-    outb(PS2_DATA, configByte);
+    configByte |= (PS2_CONFIG_PORT1_IEN | PS2_CONFIG_TRANSLATION);
+    if(dualChannel) configByte |= PS2_CONFIG_PORT2_IEN;
+    ps2_write(PS2_COMMAND, PS2_COMMAND_SET_CONFIG);
+    ps2_write(PS2_DATA, configByte);
 
-    if(dualChannel){
-        outb(PS2_COMMAND, 0xD4);
-        outb(PS2_DATA, 0xFF);
-        io_wait();
-        inb(PS2_DATA);
-        inb(PS2_DATA);
-        inb(PS2_DATA);
-        inb(PS2_DATA);
+    //set scancode mode to 2
+    ps2_write(PS2_DATA, 0xF0);
+    ps2_read(PS2_DATA);
+    ps2_write(PS2_DATA, 2);
+    ps2_read(PS2_DATA);
 
-        configByte |= (1 << 1);
-        outb(PS2_COMMAND, 0x60);
-        outb(PS2_DATA, configByte);
-    }
     asm volatile("sti");
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);

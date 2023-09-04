@@ -1,10 +1,6 @@
+#include <ps2/ps2.h>
 #include <module/module.h>
-#include <drivers/ports.h>
 #include <cpu/interrupts/interrupts.h>
-#include <kstdio.h>
-
-#define PS2_DATA 0x60
-#define PS2_COMMAND 0x64
 
 #define LEFT_SHIFT 0x2A
 #define LEFT_CTRL 0x1D
@@ -13,7 +9,7 @@
 #define ENTER 0x1C
 #define BACKSPACE 0x0E
 #define CAPSLOCK 0x3A
-#define EX_SCANCODE 0x0E
+#define EX_SCANCODE 0xE0
 
 typedef struct {
     bool lShift;
@@ -61,7 +57,7 @@ char keymapUppercase[] = {
 };
 
 void keyboard_handler(stack_frame_t* frame){
-    uint8_t scancode = inb(PS2_DATA);
+    uint8_t scancode = ps2_read(PS2_DATA);
     switch(scancode){
         case LEFT_SHIFT:
             state.lShift = true;
@@ -89,7 +85,7 @@ void keyboard_handler(stack_frame_t* frame){
             state.capsLock = true;
             break;
         case EX_SCANCODE:
-            scancode = inb(0x60);
+            scancode = ps2_read(PS2_DATA);
             switch(scancode){
                 case RIGHT_CTRL:
                     state.rCtrl = true;

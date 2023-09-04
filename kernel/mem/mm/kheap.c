@@ -3,6 +3,7 @@
 #include <mem/memutil/memutil.h>
 #include <kstdio.h>
 #include <sys/panic.h>
+#include <sys/bootloader.h>
 
 kheap_block_header_t* start;
 kheap_block_header_t* end;
@@ -65,11 +66,11 @@ void* kmalloc(size_t size){
         if(!(h->flags & KHEAP_FLAGS_FREE)) continue;
         if(h->size == size){
             h->flags &= ~(KHEAP_FLAGS_FREE);
-            return (void*)((uint64_t)h + sizeof(kheap_block_header_t));
+            return (void*)((uint64_t)h + sizeof(kheap_block_header_t)) + bl_get_hhdm_offset();
         } else if (h->size > size + sizeof(kheap_block_header_t)){
             kheap_create_block(h, size);
             h->flags &= ~(KHEAP_FLAGS_FREE);
-            return (void*)((uint64_t)h + sizeof(kheap_block_header_t));
+            return (void*)((uint64_t)h + sizeof(kheap_block_header_t)) + bl_get_hhdm_offset();
         }
 
     }

@@ -26,6 +26,8 @@ void init_kcon(){
             console_help();
         } else if(!strcmp(cmd, "mm")){
             console_mm();
+        } else if(cmd[0] == 0){
+            continue;
         } else {
             kprintf("unknown command: %s\n", cmd);
         }

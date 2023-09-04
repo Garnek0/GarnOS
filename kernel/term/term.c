@@ -79,11 +79,11 @@ void term_scroll(uint16_t pix){
     uint64_t cpyDest;
     size_t cpySize = framebuffer_info.pitch*pix;
     for(int i = 1; i < framebuffer_info.heigth/pix; i++){
-        cpySrc = (framebuffer_info.pitch*pix)*i;
-        cpyDest = (framebuffer_info.pitch*pix)*(i-1);
-        memcpy((void*)(cpyDest+(uint64_t)framebuffer_info.address), (void*)(cpySrc+(uint64_t)framebuffer_info.address), cpySize);
+        cpySrc = (framebuffer_info.pitch*pix)*i+(uint64_t)framebuffer_info.address;
+        cpyDest = (framebuffer_info.pitch*pix)*(i-1)+(uint64_t)framebuffer_info.address;
+        memcpy((void*)cpyDest, (void*)cpySrc, cpySize);
     }
-    memset((void*)(cpySrc+(uint64_t)framebuffer_info.address), 0, cpySize);
+    memset((void*)cpySrc, 0, cpySize);
 }
 
 static void term_putchar_raw(char chr){
