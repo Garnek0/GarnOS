@@ -61,6 +61,7 @@ typedef struct {
 
 typedef struct {
    void (*keyboard_handler)(stack_frame_t* frame);
+   void (*rtc_handler)(stack_frame_t* frame);
 } irq_handler_t;
 extern irq_handler_t irqHandler;
 

@@ -44,7 +44,7 @@ See LICENSE.md for details.
 
 # Milestones
 
-- [ ] RTC
+- [x] RTC
 - [ ] SMP
 - [ ] APIC, I/O APIC and MSIs
 - [ ] Timer (PIT or APIC Timer)

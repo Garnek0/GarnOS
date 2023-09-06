@@ -14,6 +14,11 @@ void irq_handler(stack_frame_t* regs){
                 irqHandler.keyboard_handler(regs);
             }
             break;
+        case 8:
+            if(irqHandler.rtc_handler){
+                irqHandler.rtc_handler(regs);
+            }
+            break;
         default:
             break;
     }

@@ -4,6 +4,7 @@
 #include <mem/memutil/memutil.h>
 #include <sys/rblogs.h>
 #include <kernel.h>
+#include <drivers/rtc/rtc.h>
 
 static void console_help(){
     kprintf("commands:\n"
@@ -11,7 +12,8 @@ static void console_help(){
             "help       - show this text\n"
             "ver        - show kernel version\n"
             "mm         - show memory and mm info\n"
-            "rblogs     - show logs inside the ringbuffer\n");
+            "rblogs     - show logs inside the ringbuffer\n"
+            "timedate   - show RTC Time and Date\n");
 }
 
 static void console_mm(){
@@ -50,6 +52,15 @@ static void console_ver(){
     kprintf(KERNEL_VER"\n");
 }
 
+static void console_timedate(){
+    kprintf("%d/%d/%d\n", rtc.month, rtc.dayOfMonth, rtc.year);
+    kprintf("%d:", rtc.hours);
+    if(rtc.minutes < 10) kprintf("0");
+    kprintf("%d:", rtc.minutes);
+    if(rtc.seconds < 10) kprintf("0");
+    kprintf("%d\n", rtc.seconds);
+}
+
 void init_kcon(){
     kprintf("\nGarnOS Kernel Console Demo\n");
     char* cmd;
@@ -64,6 +75,8 @@ void init_kcon(){
             console_rblogs();
         } else if(!strcmp(cmd, "ver")){
             console_ver();
+        } else if(!strcmp(cmd, "timedate")){
+            console_timedate();
         } else if(cmd[0] == 0){
             continue;
         } else {

@@ -14,6 +14,7 @@
 #include <exec/elf.h>
 
 #include <drivers/serial/serial.h>
+#include <drivers/rtc/rtc.h>
 
 #include <module/module.h>
 
@@ -53,6 +54,8 @@ void _start(void) {
     gdt_init(); //load the GDT
 
     interrupts_init(); //enables interrupts
+
+    rtc_init(); //initialise realtime clock
 
     pmm_init(); //initialise PMM
 
