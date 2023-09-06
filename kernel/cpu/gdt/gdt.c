@@ -1,6 +1,7 @@
 #include "gdt.h"
 
 #include <kstdio.h>
+#include <sys/rblogs.h>
 
 #define GDT_ENTRIES 5
 
@@ -32,4 +33,5 @@ void gdt_init(){
     gdt_load(&gdtr);
 
     klog("GDT Loaded Successfully.\n", KLOG_OK);
+    rb_log("GDT", KLOG_OK);
 }

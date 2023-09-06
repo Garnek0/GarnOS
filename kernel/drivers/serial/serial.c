@@ -3,10 +3,13 @@
 #include <mem/memutil/memutil.h>
 
 #include <kstdio.h>
+#include <sys/rblogs.h>
 
-static bool serialPresent = true;
+static bool serialPresent = false;
 
 int serial_init(){
+
+    serialPresent = true;
 
     outb(COM_SCRATCH, 0xAE);
     if(inb(COM_SCRATCH) != 0xAE){
@@ -30,6 +33,7 @@ int serial_init(){
     if(inb(COM_DATA) != 0xAE) {
         serialPresent = false;
         klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
 
@@ -37,6 +41,7 @@ int serial_init(){
     if(inb(COM_DATA) != 0x56) {
         serialPresent = false;
         klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
 
@@ -44,6 +49,7 @@ int serial_init(){
     if(inb(COM_DATA) != 0xA3) {
         serialPresent = false;
         klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
  
@@ -52,6 +58,7 @@ int serial_init(){
     serial_log("Serial Initialised.\n\r");
 
     klog("Serial Driver Initialised.\n", KLOG_OK);
+    rb_log("SerialConsole", KLOG_OK);
 
     return 0;
 }

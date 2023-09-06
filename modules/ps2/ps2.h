@@ -3,6 +3,7 @@
 
 #include <drivers/ports.h>
 #include <kstdio.h>
+#include <sys/rblogs.h>
 
 #define TIMEOUT 100000
 

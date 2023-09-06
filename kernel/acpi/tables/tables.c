@@ -2,6 +2,8 @@
 #include <limine.h>
 #include <sys/panic.h>
 #include <mem/memutil/memutil.h>
+#include <kstdio.h>
+#include <sys/rblogs.h>
 
 static volatile struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
@@ -52,6 +54,7 @@ void acpi_tables_parse(){
 
     if(!acpi_tables_validate_checksum((uint64_t)RSDP, (ACPI_RSDP_1_SZ + (RSDP->revision*(ACPI_RSDP_2_SZ/2))))){
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid RSDP or RSDP Pointer!");
     }
 
@@ -63,11 +66,13 @@ void acpi_tables_parse(){
         ACPIVer = 2;
     } else {
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid RSDP or RSDP Pointer!");
     }
 
     if(!acpi_tables_validate_checksum((uint64_t)XSDT, XSDT->header.length)){
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid RSDT/XSDT or RSDT/XSDT Pointer!");
     }
 
@@ -77,6 +82,7 @@ void acpi_tables_parse(){
     if(FADT == NULL || !acpi_tables_validate_checksum((uint64_t)FADT, FADT->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid FADT or FADT Not Found!");
     }
     kprintf("FADT ");
@@ -85,6 +91,7 @@ void acpi_tables_parse(){
     if(MADT == NULL || !acpi_tables_validate_checksum((uint64_t)MADT, MADT->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid MADT or MADT Not Found!");
     }
     kprintf("MADT ");
@@ -97,6 +104,7 @@ void acpi_tables_parse(){
     if(DSDT == NULL || !acpi_tables_validate_checksum((uint64_t)DSDT, DSDT->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid DSDT or DSDT Not Found!");
     }
     kprintf("DSDT ");
@@ -107,6 +115,7 @@ void acpi_tables_parse(){
     if(BGRT != NULL && !acpi_tables_validate_checksum((uint64_t)BGRT, BGRT->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid BGRT Structure!");
     } else if (BGRT != NULL){
         kprintf("BGRT ");
@@ -116,6 +125,7 @@ void acpi_tables_parse(){
     if(BERT != NULL && !acpi_tables_validate_checksum((uint64_t)BERT, BERT->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid BERT Structure!");
     } else if (BERT != NULL){
         kprintf("BERT ");
@@ -127,6 +137,7 @@ void acpi_tables_parse(){
     if(FACS != NULL && !acpi_tables_validate_checksum((uint64_t)FACS, FACS->length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid FACS Structure!");
     } else if (FACS != NULL){
         kprintf("FACS ");
@@ -136,6 +147,7 @@ void acpi_tables_parse(){
     if(HPET != NULL && !acpi_tables_validate_checksum((uint64_t)HPET, HPET->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid HPET Structure!");
     } else if (HPET != NULL){
         kprintf("HPET ");
@@ -145,6 +157,7 @@ void acpi_tables_parse(){
     if(SBST != NULL && !acpi_tables_validate_checksum((uint64_t)SBST, SBST->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid SBST Structure!");
     } else if (SBST != NULL){
         kprintf("SBST ");
@@ -154,6 +167,7 @@ void acpi_tables_parse(){
     if(MCFG != NULL && !acpi_tables_validate_checksum((uint64_t)MCFG, MCFG->header.length)){
         kprintf("\n");
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        rb_log("ACPITables", KLOG_FAILED);
         panic("Invalid MCFG Structure!");
     } else if (MCFG != NULL){
         kprintf("MCFG ");
@@ -161,4 +175,5 @@ void acpi_tables_parse(){
 
     kprintf("\n");
     klog("ACPI Tables Parsed Successfully.\n", KLOG_OK);
+    rb_log("ACPITables", KLOG_OK);
 }

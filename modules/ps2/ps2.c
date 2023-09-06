@@ -26,6 +26,7 @@ void init(){
     res = ps2_read(PS2_DATA);
     if(res != 0x55){
         klog("PS2: PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, res);
+        rb_log("PS2Controller", KLOG_FAILED);
         return;
     }
 
@@ -60,6 +61,7 @@ void init(){
     asm volatile("sti");
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
+    rb_log("PS2Controller", KLOG_OK);
 }
 
 void fini(){

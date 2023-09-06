@@ -3,6 +3,7 @@
 #include <cpu/interrupts/idt.h>
 #include <cpu/interrupts/interrupts.h>
 #include <kstdio.h>
+#include <sys/rblogs.h>
 
 #define PIC1 0x20
 #define PIC1_COMMAND PIC1
@@ -62,6 +63,7 @@ void init(){
     outb(PIC2_DATA, m2);
 
     klog("PIC: Initialised PIC1 at offset 0x%x and PIC2 at offset 0x%x.\n", KLOG_OK, 0x20, 0x28);
+	rb_log("PIC", KLOG_OK);
 
     outb(PIC1_DATA, 0);
     outb(PIC2_DATA, 0);

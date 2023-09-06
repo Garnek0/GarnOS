@@ -28,6 +28,7 @@
 
 #include <sys/panic.h>
 #include <sys/ksym.h>
+#include <sys/rblogs.h>
 
 #include <consoledemo/kcon.h>
 
@@ -41,13 +42,15 @@ static void halt(void) {
 // linker script accordingly.
 void _start(void) {
 
+    rb_init(); //initialise ringbuffer for logs
+
     fb_init(); //initialise framebuffer
 
     term_init(); //initialise terminal emulator
 
-    gdt_init(); //load the GDT
-
     serial_init(); //Initialise serial for debugging
+
+    gdt_init(); //load the GDT
 
     interrupts_init(); //enables interrupts
 

@@ -63,6 +63,7 @@ override CFLAGS += \
 # Internal C preprocessor flags that should not be changed by the user.
 override CPPFLAGS := \
     -I. \
+    -Iklibc/include \
     $(CPPFLAGS) \
     -MMD \
     -MP

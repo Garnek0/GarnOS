@@ -2,6 +2,7 @@
 #include <mem/mm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <kstdio.h>
+#include <sys/rblogs.h>
 #include <sys/panic.h>
 #include <sys/bootloader.h>
 
@@ -57,6 +58,7 @@ void kheap_init(){
     kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
 
     klog("Kernel Heap Initialised Successfully (kheap size: %uKiB)\n", KLOG_OK, (PAGE_SIZE*KHEAP_INIT_PAGES)/1024);
+    rb_log("kheap", KLOG_OK);
 }
 
 void* kmalloc(size_t size){

@@ -110,6 +110,8 @@ void keyboard_handler(stack_frame_t* frame){
 
 void init(){
     irqHandler.keyboard_handler = keyboard_handler;
+    klog("PS2 Keyboard Initialised\n", KLOG_OK);
+    rb_log("PS2Keyboard", KLOG_OK);
 }
 
 void fini(){
