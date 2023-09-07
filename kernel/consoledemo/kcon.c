@@ -52,8 +52,10 @@ static void console_ver(){
     kprintf(KERNEL_VER"\n");
 }
 
+static char* weekdayNames[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+
 static void console_timedate(){
-    kprintf("%d/%d/%d\n", rtc.month, rtc.dayOfMonth, rtc.year);
+    kprintf("%d/%d/%d %s\n", rtc.month, rtc.dayOfMonth, rtc.year, weekdayNames[rtc.weekday]);
     kprintf("%d:", rtc.hours);
     if(rtc.minutes < 10) kprintf("0");
     kprintf("%d:", rtc.minutes);

@@ -10,13 +10,17 @@ static bool hourMode = false;
 static bool binary = false;
 
 static uint8_t rtc_read_register(uint8_t reg){
-    outb(RTC_ADDRESS, reg);
+    asm volatile("cli");
+    outb(RTC_ADDRESS, reg | 0x80);
     return inb(RTC_DATA);
+    asm volatile("sti");
 }
 
 static uint8_t rtc_write_register(uint8_t reg, uint8_t data){
-    outb(RTC_ADDRESS, reg);
+    asm volatile("cli");
+    outb(RTC_ADDRESS, reg | 0x80);
     outb(RTC_DATA, data);
+    asm volatile("sti");
 }
 
 static uint8_t rtc_bcd_to_bin(uint8_t bcd){
@@ -50,9 +54,6 @@ void rtc_handler(stack_frame_t* regs){
 }
 
 void rtc_init(){
-
-    asm volatile("cli");
-
     uint8_t statb = rtc_read_register(RTC_STATUS_B);
     if(statb & RTC_BINARY) binary = true;
     if(statb & RTC_HOUR_FORMAT) hourMode = true;
@@ -61,9 +62,8 @@ void rtc_init(){
     rtc_write_register(RTC_STATUS_B, statb);
 
     irqHandler.rtc_handler = rtc_handler;
+    rtc_read_register(RTC_STATUS_C);
 
     klog("RTC Initialised Successfully.\n", KLOG_OK);
     rb_log("RTC", KLOG_OK);
-
-    asm volatile("sti");
 }
