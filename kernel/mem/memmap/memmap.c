@@ -1,3 +1,13 @@
+/*  
+*   File: memmap.c
+*
+*   Author: Garnek
+*   
+*   Description: Memory Map fetching from the bootloader and additional functions
+*                to calculate things like the highest usable physical memory address
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "memmap.h"
 #include <limine.h>
 #include <kstdio.h>

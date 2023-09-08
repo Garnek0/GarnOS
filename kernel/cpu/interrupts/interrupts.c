@@ -1,3 +1,12 @@
+/*  
+*   File: interrupts.c
+*
+*   Author: Garnek
+*   
+*   Description: Interrupt Handler
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "interrupts.h"
 #include <drivers/ports.h>
 #include <cpu/interrupts/idt.h>
@@ -5,6 +14,7 @@
 
 #include <cpu/interrupts/exceptions.h>
 
+//irq struct, this holds function pointers to all irq handlers
 irq_handler_t irqHandler;
 
 void irq_handler(stack_frame_t* regs){   
@@ -26,6 +36,7 @@ void irq_handler(stack_frame_t* regs){
     outb(0xA0, 0x20);
 }
 
+//initialise interrupts
 void interrupts_init(){
     idt_init();
     exceptions_init();

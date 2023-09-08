@@ -1,3 +1,12 @@
+/*  
+*   File: vmm.c
+*
+*   Author: Garnek
+*   
+*   Description: Virtual Memory Manager
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "vmm.h"
 #include <mem/mm/pmm.h>
 #include <mem/memutil/memutil.h>

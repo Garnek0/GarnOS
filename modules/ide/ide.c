@@ -1,3 +1,14 @@
+/*  
+*   Module: ide.mod
+*
+*   File: ide.c
+*
+*   Module Author: Garnek
+*   
+*   Mdoule Description: IDE Driver
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <module/module.h>
 #include <kstdio.h>
 

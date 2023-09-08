@@ -1,3 +1,13 @@
+/*  
+*   File: kreadline.c
+*
+*   Author: Garnek
+*   
+*   Description: Kernel vprintf. printf with variadic args list as an argument. Here is where
+*                the actual string formatting takes place.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <kstdio.h>
 
 static char workBuffer[256];

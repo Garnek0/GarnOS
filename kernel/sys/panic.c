@@ -1,3 +1,12 @@
+/*  
+*   File: bootloader.c
+*
+*   Author: Garnek
+*   
+*   Description: Kernel Panic Routine
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "panic.h"
 #include <kstdio.h>
 

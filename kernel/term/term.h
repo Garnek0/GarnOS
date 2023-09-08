@@ -1,3 +1,12 @@
+/*  
+*   File: term.h
+*
+*   Author: Garnek
+*   
+*   Description: Terminal Context structure definition
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef TERM_H
 #define TERM_H
 

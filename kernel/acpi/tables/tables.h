@@ -1,3 +1,12 @@
+/*  
+*   File: tables.h
+*
+*   Author: Garnek
+*   
+*   Description: Contains typedefs of table structs
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef ACPI_TABLES_H
 #define ACPI_TABLES_H
 

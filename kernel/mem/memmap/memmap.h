@@ -1,3 +1,12 @@
+/*  
+*   File: memmap.h
+*
+*   Author: Garnek
+*   
+*   Description: Defines Memory Map entry Types
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef MEMMAP_H
 #define MEMMAP_H
 

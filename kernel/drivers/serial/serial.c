@@ -1,3 +1,12 @@
+/*  
+*   File: serial.c
+*
+*   Author: Garnek
+*   
+*   Description: Serial Console Driver
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "serial.h"
 #include <drivers/ports.h>
 #include <mem/memutil/memutil.h>
@@ -7,15 +16,12 @@
 
 static bool serialPresent = false;
 
+//initialise the serial console
 int serial_init(){
 
     serialPresent = true;
 
-    outb(COM_SCRATCH, 0xAE);
-    if(inb(COM_SCRATCH) != 0xAE){
-        serialPresent = false;
-    }
-
+    //initialise the UART
     outb(COM_INT, 0x00);
     outb(COM_LINE_CONTROL, 0x80);
     outb(COM_DIVISOR_LSB, 0x0C);
@@ -29,6 +35,7 @@ int serial_init(){
     //Serial will return the correct value for a single test.
     //To minimise that chance, run 3 tests instead.
 
+    //test the serial port
     outb(COM_DATA, 0xAE);
     if(inb(COM_DATA) != 0xAE) {
         serialPresent = false;
@@ -64,9 +71,9 @@ int serial_init(){
 }
 
 void serial_write(uint8_t data){
-
     if(!serialPresent) return;
 
+    //poll bit 5 of the line status register
     while(inb(COM_LINE_STATUS) & 0x20 == 0);
     outb(COM_DATA, data);
 }

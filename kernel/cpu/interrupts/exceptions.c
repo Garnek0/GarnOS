@@ -1,3 +1,12 @@
+/*  
+*   File: exceptions.c
+*
+*   Author: Garnek
+*   
+*   Description: Exception Handler
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "exceptions.h"
 #include <cpu/interrupts/idt.h>
 #include <cpu/interrupts/interrupts.h>
@@ -89,7 +98,9 @@ void exception_handler(stack_frame_t* regs){
     }
 }
 
+//initialise exception handler
 void exceptions_init(){
+    //set up the isrs
     idt_set_entry(0, isr0, INT_GATE);
     idt_set_entry(1, isr1, INT_GATE);
     idt_set_entry(2, isr2, INT_GATE);

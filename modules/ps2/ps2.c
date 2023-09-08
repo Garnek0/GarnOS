@@ -1,3 +1,14 @@
+/*  
+*   Module: ps2.mod
+*
+*   File: ps2.c
+*
+*   Module Author: Garnek
+*   
+*   Mdoule Description: PS/2 Controller Driver
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "ps2.h"
 #include <module/module.h>
 #include <cpu/interrupts/interrupts.h>

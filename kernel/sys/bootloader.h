@@ -1,3 +1,10 @@
+/*  
+*   File: bootloader.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef BOOTLOADER_IF_H
 #define BOOTLOADER_IF_H
 

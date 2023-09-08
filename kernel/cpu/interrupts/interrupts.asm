@@ -1,9 +1,19 @@
+;  
+;   File: interrupts.asm
+;
+;   Author: Garnek
+;   
+;   Description: ASM stubs for interrupts
+;
+; SPDX-License-Identifier: BSD-2-Clause
+
 extern exception_handler
 extern irq_handler
 
 bits 64
 
 exception_common:
+    ;push all general purpose registers
     push rax
     push rcx
     push rdx
@@ -21,6 +31,7 @@ exception_common:
     mov fs, ax
     mov gs, ax
     mov rdi, rsp
+    ;clear direction flag
     cld
 
     call exception_handler
@@ -31,6 +42,7 @@ exception_common:
     mov fs, ax
     mov gs, ax
     
+    ;pop all general purpose registers
     pop rdi
     pop rsi
     pop rbp
@@ -40,6 +52,7 @@ exception_common:
     pop rcx
     pop rax
 
+    ;return and exclude some leftover bytes in the rsp
     add rsp, 16
     iretq
 

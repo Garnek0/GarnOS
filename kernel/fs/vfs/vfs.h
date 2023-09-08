@@ -1,3 +1,12 @@
+/*  
+*   File: vfs.h
+*
+*   Author: Garnek
+*   
+*   Description: definition of multiple vfs related structs
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef VFS_H
 #define VFS_H
 

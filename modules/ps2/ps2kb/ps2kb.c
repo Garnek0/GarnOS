@@ -1,3 +1,14 @@
+/*  
+*   Module: ps2kb.mod
+*
+*   File: ps2kb.c
+*
+*   Module Author: Garnek
+*   
+*   Mdoule Description: PS/2 Keyboard Driver
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <ps2/ps2.h>
 #include <module/module.h>
 #include <cpu/interrupts/interrupts.h>

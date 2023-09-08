@@ -1,3 +1,10 @@
+/*  
+*   File: ksym.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef KSYM_TABLE_H
 #define KSYM_TABLE_H
 

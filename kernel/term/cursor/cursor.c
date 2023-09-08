@@ -1,3 +1,12 @@
+/*  
+*   File: cursor.c
+*
+*   Author: Garnek
+*   
+*   Description: Terminal Emulator Cursor
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "cursor.h"
 
 #include <term/term.h>
@@ -7,8 +16,7 @@ void cursor_advance(cursor_t* cursor){
     if(cursor->posX+GLYPH_X >= framebuffer_info.width){
         if(cursor->posY+GLYPH_Y > framebuffer_info.heigth-GLYPH_Y){
             term_scroll(GLYPH_Y);
-            cursor->posX = 0;
-            //cursor->posY = framebuffer_info.heigth-GLYPH_Y;            
+            cursor->posX = 0;         
             return;
         }
         cursor->posY+=GLYPH_Y;

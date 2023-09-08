@@ -1,3 +1,12 @@
+/*  
+*   File: bootloader.c
+*
+*   Author: Garnek
+*   
+*   Description: Bootloader related stuff.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "bootloader.h"
 #include <limine.h>
 

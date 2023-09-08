@@ -1,3 +1,13 @@
+/*  
+*   File: ksym.c
+*
+*   Author: Garnek
+*   
+*   Description: Kernel Symbol table list. Without it, modules cant call kernel functions
+*                And acces kernel valiables and constants
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "ksym.h"
 #include <kstdio.h>
 #include <sys/bootloader.h>

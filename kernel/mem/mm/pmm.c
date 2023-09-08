@@ -1,3 +1,12 @@
+/*  
+*   File: pmm.c
+*
+*   Author: Garnek
+*   
+*   Description: Physical Memory Manager
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "pmm.h"
 #include <kstdio.h>
 #include <sys/rblogs.h>

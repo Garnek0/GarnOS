@@ -1,3 +1,12 @@
+/*  
+*   File: kernel.c
+*
+*   Author: Garnek
+*   
+*   Description: Main kernel file. its mostly just init routines.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <types.h>
 #include <limine.h>
 
@@ -69,7 +78,7 @@ void _start(void) {
 
     module_init(); //initialise module manager
 
-    init_kcon();
+    init_kcon(); //initialise demo console
 
-    halt();
+    halt(); //halt
 }

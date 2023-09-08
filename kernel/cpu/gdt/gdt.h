@@ -1,3 +1,12 @@
+/*  
+*   File: gdt.h
+*
+*   Author: Garnek
+*   
+*   Description: typedefs for the gdt and gdtr structures
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef GDT_H
 #define GDT_H
 

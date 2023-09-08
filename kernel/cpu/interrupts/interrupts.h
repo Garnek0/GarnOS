@@ -1,3 +1,13 @@
+/*  
+*   File: interrupts.h
+*
+*   Author: Garnek
+*   
+*   Description: Extern declarations for every ASM stub and
+*                 definition of the stack frame structure
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef INTERRUPTS_H
 #define INTERRUPTS_H
 

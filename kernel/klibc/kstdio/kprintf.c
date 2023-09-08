@@ -1,3 +1,12 @@
+/*  
+*   File: kprintf.c
+*
+*   Author: Garnek
+*   
+*   Description: Kernel printf. Wrapper to kvprintf.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <kstdio.h>
 #include <mem/memutil/memutil.h>
 

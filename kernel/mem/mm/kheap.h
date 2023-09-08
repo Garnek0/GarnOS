@@ -1,3 +1,10 @@
+/*  
+*   File: kheap.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef KHEAP_H
 #define KHEAP_H
 

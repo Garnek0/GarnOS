@@ -1,3 +1,10 @@
+/*  
+*   File: memutil.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef MEMUTIL_H
 #define MEMUTIL_H
 

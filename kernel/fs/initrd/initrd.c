@@ -1,3 +1,12 @@
+/*  
+*   File: initrd.c
+*
+*   Author: Garnek
+*   
+*   Description: ustar initial ramdisk operations
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "initrd.h"
 #include <fs/vfs/vfs.h>
 #include <kstdio.h>
@@ -33,6 +42,8 @@ vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
 
     size_t size;
 
+    //look through the initrd until the file is found
+    //...or not found, in which case a kernel panic is triggered 
     for(int i = 0; ; i++){
         if(h->filename[0] == 0){
             klog("Couldn't find %s inside initrd!\n", KLOG_FAILED, path);
@@ -42,6 +53,7 @@ vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
 
             vfs_file_t* file = kmalloc(sizeof(vfs_file_t));
             file->access = VFS_FILE_ACCESS_R;
+            //the file is already in memory
             file->address = (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
             file->fsNumber = fsNumber;
             file->seek = 0;
@@ -52,6 +64,7 @@ vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
             return file;
         }
 
+        //go to the next entry
         size = (size_t)initrd_tar_conv_number(h->size, 11);
 
         haddr += ((size / 512) + 1) * 512;
@@ -84,10 +97,12 @@ void initrd_write(vfs_file_t* file, size_t size, void* buf){
     return; //no need to write to the initrd
 }
 
+//dealloc the initrd limine module
 void initrd_remove(){
     pmm_free(module_request.response->modules[0]->address, ALIGN_UP(module_request.response->modules[0]->size, PAGE_SIZE)/PAGE_SIZE);
 }
 
+//initialise initrd
 void initrd_init(){
     vfs_fs_t initrdFS;
     initrdFS.name = "init";
@@ -96,6 +111,7 @@ void initrd_init(){
     initrdFS.read = initrd_read;
     initrdFS.write = initrd_write;
 
+    //fetch module address from limine
     initrd = (initrd_tar_header_t*)(module_request.response->modules[0]->address);
     if(initrd == NULL){
         panic("Initrd not found!");

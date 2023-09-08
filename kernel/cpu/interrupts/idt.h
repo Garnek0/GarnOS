@@ -1,3 +1,12 @@
+/*  
+*   File: idt.h
+*
+*   Author: Garnek
+*   
+*   Description: typedefs for the idt and idtr structures
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef IDT_H
 #define IDT_H
 

@@ -1,3 +1,12 @@
+/*  
+*   File: klog.c
+*
+*   Author: Garnek
+*   
+*   Description: Kernel logging
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "kstdio.h"
 #include <term/term.h>
 #include <drivers/serial/serial.h>

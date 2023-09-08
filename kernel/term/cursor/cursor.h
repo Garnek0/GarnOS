@@ -1,3 +1,12 @@
+/*  
+*   File: cursor.h
+*
+*   Author: Garnek
+*   
+*   Description: Terminal Emulator Cursor structure definiton
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef CURSOR_H
 #define CURSOR_H
 

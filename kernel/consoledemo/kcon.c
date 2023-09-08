@@ -1,3 +1,12 @@
+/*  
+*   File: kcon.c
+*
+*   Author: Garnek
+*   
+*   Description: Demo Kernel Console
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <kstdio.h>
 #include <mem/mm/pmm.h>
 #include <mem/mm/kheap.h>

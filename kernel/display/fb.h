@@ -1,3 +1,10 @@
+/*  
+*   File: fb.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef FB_H
 #define FB_H
 

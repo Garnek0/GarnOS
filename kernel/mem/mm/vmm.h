@@ -1,3 +1,12 @@
+/*  
+*   File: vmm.h
+*
+*   Author: Garnek
+*   
+*   Description: Page Table able Entry structure.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef VMM_H
 #define VMM_H
 

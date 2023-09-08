@@ -1,3 +1,16 @@
+/*  
+*   Module: pic.mod
+*
+*   File: pic.c
+*
+*   Module Author: Garnek
+*   
+*   Mdoule Description: PIC Driver
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
+//TODO: Make this part of the core kernel
+
 #include <module/module.h>
 #include <drivers/ports.h>
 #include <cpu/interrupts/idt.h>

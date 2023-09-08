@@ -1,3 +1,10 @@
+/*  
+*   File: pmm.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef PMM_H
 #define PMM_H
 

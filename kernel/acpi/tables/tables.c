@@ -1,3 +1,12 @@
+/*  
+*   File: tables.c
+*
+*   Author: Garnek
+*   
+*   Description: Parsing of ACPI Tables
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "tables.h"
 #include <limine.h>
 #include <sys/panic.h>
@@ -5,6 +14,7 @@
 #include <kstdio.h>
 #include <sys/rblogs.h>
 
+//TODO: move to sys/bootloader.c
 static volatile struct limine_rsdp_request rsdp_request = {
     .id = LIMINE_RSDP_REQUEST,
     .revision = 0
@@ -28,6 +38,11 @@ acpi_mcfg_t* MCFG;
 static bool acpi_tables_validate_checksum(uint64_t ptr, size_t length){
     int checksum = 0;
 
+    //To validate a table's checksum, you must add each byte in the table.
+    //(including the checksum byte). The last byte of the result should be 0.
+    //if it is != 0, then the table is invalid and it should be assumed to have
+    //bogus values. In GarnOS, this causes a kernel panic even if an optional table is invalid
+    //because an invalid checksum on any table means something is terribly wrong with the ACPI.
     for(int i = 0; i < length; i++){
         checksum += ((uint8_t*)ptr)[i];
     }
@@ -37,8 +52,15 @@ static bool acpi_tables_validate_checksum(uint64_t ptr, size_t length){
     else return true;
 }
 
+//look through the XSDT/RSDT for the table with the signature (sig).
 static uint64_t acpi_tables_find(const char* sig){
+    //calculate number of entries using a little trick to determine the correct divisor
+    //depending on wether the system is ACPI 1.0 compliant or ACPI 2.0+ compliant.
     int entries = (XSDT->header.length - sizeof(XSDT->header)) / (4 * ACPIVer);
+
+    //look for the table (another trick is used here. tableArea is a uint32_t pointer,
+    //which for ACPI 1.0's RSDT is not a problem, but since ACPI 2.0's XSDT uses 64-bit pointers,
+    //we need to increment the index by two each time)
     for(int i = 0; i < entries; i++){
         acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)XSDT->tableArea[i*ACPIVer];
         if(!strncmp(h->signature, sig, 4)) return (uint64_t)h;
@@ -52,6 +74,7 @@ void acpi_tables_parse(){
 
     RSDP = (acpi_rsdp_t*)rsdp_request.response->address;
 
+    //there is definitely a better way to determine the size of the RSDP...
     if(!acpi_tables_validate_checksum((uint64_t)RSDP, (ACPI_RSDP_1_SZ + (RSDP->revision*(ACPI_RSDP_2_SZ/2))))){
         klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
         rb_log("ACPITables", KLOG_FAILED);
@@ -76,8 +99,10 @@ void acpi_tables_parse(){
         panic("Invalid RSDT/XSDT or RSDT/XSDT Pointer!");
     }
 
+    //Start actually parsing tables
     klog("Parsed ACPI Tables: ", KLOG_INFO);
 
+    //FADT, probably the most important one
     FADT = (acpi_fadt_t*)acpi_tables_find("FACP");
     if(FADT == NULL || !acpi_tables_validate_checksum((uint64_t)FADT, FADT->header.length)){
         kprintf("\n");
@@ -87,6 +112,7 @@ void acpi_tables_parse(){
     }
     kprintf("FADT ");
 
+    //MADT, probably the second most inportant one
     MADT = (acpi_madt_t*)acpi_tables_find("APIC");
     if(MADT == NULL || !acpi_tables_validate_checksum((uint64_t)MADT, MADT->header.length)){
         kprintf("\n");
@@ -96,6 +122,7 @@ void acpi_tables_parse(){
     }
     kprintf("MADT ");
 
+    //DSDT, probably this won't be very useful for long while. Same goes for some other tables.
     if(FADT->DSDT != 0){
         DSDT = FADT->DSDT;
     } else {
@@ -111,6 +138,7 @@ void acpi_tables_parse(){
 
     //Optional Tables
 
+    //BGRT, contains the OEM logo displayed at boot
     BGRT = (acpi_bgrt_t*)acpi_tables_find("BGRT");
     if(BGRT != NULL && !acpi_tables_validate_checksum((uint64_t)BGRT, BGRT->header.length)){
         kprintf("\n");
@@ -143,6 +171,7 @@ void acpi_tables_parse(){
         kprintf("FACS ");
     }
 
+    //HPET, this is a timer which is... not the best of timers.
     HPET = (acpi_hpet_t*)acpi_tables_find("HPET");
     if(HPET != NULL && !acpi_tables_validate_checksum((uint64_t)HPET, HPET->header.length)){
         kprintf("\n");
@@ -153,6 +182,8 @@ void acpi_tables_parse(){
         kprintf("HPET ");
     }
 
+    //SBST, for devices that have batteries. contains information about things such as
+    //when OSPM should notify the user that their battery is at a critical level
     SBST = (acpi_sbst_t*)acpi_tables_find("SBST");
     if(SBST != NULL && !acpi_tables_validate_checksum((uint64_t)SBST, SBST->header.length)){
         kprintf("\n");
@@ -163,6 +194,7 @@ void acpi_tables_parse(){
         kprintf("SBST ");
     }
 
+    //MCFG, used for PCIe address spaces?
     MCFG = (acpi_mcfg_t*)acpi_tables_find("MCFG");
     if(MCFG != NULL && !acpi_tables_validate_checksum((uint64_t)MCFG, MCFG->header.length)){
         kprintf("\n");

@@ -1,3 +1,13 @@
+/*  
+*   File: rblogs.c
+*
+*   Author: Garnek
+*   
+*   Description: Ringbuffer Logs. This is Just an Experiment. 
+*                RBLogs will probably be removed in the near future.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "rblogs.h"
 #include <mem/memutil/memutil.h>
 

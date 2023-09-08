@@ -1,3 +1,12 @@
+/*  
+*   File: term.c
+*
+*   Author: Garnek
+*   
+*   Description: Terminal Emulator
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "term.h"
 #include "kernel.h"
 

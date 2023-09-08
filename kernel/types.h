@@ -1,3 +1,12 @@
+/*  
+*   File: types.h
+*
+*   Author: Garnek
+*   
+*   Description: includes types like bool and uintN_t
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef TYPES_H
 #define TYPES_H
 

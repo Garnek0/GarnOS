@@ -1,3 +1,10 @@
+/*  
+*   File: elf.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef ELF_H
 #define ELF_H
 

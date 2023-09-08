@@ -1,3 +1,12 @@
+/*  
+*   File: memutil.c
+*
+*   Author: Garnek
+*   
+*   Description: some memory functions that GCC and Clang need, other memory utils and string utils.
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "memutil.h"
 
 // GCC and Clang reserve the right to generate calls to the following
