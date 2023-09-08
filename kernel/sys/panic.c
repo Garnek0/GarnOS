@@ -1,5 +1,5 @@
 /*  
-*   File: bootloader.c
+*   File: panic.c
 *
 *   Author: Garnek
 *   

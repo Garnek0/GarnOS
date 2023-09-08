@@ -194,7 +194,7 @@ void acpi_tables_parse(){
         kprintf("SBST ");
     }
 
-    //MCFG, used for PCIe address spaces?
+    //MCFG, used for PCI(e) address spaces
     MCFG = (acpi_mcfg_t*)acpi_tables_find("MCFG");
     if(MCFG != NULL && !acpi_tables_validate_checksum((uint64_t)MCFG, MCFG->header.length)){
         kprintf("\n");

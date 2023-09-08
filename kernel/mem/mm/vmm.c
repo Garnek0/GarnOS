@@ -7,6 +7,8 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
+//TODO: Just like the kheap, this thing is a mess too. I should probably clean this up a little.
+
 #include "vmm.h"
 #include <mem/mm/pmm.h>
 #include <mem/memutil/memutil.h>
