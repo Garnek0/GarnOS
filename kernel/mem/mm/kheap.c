@@ -26,7 +26,7 @@ size_t kheapSize;
 static void kheap_extend(size_t size){
     size = ALIGN_UP((size+sizeof(kheap_block_header_t)), PAGE_SIZE);
     kheap_block_header_t* newh = (kheap_block_header_t*)pmm_allocate(size/PAGE_SIZE);
-    memset(start, 0, sizeof(kheap_block_header_t));
+    memset(newh, 0, size);
     newh->size = size - sizeof(kheap_block_header_t);
     newh->flags = 0;
     newh->prev = end;
@@ -97,7 +97,7 @@ void kmfree(void* ptr){
     h = (kheap_block_header_t*)((uint64_t)ptr - sizeof(kheap_block_header_t));
 
     if(h->flags & KHEAP_FLAGS_FREE)
-        panic("Invalid kheap free operation");
+        klog("Invalid kheap free operation", KLOG_WARNING);
 
     h->flags |= KHEAP_FLAGS_FREE;
 

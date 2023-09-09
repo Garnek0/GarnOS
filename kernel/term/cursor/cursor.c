@@ -14,7 +14,7 @@
 
 void cursor_advance(cursor_t* cursor){
     if(cursor->posX+GLYPH_X >= framebuffer_info.width){
-        if(cursor->posY+GLYPH_Y > framebuffer_info.heigth-GLYPH_Y){
+        if(cursor->posY+GLYPH_Y > framebuffer_info.height-GLYPH_Y){
             term_scroll(GLYPH_Y);
             cursor->posX = 0;         
             return;
@@ -49,7 +49,7 @@ void cursor_backspace(cursor_t* cursor){
 }
 
 void cursor_newline(cursor_t* cursor){
-    if(cursor->posY+GLYPH_Y > framebuffer_info.heigth-GLYPH_Y){
+    if(cursor->posY+GLYPH_Y > framebuffer_info.height-GLYPH_Y){
         term_scroll(GLYPH_Y);
         cursor->posX = 0;
         //cursor->posY = framebuffer_info.heigth-GLYPH_Y;            

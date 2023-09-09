@@ -72,6 +72,8 @@ void _start(void) {
 
     kheap_init(); //initialise Kernel Heap
 
+    fb_read_init(); //initialise a read buffer
+
     acpi_tables_parse(); //Parse ACPI Tables
 
     ksym_init(); //initialise kernel symbol table

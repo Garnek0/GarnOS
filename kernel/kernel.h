@@ -10,6 +10,6 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#define KERNEL_VER "v0.1.1"
+#define KERNEL_VER "v0.1.2"
 
 #endif //KERNEL_H

@@ -57,9 +57,6 @@ void term_init(){
     tc.backgroundColour = 0x00000000;
     tc.escape = tc.escapeCSI = false;
     tc.escapeOffset = 0;
-
-    term_print("GarnOS Terminal Emulator (gosterm)\n\n");
-    term_print("GarnOS "KERNEL_VER"\n\n");
 }
 
 static void term_sgr(){
@@ -84,15 +81,18 @@ static void term_sgr(){
 }
 
 void term_scroll(uint16_t pix){
-    uint64_t cpySrc;
-    uint64_t cpyDest;
-    size_t cpySize = framebuffer_info.pitch*pix;
-    for(int i = 1; i < framebuffer_info.heigth/pix; i++){
-        cpySrc = (framebuffer_info.pitch*pix)*i+(uint64_t)framebuffer_info.address;
-        cpyDest = (framebuffer_info.pitch*pix)*(i-1)+(uint64_t)framebuffer_info.address;
-        memcpy((void*)cpyDest, (void*)cpySrc, cpySize);
-    }
-    memset((void*)cpySrc, 0, cpySize);
+    uint64_t cpyDest = (uint64_t)framebuffer_info.readAddress;
+    uint64_t cpySrc = (framebuffer_info.pitch*pix)+(uint64_t)framebuffer_info.readAddress;
+    size_t cpySize = framebuffer_info.size - framebuffer_info.pitch*pix;
+
+    //scroll the read buffer
+    memcpy(cpyDest, cpySrc, cpySize);
+
+    //zero out the last row of (framebuffer_info.pitch*pix) pixels
+    memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0, framebuffer_info.pitch*pix);
+
+    //copy the read buffer to the actual framebuffer
+    memcpy((void*)framebuffer_info.address, (void*)framebuffer_info.readAddress, framebuffer_info.size);
 }
 
 static void term_putchar_raw(char chr){

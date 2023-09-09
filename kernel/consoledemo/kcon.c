@@ -14,6 +14,8 @@
 #include <sys/rblogs.h>
 #include <kernel.h>
 #include <drivers/rtc/rtc.h>
+#include <display/fb.h>
+#include <term/term.h>
 
 static void console_help(){
     kprintf("commands:\n"
@@ -73,7 +75,9 @@ static void console_timedate(){
 }
 
 void init_kcon(){
-    kprintf("\nGarnOS Kernel Console Demo\n");
+    fb_clear(0x00000000);
+    cursor_set(&tc.cursor, 0, 0);
+    kprintf("GarnOS Kernel Console Demo\n");
     char* cmd;
 
     while(true){

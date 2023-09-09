@@ -9,6 +9,9 @@
 
 #include "fb.h"
 #include <limine.h>
+#include <mem/mm/kheap.h>
+#include <mem/memutil/memutil.h>
+#include <term/term.h>
 
 framebuffer_info_t framebuffer_info;
 
@@ -20,18 +23,20 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
 
 //put a single pixel on the screen
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour){
-    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    uint32_t* fbPtr = framebuffer->address;
-    fbPtr[y*(framebuffer->pitch/(framebuffer->bpp/8)) + x] = colour;
+    uint32_t* fbPtr = framebuffer_info.address;
+    uint32_t* fbReadPtr = framebuffer_info.readAddress;
+    fbPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
+    fbReadPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
 }
 
 //clear the screen with a solid colour
 void fb_clear(uint32_t colour){
-    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    uint32_t* fbPtr = framebuffer->address;
-    for(int i = 0; i < framebuffer->height; i++){
-        for(int j = 0; j < framebuffer->pitch/(framebuffer->bpp/8); j++){
-            fbPtr[(framebuffer->pitch/(framebuffer->bpp/8)*i)+j] = colour;
+    uint32_t* fbPtr = framebuffer_info.address;
+    uint32_t* fbReadPtr = framebuffer_info.readAddress;
+    for(int i = 0; i < framebuffer_info.height; i++){
+        for(int j = 0; j < framebuffer_info.pitch/(framebuffer_info.bpp/8); j++){
+            fbPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
+            fbReadPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
         }
     }
 }
@@ -39,12 +44,22 @@ void fb_clear(uint32_t colour){
 //initialise the framebuffer
 void fb_init(){
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    framebuffer_info.address = (uint64_t*)framebuffer->address;
+    framebuffer_info.address = framebuffer_info.readAddress = (uint64_t*)framebuffer->address;
     framebuffer_info.bpp = framebuffer->bpp;
     framebuffer_info.pitch = framebuffer->pitch;
     //calculate width using the pitch (it needs to be like this because on
     //some systems it causes issues with drawing due to the width provided
     //by Limine being incorrect [tested on a 2013 Fujitsu Laptop])
     framebuffer_info.width = framebuffer->pitch/(framebuffer->bpp/8);
-    framebuffer_info.heigth = framebuffer->height;
+    framebuffer_info.height = framebuffer->height;
+    framebuffer_info.size = framebuffer->height*framebuffer->pitch;
+}
+
+//reading from the framebuffer is slow. Make a copy and
+//use that instead
+void fb_read_init(){
+    framebuffer_info.readAddress = kmalloc(framebuffer_info.height*framebuffer_info.pitch);
+    memset(framebuffer_info.readAddress, 0, framebuffer_info.height*framebuffer_info.pitch);
+    fb_clear(0x00000000);
+    cursor_set(&tc.cursor,0,0);
 }

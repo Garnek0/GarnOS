@@ -3,7 +3,7 @@
 *
 *   Author: Garnek
 *   
-*   Description: some memory functions that GCC and Clang need, other memory utils and string utils.
+*   Description: some memory functions that GCC and Clang need and string utils like strncmp().
 */
 // SPDX-License-Identifier: BSD-2-Clause
 

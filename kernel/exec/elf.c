@@ -22,6 +22,7 @@ void elf_load_module(char* modulePath){
 
     h = (Elf64_Ehdr*)file->address;
 
+	//Validate module
     if (h->e_ident[0] != ELFMAG0 ||
 	    h->e_ident[1] != ELFMAG1 ||
 	    h->e_ident[2] != ELFMAG2 ||
@@ -40,14 +41,17 @@ void elf_load_module(char* modulePath){
 	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
 	vfs_read(file, file->size, (void*)elf_module);
 
+	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
+	//the correct load addresses for each section
 	for(size_t i = 0; i < h->e_shnum; i++){
 		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
 		if(sh->sh_type == SHT_NOBITS){
+			if(!sh->sh_size || !(sh->sh_flags & SHF_ALLOC)) continue;
 			sh->sh_addr = (Elf64_Addr)kmalloc(sh->sh_size);
 			memset((void*)sh->sh_addr, 0, sh->sh_size);
 		} else {
 			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
-			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign -1))) {
+			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
 				klog("Module %s not correctly aligned!\n", KLOG_WARNING, modulePath);
 			}
 		}
@@ -55,6 +59,7 @@ void elf_load_module(char* modulePath){
 
 	module_t* modData = NULL;
 
+	//Load symbols
 	for(size_t i = 0; i < h->e_shnum; i++){
 		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
 		if(sh->sh_type != SHT_SYMTAB) continue;
@@ -65,19 +70,28 @@ void elf_load_module(char* modulePath){
 
 		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
 
-			if(symTable[sym].st_shndx > 0 && symTable[sym].st_shndx < SHN_LORESERVE) {
+			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
 				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
 				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
-			} else if(symTable[sym].st_shndx == SHN_UNDEF) {
+			} else if(symTable[sym].st_shndx == SHN_UNDEF) { //need to load kernel symbol here.
+				//look for the kernel symbol in the kernel symbol list.
 				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
 			}
 
+			//if the symbol is called "metadata", then save it. (We will need the metadata struct to check
+			//if this module is already loaded and call its init function if it isn't.)
 			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
 				modData = (void*)symTable[sym].st_value;
 			}
 		}
 	}
 
+	//if no metadata struct was found, panic.
+	if(!modData){
+		panic("Module %s has invalid/missing metadata structure!", modulePath);
+	}
+
+	//calculate relocations
 	for(size_t i = 0; i < h->e_shnum; i++){
 		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
 		if(sh->sh_type != SHT_RELA) continue;
@@ -120,10 +134,8 @@ void elf_load_module(char* modulePath){
 #undef T64
 #undef P
 
-	if(!modData){
-		panic("Module %s has invalid/missing metadata structure!", modulePath);
-	}
-
+	//loading done, now check if the module is already loaded.
+	//If it is, then unload its copy.
 	loaded_mod_list_entry_t entry;
 	entry.address = (void*)elf_module;
 	entry.metadata = modData;
@@ -144,6 +156,8 @@ void elf_load_module(char* modulePath){
 
 	module_list_add(entry);
 
+	//cleanup
+
 	vfs_close(file);
 
 	klog("Module: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
@@ -151,4 +165,3 @@ void elf_load_module(char* modulePath){
 	modData->init();
 
 }
-
