@@ -16,7 +16,7 @@
 #include <mem/memutil/memutil.h>
 #include <drivers/serial/serial.h>
 
-uint8_t* bitmap;
+static uint8_t* bitmap;
 int bitmapSize;
 
 int freePages = 0;
@@ -24,10 +24,18 @@ int usedPages = 0;
 int usablePages = 0;
 
 static void pmm_bitmap_set(int page){
+    if(page/8 > bitmapSize){
+        panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (A)", page);
+        return;
+    }
     bitmap[page/8] |= (0b10000000 >> (page%8));
 }
 
 static void pmm_bitmap_clear(int page){
+    if(page/8 > bitmapSize){
+        panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (D)", page);
+        return;
+    }
     bitmap[page/8] &= ~((0b10000000 >> (page%8)));
 }
 
@@ -83,7 +91,7 @@ void pmm_free(void* base, int npages){
 
 
 void pmm_init(){
-    bitmapSize = ALIGN_UP(memmap_get_highest_usable_address(), PAGE_SIZE * 8) / PAGE_SIZE / 8;
+    bitmapSize = ALIGN_UP(memmap_get_highest_usable_address(), PAGE_SIZE) / PAGE_SIZE / 8;
 
     memmap_entry_t current_entry;
     for(int i = 0; i < memmap_get_entry_count(); i++){
@@ -116,7 +124,7 @@ success:
         }
     }
 
-    for(uint64_t i = ((uint64_t)bitmap >> 12); i < (((uint64_t)bitmap + bitmapSize) >> 12)+1; i++){
+    for(uint64_t i = ((uint64_t)bitmap >> 12); i < (((uint64_t)bitmap + bitmapSize) >> 12); i++){
         pmm_bitmap_set(i);
         freePages--;
         usedPages++;

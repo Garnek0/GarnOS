@@ -24,6 +24,5 @@ typedef struct {
 }__attribute__((packed)) initrd_tar_header_t;
 
 void initrd_init();
-void initrd_remove();
 
 #endif //INITRD_H

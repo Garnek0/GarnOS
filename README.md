@@ -48,12 +48,12 @@ See LICENSE.md for details.
 - [ ] SMP
 - [ ] APIC, I/O APIC and MSIs
 - [ ] Timer (PIT or APIC Timer)
-- [ ] Syscalls, userland and ELF executables
 - [ ] Driver interface (Custom or UDI)
 - [ ] PCI Enumeration
 - [ ] AHCI driver
 - [ ] IDE driver
 - [ ] FAT32 Driver
+- [ ] Syscalls, userland and ELF executables
 - [ ] GUI
 - [ ] Scheduler, multiprocessing
 - [ ] USB Driver

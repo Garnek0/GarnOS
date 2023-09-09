@@ -11,6 +11,7 @@
 #include <fs/vfs/vfs.h>
 #include <kstdio.h>
 #include <sys/panic.h>
+#include <sys/bootloader.h>
 #include <mem/memutil/memutil.h>
 #include <mem/mm/kheap.h>
 #include <mem/mm/pmm.h>
@@ -95,11 +96,6 @@ void initrd_read(vfs_file_t* file, size_t size, void* buf){
 
 void initrd_write(vfs_file_t* file, size_t size, void* buf){
     return; //no need to write to the initrd
-}
-
-//dealloc the initrd limine module
-void initrd_remove(){
-    pmm_free(module_request.response->modules[0]->address, ALIGN_UP(module_request.response->modules[0]->size, PAGE_SIZE)/PAGE_SIZE);
 }
 
 //initialise initrd

@@ -42,8 +42,6 @@ void module_init(){
         elf_load_module("0:/ps2.mod");
         elf_load_module("0:/ps2kb.mod");
     }
-
-    initrd_remove();
 }
 
 bool module_list_search(char* name){
