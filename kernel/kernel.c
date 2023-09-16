@@ -14,6 +14,7 @@
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>
+#include <cpu/smp/smp.h>
 
 #include <mem/memmap/memmap.h>
 #include <mem/mm/pmm.h>
@@ -64,19 +65,21 @@ void _start(void) {
 
     interrupts_init(); //enables interrupts
 
-    rtc_init(); //initialise realtime clock
-
     pmm_init(); //initialise PMM
 
     vmm_init(); //Initialise VMM
 
     kheap_init(); //initialise Kernel Heap
 
+    rtc_init(); //initialise realtime clock
+
     fb_read_init(); //initialise a read buffer
 
     acpi_tables_parse(); //Parse ACPI Tables
 
     ksym_init(); //initialise kernel symbol table
+
+    smp_init(); //initialise SMP
 
     module_init(); //initialise module manager
 

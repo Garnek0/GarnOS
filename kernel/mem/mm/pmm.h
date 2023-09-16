@@ -9,12 +9,17 @@
 #define PMM_H
 
 #include <types.h>
+#include <cpu/smp/spinlock.h>
 
 #define PAGE_SIZE 4096
 
-extern int freePages;
-extern int usedPages;
-extern int usablePages;
+typedef struct {
+    size_t freePages;
+    size_t usedPages;
+    size_t usablePages;
+    spinlock_t lock;
+} pmm_info_t;
+extern pmm_info_t pmm_info;
 
 void pmm_init();
 void* pmm_allocate(int npages);

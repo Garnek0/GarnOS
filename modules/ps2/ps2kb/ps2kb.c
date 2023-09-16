@@ -26,7 +26,7 @@ typedef struct {
     bool lShift;
     bool rShift;
     bool lCtrl;
-    bool rCtrl;
+    bool rCtrl; //unhandled
     bool capsLock;
 } kb_state_t;
 kb_state_t state;
@@ -95,18 +95,6 @@ void keyboard_handler(stack_frame_t* frame){
             }
             state.capsLock = true;
             break;
-        case EX_SCANCODE:
-            scancode = ps2_read(PS2_DATA);
-            switch(scancode){
-                case RIGHT_CTRL:
-                    state.rCtrl = true;
-                    break;
-                case RIGHT_CTRL + 0x80:
-                    state.rCtrl = false;
-                    break;
-                default:
-                    break;
-            }
         default:
             if(scancode > 58) break;
             if(state.lShift || state.rShift || state.capsLock){

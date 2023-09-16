@@ -12,9 +12,7 @@
 #include <cpu/interrupts/interrupts.h>
 
 #include <drivers/serial/serial.h>
-
-#include <kstdio.h>
-#include <sys/rblogs.h>
+#include <drivers/apic/apic.h>
 
 #include <sys/panic.h>
 
@@ -133,7 +131,4 @@ void exceptions_init(){
     idt_set_entry(29, isr29, INT_GATE);
     idt_set_entry(30, isr30, INT_GATE);
     idt_set_entry(31, isr31, INT_GATE);
-
-    klog("Exception Handler Initialised Successfully.\n", KLOG_OK);
-    rb_log("ExceptionHandler", KLOG_OK);
 }

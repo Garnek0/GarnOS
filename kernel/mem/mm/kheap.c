@@ -23,21 +23,31 @@ kheap_block_header_t* end;
 
 size_t kheapSize;
 
+kheap_info_t kheap_info;
+
 static void kheap_extend(size_t size){
     size = ALIGN_UP((size+sizeof(kheap_block_header_t)), PAGE_SIZE);
     kheap_block_header_t* newh = (kheap_block_header_t*)pmm_allocate(size/PAGE_SIZE);
     memset(newh, 0, size);
     newh->size = size - sizeof(kheap_block_header_t);
-    newh->flags = 0;
+    newh->flags = KHEAP_FLAGS_FREE;
     newh->prev = end;
     newh->next = NULL;
 
-    kheapSize += size;
+    kheap_info.kheapSize += size;
     
     end->next = newh;
     end = newh;
 
-    kmfree((kheap_block_header_t*)((uint64_t)newh+sizeof(kheap_block_header_t)));
+    if(newh->prev && (newh->prev->flags & KHEAP_FLAGS_FREE)){
+        kheap_block_header_t* prev = newh->prev;
+        prev->size += newh->size;
+        if(newh->next){
+            newh->next->prev = prev;
+        }
+        prev->next = newh->next;
+        
+    }
 }
 
 static void kheap_create_block(kheap_block_header_t* h, size_t size){
@@ -67,7 +77,7 @@ void kheap_init(){
     start->prev = NULL;
     start->flags = KHEAP_FLAGS_FREE;
 
-    kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
+    kheap_info.kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
 
     klog("Kernel Heap Initialised Successfully (kheap size: %uKiB)\n", KLOG_OK, (PAGE_SIZE*KHEAP_INIT_PAGES)/1024);
     rb_log("kheap", KLOG_OK);
@@ -76,19 +86,25 @@ void kheap_init(){
 void* kmalloc(size_t size){
     size = ALIGN_UP(size, 0x10);
     kheap_block_header_t* h;
-    for(h = start; h; h = h->next){
+
+    lock(kheap_info.lock, {
+        for(h = start; h; h = h->next){
         if(!(h->flags & KHEAP_FLAGS_FREE)) continue;
         if(h->size == size){
             h->flags &= ~(KHEAP_FLAGS_FREE);
+            releaseLock(&kheap_info.lock);
             return (void*)((uint64_t)h + sizeof(kheap_block_header_t)) + bl_get_hhdm_offset();
         } else if (h->size > size + sizeof(kheap_block_header_t)){
             kheap_create_block(h, size);
             h->flags &= ~(KHEAP_FLAGS_FREE);
+            releaseLock(&kheap_info.lock);
             return (void*)((uint64_t)h + sizeof(kheap_block_header_t)) + bl_get_hhdm_offset();
         }
 
-    }
-    kheap_extend(size);
+        }
+        kheap_extend(size);
+    });
+
     return kmalloc(size);
 }
 
@@ -99,24 +115,27 @@ void kmfree(void* ptr){
     if(h->flags & KHEAP_FLAGS_FREE)
         klog("Invalid kheap free operation", KLOG_WARNING);
 
-    h->flags |= KHEAP_FLAGS_FREE;
+    lock(kheap_info.lock, {
 
-    if(h->next && (h->next->flags & KHEAP_FLAGS_FREE)){
-        kheap_block_header_t* next = h->next;
-        h->size += next->size;
-        if(next->next){
-            next->next->prev = h;
-        }
-        h->next = next->next;
-    }
+        h->flags |= KHEAP_FLAGS_FREE;
 
-    if(h->prev && (h->prev->flags & KHEAP_FLAGS_FREE)){
-        kheap_block_header_t* prev = h->prev;
-        prev->size += h->size;
-        if(h->next){
-            h->next->prev = prev;
+        if(h->next && (h->next->flags & KHEAP_FLAGS_FREE)){
+            kheap_block_header_t* next = h->next;
+            h->size += next->size;
+            if(next->next){
+                next->next->prev = h;
+            }
+            h->next = next->next;
         }
-        prev->next = h->next;
-        
-    }
+
+        if(h->prev && (h->prev->flags & KHEAP_FLAGS_FREE)){
+            kheap_block_header_t* prev = h->prev;
+            prev->size += h->size;
+            if(h->next){
+                h->next->prev = prev;
+            }
+            prev->next = h->next;
+            
+        }
+    });
 }

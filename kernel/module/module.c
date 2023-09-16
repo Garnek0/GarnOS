@@ -14,9 +14,12 @@
 #include <drivers/ports.h>
 #include <fs/initrd/initrd.h>
 #include <acpi/tables/tables.h>
+#include <cpu/smp/spinlock.h>
 
 loaded_mod_list_entry_t* modListEntryLast;
 loaded_mod_list_entry_t* modListEntryFirst;
+
+spinlock_t moduleListLock;
 
 void module_init(){
     initrd_init(); //initialise initial ramdisk
@@ -34,10 +37,6 @@ void module_init(){
     //TODO: first make sure the machine supports ahci
     elf_load_module("0:/ahci.mod");
 
-    if(MADT!=NULL && (MADT->flags & 1)){
-        elf_load_module("0:/pic.mod");
-    }
-
     if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
         elf_load_module("0:/ps2.mod");
         elf_load_module("0:/ps2kb.mod");
@@ -47,25 +46,46 @@ void module_init(){
 bool module_list_search(char* name){
     loaded_mod_list_entry_t* modListEntry = modListEntryFirst;
 
-    while(modListEntry && modListEntry->metadata){
-        if(!strcmp(name, modListEntry->metadata->name)){
-            return true;
+    lock(moduleListLock, {
+        while(modListEntry && modListEntry->metadata){
+            if(!strcmp(name, modListEntry->metadata->name)){
+                releaseLock(&moduleListLock);
+                return true;
+            }
+            modListEntry = modListEntry->next;
         }
-        modListEntry = modListEntry->next;
-    }
+    });
 
     return false;
 }
 
+loaded_mod_list_entry_t* module_list_get(char* name){
+    loaded_mod_list_entry_t* modListEntry = modListEntryFirst;
+
+    lock(moduleListLock, {
+        while(modListEntry && modListEntry->metadata){
+            if(!strcmp(name, modListEntry->metadata->name)){
+                releaseLock(&moduleListLock);
+                return modListEntry;
+            }
+            modListEntry = modListEntry->next;
+        }
+    });
+
+    return NULL;
+}
+
 void module_list_add(loaded_mod_list_entry_t entry){
-    loaded_mod_list_entry_t* newModListEntry = kmalloc(sizeof(loaded_mod_list_entry_t));
-    memset((void*)newModListEntry, 0, sizeof(loaded_mod_list_entry_t));
+    lock(moduleListLock, {
+        loaded_mod_list_entry_t* newModListEntry = kmalloc(sizeof(loaded_mod_list_entry_t));
+        memset((void*)newModListEntry, 0, sizeof(loaded_mod_list_entry_t));
 
-    modListEntryLast->address = entry.address;
-    modListEntryLast->metadata = entry.metadata;
-    modListEntryLast->size = entry.size;
-    modListEntryLast->next = NULL;
+        modListEntryLast->address = entry.address;
+        modListEntryLast->metadata = entry.metadata;
+        modListEntryLast->size = entry.size;
+        modListEntryLast->next = NULL;
 
-    modListEntryLast->next = newModListEntry;
-    modListEntryLast = newModListEntry;
+        modListEntryLast->next = newModListEntry;
+        modListEntryLast = newModListEntry;
+    });
 }

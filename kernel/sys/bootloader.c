@@ -8,7 +8,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "bootloader.h"
-#include <limine.h>
 
 static volatile struct limine_kernel_file_request kernel_file_request = {
     .id = LIMINE_KERNEL_FILE_REQUEST,
@@ -23,6 +22,12 @@ static volatile struct limine_kernel_address_request kernel_address_request = {
 static volatile struct limine_hhdm_request hhdm_request = {
     .id = LIMINE_HHDM_REQUEST,
     .revision = 0
+};
+
+static volatile struct limine_smp_request smp_request = {
+    .id = LIMINE_SMP_REQUEST,
+    .revision = 0,
+    .flags = 1
 };
 
 void* bl_get_kernel_file_address(){
@@ -43,4 +48,24 @@ uint64_t bl_get_kernel_virt_base(){
 
 uint64_t bl_get_hhdm_offset(){
     return hhdm_request.response->offset;
+}
+
+size_t bl_get_cpu_count(){
+    return smp_request.response->cpu_count;
+}
+
+uint32_t bl_get_bsp_lapic_id(){
+    return smp_request.response->bsp_lapic_id;
+}
+
+struct limine_smp_info** bl_get_cpu_info_array(){
+    return smp_request.response->cpus;
+}
+
+struct limine_smp_info* bl_get_cpu_info(size_t index){
+    return smp_request.response->cpus[index];
+}
+
+uint8_t bl_is_x2apic(){
+    return smp_request.response->flags;
 }

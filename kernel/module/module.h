@@ -28,6 +28,7 @@ typedef struct _loaded_mod_list_entry {
 
 void module_init();
 bool module_list_search(char* name);
+loaded_mod_list_entry_t* module_list_get(char* name);
 void module_list_add(loaded_mod_list_entry_t entry);
 
 #endif //MODMGR_H

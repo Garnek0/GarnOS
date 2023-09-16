@@ -32,7 +32,7 @@ override CC = gcc
 
 override CFILES := $(shell find -L . -type f -name '*.c')
 override MOD_OBJ := $(CFILES:.c=.mod)
-override INITRD_MODS := ide.mod ahci.mod pic.mod ps2.mod ps2kb.mod
+override INITRD_MODS := ide.mod ahci.mod ps2.mod ps2kb.mod
 override HEADER_DEPS := $(CFILES:.c=.d)
 
 .PHONY: all

@@ -32,8 +32,7 @@ void irq_handler(stack_frame_t* regs){
         default:
             break;
     }
-    outb(0x20, 0x20); //the pic needs this
-    outb(0xA0, 0x20);
+    apic_eoi();
 }
 
 //initialise interrupts

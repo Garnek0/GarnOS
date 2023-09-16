@@ -15,6 +15,9 @@
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
+#include <cpu/smp/spinlock.h>
+
+spinlock_t moduleLoaderLock;
 
 void elf_load_module(char* modulePath){
     Elf64_Ehdr* h;
@@ -162,6 +165,7 @@ void elf_load_module(char* modulePath){
 
 	klog("Module: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
 
-	modData->init();
-
+	lock(moduleLoaderLock, {
+		modData->init();
+	});
 }

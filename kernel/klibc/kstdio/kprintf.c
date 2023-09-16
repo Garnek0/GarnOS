@@ -12,11 +12,16 @@
 
 //unbuffered stdin. will most likely be changed
 char stdin;
+spinlock_t kprintfLock;
 
 int kprintf(char* str, ...){
     va_list args;
     va_start(args, str);
-    int chars = kvprintf(str, args);
-    va_end(args);
+    int chars;
+
+    lock(kprintfLock, {
+        chars = kvprintf(str, args);
+        va_end(args);
+    });
     return chars;
 }

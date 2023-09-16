@@ -9,10 +9,17 @@
 #define KHEAP_H
 
 #include <types.h>
+#include <cpu/smp/spinlock.h>
 
 #define KHEAP_FLAGS_FREE 1
 
 #define KHEAP_INIT_PAGES 16
+
+typedef struct {
+    size_t kheapSize;
+    spinlock_t lock;
+} kheap_info_t;
+extern kheap_info_t kheap_info;
 
 typedef struct _kheap_block_header {
     size_t size;
@@ -20,8 +27,6 @@ typedef struct _kheap_block_header {
     struct _kheap_block_header* next;
     struct _kheap_block_header* prev;
 } kheap_block_header_t;
-
-extern size_t kheapSize;
 
 void kheap_init();
 void* kmalloc(size_t size);

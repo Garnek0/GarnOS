@@ -133,13 +133,36 @@ extern acpi_fadt_t* FADT;
 
 //MADT
 
+#define ACPI_MADT_APIC 0x00
+#define ACPI_MADT_IOAPIC 0x01
+
+typedef struct {
+    uint8_t entryType;
+    uint8_t recordLength;
+}__attribute__((packed)) acpi_madt_record_hdr_t;
+
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t LAPICAddress;
     uint32_t flags;
-    void* MADTRecords;
+    acpi_madt_record_hdr_t MADTRecords;
 }__attribute__((packed)) acpi_madt_t;
 extern acpi_madt_t* MADT;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint8_t acpiID;
+    uint8_t apicID;
+    uint32_t flags;
+}__attribute__((packed)) acpi_madt_record_lapic_t;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint8_t ioapicID;
+    uint8_t reserved;
+    uint32_t ioapicAddress;
+    uint32_t gsiBase;
+}__attribute__((packed)) acpi_madt_record_ioapic_t;
 
 //BGRT
 

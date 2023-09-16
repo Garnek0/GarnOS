@@ -57,6 +57,15 @@ void term_init(){
     tc.backgroundColour = 0x00000000;
     tc.escape = tc.escapeCSI = false;
     tc.escapeOffset = 0;
+    tc.enabled = true;
+}
+
+void term_disable(){
+    tc.enabled = false;
+}
+
+void term_enable(){
+    tc.enabled = true;
 }
 
 static void term_sgr(){
@@ -81,21 +90,24 @@ static void term_sgr(){
 }
 
 void term_scroll(uint16_t pix){
-    uint64_t cpyDest = (uint64_t)framebuffer_info.readAddress;
-    uint64_t cpySrc = (framebuffer_info.pitch*pix)+(uint64_t)framebuffer_info.readAddress;
-    size_t cpySize = framebuffer_info.size - framebuffer_info.pitch*pix;
+        uint64_t cpyDest = (uint64_t)framebuffer_info.readAddress;
+        uint64_t cpySrc = (framebuffer_info.pitch*pix)+(uint64_t)framebuffer_info.readAddress;
+        size_t cpySize = framebuffer_info.size - framebuffer_info.pitch*pix;
 
-    //scroll the read buffer
-    memcpy(cpyDest, cpySrc, cpySize);
+        //scroll the read buffer
+        memcpy(cpyDest, cpySrc, cpySize);
 
-    //zero out the last row of (framebuffer_info.pitch*pix) pixels
-    memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0, framebuffer_info.pitch*pix);
+        //zero out the last row of (framebuffer_info.pitch*pix) pixels
+        memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0, framebuffer_info.pitch*pix);
 
-    //copy the read buffer to the actual framebuffer
-    memcpy((void*)framebuffer_info.address, (void*)framebuffer_info.readAddress, framebuffer_info.size);
+        //copy the read buffer to the actual framebuffer
+        memcpy((void*)framebuffer_info.address, (void*)framebuffer_info.readAddress, framebuffer_info.size);
 }
 
 static void term_putchar_raw(char chr){
+
+    if(!tc.enabled) return;
+
     switch(chr){
         case '\n':
             cursor_newline(&tc.cursor);
@@ -157,37 +169,43 @@ static void term_handle_esc(char chr){
 
 char term_putchar(char chr){
 
-    if(tc.escape){
-        tc.escapeOffset++;
-        term_handle_esc(chr);
-        return 0;
-    }
+    if(!tc.enabled) return;
 
-    switch(chr){
-        case '\n':
-            cursor_newline(&tc.cursor);
-            // fall through
-        case '\r':
-            cursor_return(&tc.cursor);
-            break;
-        case '\e':
-            tc.escape = true;
-            break;
-        case '\b':
-            cursor_backspace(&tc.cursor);
-            break;
-        default:
-            for(int i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
-                for(int j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
-                    fb_pixel(j, i, tc.backgroundColour);
-                    if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> j-tc.cursor.posX)){
-                        fb_pixel(j, i, tc.foregroundColour);
+    lock(tc.lock, {
+        if(tc.escape){
+            tc.escapeOffset++;
+            term_handle_esc(chr);
+            releaseLock(&tc.lock);
+            return 0;
+        }
+
+        switch(chr){
+            case '\n':
+                cursor_newline(&tc.cursor);
+                // fall through
+            case '\r':
+                cursor_return(&tc.cursor);
+                break;
+            case '\e':
+                tc.escape = true;
+                break;
+            case '\b':
+                releaseLock(&tc.lock);
+                cursor_backspace(&tc.cursor);
+                break;
+            default:
+                for(int i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
+                    for(int j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
+                        fb_pixel(j, i, tc.backgroundColour);
+                        if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> j-tc.cursor.posX)){
+                            fb_pixel(j, i, tc.foregroundColour);
+                        }
                     }
                 }
-            }
-            cursor_advance(&tc.cursor);
-            break;
-    }
+                cursor_advance(&tc.cursor);
+                break;
+        }
+    });
     return chr;
 }
 

@@ -9,9 +9,6 @@
 
 #include "gdt.h"
 
-#include <kstdio.h>
-#include <sys/rblogs.h>
-
 //nullseg, kernel codeseg, kernel dataseg, user codeseg, user dataseg
 #define GDT_ENTRIES 5
 
@@ -53,7 +50,4 @@ void gdt_init(){
     gdtr.size = sizeof(gdt_entry_t)*GDT_ENTRIES - 1;
 
     gdt_load(&gdtr);
-
-    klog("GDT Loaded Successfully.\n", KLOG_OK);
-    rb_log("GDT", KLOG_OK);
 }

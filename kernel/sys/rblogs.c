@@ -10,9 +10,12 @@
 
 #include "rblogs.h"
 #include <mem/memutil/memutil.h>
+#include <cpu/smp/spinlock.h>
 
 rb_entry_t RBEntries[RINGBUFFER_ENTRIES];
 rb_entry_t* currentEntry;
+
+spinlock_t rblogsLock;
 
 //initialise the ringbuffer that will store the init logs
 void rb_init(){
@@ -27,8 +30,10 @@ void rb_init(){
 }
 
 void rb_log(char* log, uint8_t status){
-    if(strlen(log) > RB_LOG_MAX_STRLEN) return;
-    memcpy(&currentEntry->log, log, strlen(log));
-    currentEntry->status = status;
-    currentEntry = currentEntry->next;
+    lock(rblogsLock, {
+        if(strlen(log) > RB_LOG_MAX_STRLEN) return;
+        memcpy(&currentEntry->log, log, strlen(log));
+        currentEntry->status = status;
+        currentEntry = currentEntry->next;
+    });
 }

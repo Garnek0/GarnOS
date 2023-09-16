@@ -11,6 +11,8 @@
 #include <term/term.h>
 #include <mem/mm/kheap.h>
 
+spinlock_t kreadlineLock;
+
 char* kreadline(char* prompt){
     if(prompt) kprintf(prompt);
     char* line = kmalloc(256);
@@ -20,29 +22,33 @@ char* kreadline(char* prompt){
     char chr;
 
     stdin = 0;
-    while(stdin!='\n'){
-        stdin = 0;
-        while(!stdin) asm volatile("nop");
-        if(stdin == '\b' && backspaces){
-            kputchar(stdin);
-            backspaces--;
-            i--;
-            continue;
-        } else if (stdin == '\b' && !backspaces){
-            continue;
+
+    lock(kreadlineLock, {
+        while(stdin!='\n'){
+            stdin = 0;
+            while(!stdin) asm volatile("nop");
+            if(stdin == '\b' && backspaces){
+                kputchar(stdin);
+                backspaces--;
+                i--;
+                continue;
+            } else if (stdin == '\b' && !backspaces){
+                continue;
+            }
+            chr = kputchar(stdin);
+            if(tc.escape || chr == 0) continue;
+            line[i] = stdin;
+            i++;
+            backspaces++;
+            if(i > 255){
+                kprintf("\n");
+                klog("kreadline Buffer Overflow!\n", KLOG_WARNING);
+                line[0] = 0;
+                break;
+            }
         }
-        chr = kputchar(stdin);
-        if(tc.escape || chr == 0) continue;
-        line[i] = stdin;
-        i++;
-        backspaces++;
-        if(i > 255){
-            kprintf("\n");
-            klog("kreadline Buffer Overflow!\n", KLOG_WARNING);
-            line[0] = 0;
-            break;
-        }
-    }
-    line[i-1] = '\0';
+        line[i-1] = '\0';
+    
+    });
     return line;
 }

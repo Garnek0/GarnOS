@@ -45,15 +45,15 @@ See LICENSE.md for details.
 # Milestones
 
 - [x] RTC
-- [ ] SMP
-- [ ] APIC, I/O APIC and MSIs
+- [x] SMP
+- [x] APIC, I/O APIC
 - [ ] Timer (PIT or APIC Timer)
-- [ ] Driver interface (Custom or UDI)
 - [ ] PCI Enumeration
 - [ ] AHCI driver
 - [ ] IDE driver
 - [ ] FAT32 Driver
 - [ ] Syscalls, userland and ELF executables
+- [ ] Driver interface (Custom or UDI)
 - [ ] GUI
 - [ ] Scheduler, multiprocessing
 - [ ] USB Driver

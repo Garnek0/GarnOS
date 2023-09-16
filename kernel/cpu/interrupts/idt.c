@@ -9,9 +9,6 @@
 
 #include "idt.h"
 
-#include <kstdio.h>
-#include <sys/rblogs.h>
-
 idtr_t idtr;
 idt_entry_t idt[256];
 
@@ -34,7 +31,4 @@ void idt_init(){
     //load the IDT and set the interrupt flag
     asm volatile ("lidt %0" : : "m"(idtr));
     asm volatile ("sti");
-
-    klog("IDT Loaded Successfully.\n", KLOG_OK);
-    rb_log("IDT", KLOG_OK);
 }

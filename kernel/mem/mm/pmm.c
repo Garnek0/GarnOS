@@ -17,11 +17,9 @@
 #include <drivers/serial/serial.h>
 
 static uint8_t* bitmap;
-int bitmapSize;
+size_t bitmapSize;
 
-int freePages = 0;
-int usedPages = 0;
-int usablePages = 0;
+pmm_info_t pmm_info;
 
 static void pmm_bitmap_set(int page){
     if(page/8 > bitmapSize){
@@ -72,26 +70,32 @@ static uint64_t pmm_find_free(int npages){
 }
 
 void* pmm_allocate(int npages){
-    uint64_t base = pmm_find_free(npages);
-    for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
-        pmm_bitmap_set(i);
-        usedPages++;
-        freePages--;
-    }
+    uint64_t base;
+    lock(pmm_info.lock, {
+        base = pmm_find_free(npages);
+        for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
+            pmm_bitmap_set(i);
+            pmm_info.usedPages++;
+            pmm_info.freePages--;
+        }
+    });
     return base;
 }
 
 void pmm_free(void* base, int npages){
-    for(uint64_t i = ((uint64_t)base >> 12); i < ((uint64_t)base >> 12)+npages; i++){
-        pmm_bitmap_clear(i);
-        usedPages--;
-        freePages++;
-    }
+    lock(pmm_info.lock, {
+        for(uint64_t i = ((uint64_t)base >> 12); i < ((uint64_t)base >> 12)+npages; i++){
+            pmm_bitmap_clear(i);
+            pmm_info.usedPages--;
+            pmm_info.freePages++;
+        }
+    });
 }
 
 
 void pmm_init(){
     bitmapSize = ALIGN_UP(memmap_get_highest_usable_address(), PAGE_SIZE) / PAGE_SIZE / 8;
+    pmm_info.usedPages = bitmapSize*8;
 
     memmap_entry_t current_entry;
     for(int i = 0; i < memmap_get_entry_count(); i++){
@@ -119,15 +123,16 @@ success:
 
         for(uint64_t j = (current_entry.base >> 12); j < ((current_entry.base + current_entry.length) >> 12); j++){
             pmm_bitmap_clear(j);
-            usablePages++;
-            freePages++;
+            pmm_info.usedPages--;
+            pmm_info.usablePages++;
+            pmm_info.freePages++;
         }
     }
 
-    for(uint64_t i = ((uint64_t)bitmap >> 12); i < (((uint64_t)bitmap + bitmapSize) >> 12); i++){
+    for(uint64_t i = ((uint64_t)bitmap >> 12); i < (((uint64_t)bitmap + bitmapSize) >> 12)+1; i++){
         pmm_bitmap_set(i);
-        freePages--;
-        usedPages++;
+        pmm_info.freePages--;
+        pmm_info.usedPages++;
     }
 
     klog("Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, bitmap);

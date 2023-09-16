@@ -30,7 +30,7 @@ static void console_help(){
 static void console_mm(){
     kprintf("available pages: %d (%uKiB free memory)\n"
             "used pages: %d (%uKiB used memory)\n"
-            "kheap size: %uKiB\n", usablePages, (usablePages*PAGE_SIZE/1024), usedPages, (usedPages*PAGE_SIZE/1024), (kheapSize/1024));
+            "kheap size: %uKiB\n", pmm_info.usablePages, (pmm_info.usablePages*PAGE_SIZE/1024), pmm_info.usedPages, (pmm_info.usedPages*PAGE_SIZE/1024), (kheap_info.kheapSize/1024));
 }
 
 bool rblogsFirstIssued = true;

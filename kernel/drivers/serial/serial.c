@@ -10,11 +10,14 @@
 #include "serial.h"
 #include <drivers/ports.h>
 #include <mem/memutil/memutil.h>
+#include <cpu/smp/spinlock.h>
 
 #include <kstdio.h>
 #include <sys/rblogs.h>
 
 static bool serialPresent = false;
+
+spinlock_t serialLock;
 
 //initialise the serial console
 int serial_init(){
@@ -39,7 +42,7 @@ int serial_init(){
     outb(COM_DATA, 0xAE);
     if(inb(COM_DATA) != 0xAE) {
         serialPresent = false;
-        klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
@@ -47,7 +50,7 @@ int serial_init(){
     outb(COM_DATA, 0x56);
     if(inb(COM_DATA) != 0x56) {
         serialPresent = false;
-        klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
@@ -55,7 +58,7 @@ int serial_init(){
     outb(COM_DATA, 0xA3);
     if(inb(COM_DATA) != 0xA3) {
         serialPresent = false;
-        klog("Serial Driver Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         rb_log("SerialConsole", KLOG_FAILED);
         return 1;
     }
@@ -63,8 +66,7 @@ int serial_init(){
     outb(COM_MODEM_CTRL, 0x0F);
 
     serial_log("Serial Initialised.\n\r");
-
-    klog("Serial Driver Initialised.\n", KLOG_OK);
+    klog("Serial Console Initialised.\n", KLOG_OK);
     rb_log("SerialConsole", KLOG_OK);
 
     return 0;
@@ -73,13 +75,14 @@ int serial_init(){
 void serial_write(uint8_t data){
     if(!serialPresent) return;
 
-    //poll bit 5 of the line status register
-    while(inb(COM_LINE_STATUS) & 0x20 == 0);
-    outb(COM_DATA, data);
+    lock(serialLock, {
+        //poll bit 5 of the line status register
+        while(inb(COM_LINE_STATUS) & 0x20 == 0);
+        outb(COM_DATA, data);
+    });
 }
 
 void serial_log(const char* str){
-
     if(!serialPresent) return;
 
     for(uint32_t i = 0; i < strlen(str); i++){

@@ -12,8 +12,11 @@
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <term/term.h>
+#include <cpu/smp/spinlock.h>
 
 framebuffer_info_t framebuffer_info;
+
+spinlock_t fbLock;
 
 //TODO: move to sys/bootloader.c
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -23,22 +26,26 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
 
 //put a single pixel on the screen
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour){
-    uint32_t* fbPtr = framebuffer_info.address;
-    uint32_t* fbReadPtr = framebuffer_info.readAddress;
-    fbPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
-    fbReadPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
+    lock(fbLock, {
+        uint32_t* fbPtr = framebuffer_info.address;
+        uint32_t* fbReadPtr = framebuffer_info.readAddress;
+        fbPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
+        fbReadPtr[y*(framebuffer_info.pitch/(framebuffer_info.bpp/8)) + x] = colour;
+    });
 }
 
 //clear the screen with a solid colour
 void fb_clear(uint32_t colour){
-    uint32_t* fbPtr = framebuffer_info.address;
-    uint32_t* fbReadPtr = framebuffer_info.readAddress;
-    for(int i = 0; i < framebuffer_info.height; i++){
-        for(int j = 0; j < framebuffer_info.pitch/(framebuffer_info.bpp/8); j++){
-            fbPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
-            fbReadPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
+    lock(fbLock, {
+        uint32_t* fbPtr = framebuffer_info.address;
+        uint32_t* fbReadPtr = framebuffer_info.readAddress;
+        for(int i = 0; i < framebuffer_info.height; i++){
+            for(int j = 0; j < framebuffer_info.pitch/(framebuffer_info.bpp/8); j++){
+                fbPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
+                fbReadPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
+            }
         }
-    }
+    });
 }
 
 //initialise the framebuffer
