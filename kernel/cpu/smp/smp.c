@@ -11,7 +11,7 @@
 #include <sys/bootloader.h>
 #include <kstdio.h>
 #include <sys/rblogs.h>
-#include <drivers/apic/apic.h>
+#include <cpu/apic/apic.h>
 #include <drivers/ioapic/ioapic.h>
 
 #include <term/term.h>

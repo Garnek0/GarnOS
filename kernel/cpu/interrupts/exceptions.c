@@ -12,7 +12,6 @@
 #include <cpu/interrupts/interrupts.h>
 
 #include <drivers/serial/serial.h>
-#include <drivers/apic/apic.h>
 
 #include <sys/panic.h>
 

@@ -12,6 +12,7 @@
 #include <cpu/interrupts/idt.h>
 #include <kstdio.h>
 
+#include <cpu/apic/apic.h>
 #include <cpu/interrupts/exceptions.h>
 
 //irq struct, this holds function pointers to all irq handlers
