@@ -4,6 +4,8 @@
 #include <acpi/tables/tables.h>
 #include <sys/rblogs.h>
 #include <cpu/smp/smp.h>
+#include <mem/mm/vmm.h>
+#include <sys/bootloader.h>
 
 uint8_t ioapicCount;
 uint8_t ioapicIDs[256];
@@ -82,7 +84,8 @@ void ioapic_init(){
         ioapicRec = (acpi_madt_record_ioapic_t*)hdr;
         ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
         ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
-        ioapicAddresses[ioapicCount] = ioapicRec->ioapicAddress;
+        ioapicAddresses[ioapicCount] = ioapicRec->ioapicAddress + bl_get_hhdm_offset();
+        vmm_map(ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), 0x13);
         ioapicCount++;
     }
 

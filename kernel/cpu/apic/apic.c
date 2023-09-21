@@ -36,8 +36,7 @@ void apic_eoi(){
 
 void apic_init(bool isx2APIC){
 
-    //TODO VERY IMPORTANT: set up mtrr memory regions
-
+    vmm_map(MADT->LAPICAddress, MADT->LAPICAddress + bl_get_hhdm_offset(), 0x13);
     LAPICAddress = (uint64_t*)(MADT->LAPICAddress + bl_get_hhdm_offset());
 
     uint32_t lapicID = apic_read_register(APIC_ID);
