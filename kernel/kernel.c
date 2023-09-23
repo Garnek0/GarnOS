@@ -40,6 +40,7 @@
 #include <sys/panic.h>
 #include <sys/ksym.h>
 #include <sys/rblogs.h>
+#include <sys/compat.h>
 
 #include <consoledemo/kcon.h>
 
@@ -58,6 +59,8 @@ void _start(void) {
     fb_init(); //initialise framebuffer
 
     term_init(); //initialise terminal emulator
+
+    compat_check(); //compatability checks;
 
     serial_init(); //Initialise serial for debugging
 
