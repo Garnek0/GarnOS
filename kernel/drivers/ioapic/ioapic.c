@@ -37,7 +37,7 @@ void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
 }
 
 void ioapic_init(){
-    outb(0x20, 0x20); //the pic needs this
+    outb(0x20, 0x20); //PIC EOI
     outb(0xA0, 0x20);
 
     //Remap PIC and disable it
@@ -89,6 +89,17 @@ void ioapic_init(){
         ioapicCount++;
     }
 
+    if(ioapicCount == 0){
+        //fallback to the PIC
+        outb(PIC1_DATA, 0x00);
+        outb(PIC2_DATA, 0x00);
+
+        klog("I/O APICs Not Found.\n", KLOG_FAILED);
+        rb_log("I/O APICs", KLOG_FAILED);
+
+        return;
+    }
+
     ioapic_redirection_entry_t red;
     red.fields.delvMode = 0;
     red.fields.destMode = 0;
@@ -130,6 +141,6 @@ void ioapic_init(){
     red.fields.vector = 47;
     ioapic_redirect(red, 15);
 
-    klog("I/O APIC Initialised Successfully.\n", KLOG_OK);
-    rb_log("I/O APIC", KLOG_OK);
+    klog("I/O APICs Initialised Successfully.\n", KLOG_OK);
+    rb_log("I/O APICs", KLOG_OK);
 }

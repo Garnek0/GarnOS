@@ -15,6 +15,7 @@
 #include <mem/mm/vmm.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/smp.h>
+#include <drivers/ports.h>
 
 static uint64_t* LAPICAddress;
 
@@ -32,6 +33,11 @@ static void apic_write_register(uint16_t reg, uint32_t data){
 
 void apic_eoi(){
     apic_write_register(APIC_EOI, 0);
+
+    //ensures PIC support in case it is used instead
+    //of the I/O APIC
+    outb(0x20, 0x20);
+    outb(0xA0, 0x20);
 }
 
 void apic_init(bool isx2APIC){
