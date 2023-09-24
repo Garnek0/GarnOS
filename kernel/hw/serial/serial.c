@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "serial.h"
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <mem/memutil/memutil.h>
 #include <cpu/smp/spinlock.h>
 

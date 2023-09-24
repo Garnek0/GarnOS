@@ -15,7 +15,7 @@
 #include <mem/mm/vmm.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/smp.h>
-#include <drivers/ports.h>
+#include <hw/ports.h>
 
 static uint64_t* LAPICAddress;
 

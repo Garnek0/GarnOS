@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "interrupts.h"
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <cpu/interrupts/idt.h>
 #include <kstdio.h>
 
@@ -20,15 +20,14 @@ irq_handler_t irqHandler;
 
 void irq_handler(stack_frame_t* regs){   
     switch(regs->errCode){ //for irqs, errCode stores the irq number
+        case 0:
+            if(irqHandler.pit_handler) irqHandler.pit_handler(regs);
+            break;
         case 1:
-            if(irqHandler.keyboard_handler){
-                irqHandler.keyboard_handler(regs);
-            }
+            if(irqHandler.keyboard_handler) irqHandler.keyboard_handler(regs);
             break;
         case 8:
-            if(irqHandler.rtc_handler){
-                irqHandler.rtc_handler(regs);
-            }
+            if(irqHandler.rtc_handler) irqHandler.rtc_handler(regs);
             break;
         default:
             break;

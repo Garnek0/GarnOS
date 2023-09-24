@@ -10,7 +10,7 @@
 #ifndef PS2_MODULE_H
 #define PS2_MODULE_H
 
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <kstdio.h>
 #include <sys/rblogs.h>
 

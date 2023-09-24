@@ -13,7 +13,7 @@
 #include <mem/memutil/memutil.h>
 #include <sys/rblogs.h>
 #include <kernel.h>
-#include <drivers/rtc/rtc.h>
+#include <hw/rtc/rtc.h>
 #include <display/fb.h>
 #include <term/term.h>
 

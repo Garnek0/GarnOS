@@ -11,7 +11,7 @@
 #include <cpu/interrupts/idt.h>
 #include <cpu/interrupts/interrupts.h>
 
-#include <drivers/serial/serial.h>
+#include <hw/serial/serial.h>
 
 #include <sys/panic.h>
 

@@ -1,3 +1,12 @@
+/*  
+*   File: ioapic.h
+*
+*   Author: Garnek
+*   
+*   Description: PIC and I/O APIC Commands Definition
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef IOAPIC_H
 #define IOAPIC_H
 

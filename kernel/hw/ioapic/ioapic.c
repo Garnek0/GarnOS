@@ -1,6 +1,15 @@
+/*  
+*   File: ioapic.c
+*
+*   Author: Garnek
+*   
+*   Description: Driver for the I/O APIC
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "ioapic.h"
 #include <kstdio.h>
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <acpi/tables/tables.h>
 #include <sys/rblogs.h>
 #include <cpu/smp/smp.h>
@@ -14,26 +23,33 @@ uint32_t ioapicGSIs[256];
 
 spinlock_t ioapicLock;
 
+bool fallback = false;
+
 void ioapic_write_reg(uint64_t ioapicAddress, uint8_t reg, uint32_t data){
-    *(volatile uint32_t*)(IOREGSEL(ioapicAddress)) = reg;
-    *(volatile uint32_t*)(IOWIN(ioapicAddress)) = data;
+    if(fallback) return;
+    lock(ioapicLock, {
+        *(volatile uint32_t*)(IOREGSEL(ioapicAddress)) = reg;
+        *(volatile uint32_t*)(IOWIN(ioapicAddress)) = data;
+    });
 }
 
 uint32_t ioapic_read_reg(uint64_t ioapicAddress, uint32_t reg){
-    *(volatile uint32_t*)(IOREGSEL(ioapicAddress)) = reg;
+    if(fallback) return;
+    lock(ioapicLock, {
+        *(volatile uint32_t*)(IOREGSEL(ioapicAddress)) = reg;
+    });
     return *(volatile uint32_t*)(IOWIN(ioapicAddress));
 }
 
 void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
+    if(fallback) return;
     uint64_t data = redirection.bits;
     size_t ioapic;
 
-    lock(ioapicLock, {
-        for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg(ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
+    for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg(ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
 
-        ioapic_write_reg(ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
-        ioapic_write_reg(ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
-    });
+    ioapic_write_reg(ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
+    ioapic_write_reg(ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
 }
 
 void ioapic_init(){
@@ -94,8 +110,10 @@ void ioapic_init(){
         outb(PIC1_DATA, 0x00);
         outb(PIC2_DATA, 0x00);
 
-        klog("I/O APICs Not Found.\n", KLOG_FAILED);
+        klog("I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED);
         rb_log("I/O APICs", KLOG_FAILED);
+
+        fallback = true;
 
         return;
     }
@@ -112,7 +130,7 @@ void ioapic_init(){
     ioapic_redirect(red, 0);
     red.fields.vector = 33;
     ioapic_redirect(red, 1);
-    red.fields.vector = 34;
+    red.fields.vector = 32; //PIT is irq 2 when using the I/O APIC
     ioapic_redirect(red, 2);
     red.fields.vector = 35;
     ioapic_redirect(red, 3);
@@ -140,6 +158,22 @@ void ioapic_init(){
     ioapic_redirect(red, 14);
     red.fields.vector = 47;
     ioapic_redirect(red, 15);
+
+    hdr = &MADT->MADTRecords;
+    acpi_madt_record_source_override_t* sourceOverrideRec;
+
+    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t); i++){
+        i += hdr->recordLength;
+        hdr += hdr->recordLength;
+
+        if(hdr->entryType != ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE) continue;
+
+        sourceOverrideRec = (acpi_madt_record_source_override_t*)hdr;
+        red.fields.vector = 32 + sourceOverrideRec->IRQSource;
+        ioapic_redirect(red, sourceOverrideRec->GSI);
+    }
+
+    //TODO: Find NMI entries in the madt
 
     klog("I/O APICs Initialised Successfully.\n", KLOG_OK);
     rb_log("I/O APICs", KLOG_OK);

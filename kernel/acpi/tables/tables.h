@@ -135,6 +135,7 @@ extern acpi_fadt_t* FADT;
 
 #define ACPI_MADT_APIC 0x00
 #define ACPI_MADT_IOAPIC 0x01
+#define ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE 0x02
 
 typedef struct {
     uint8_t entryType;
@@ -163,6 +164,14 @@ typedef struct {
     uint32_t ioapicAddress;
     uint32_t gsiBase;
 }__attribute__((packed)) acpi_madt_record_ioapic_t;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint8_t busSource;
+    uint8_t IRQSource;
+    uint32_t GSI;
+    uint16_t flags;
+}__attribute__((packed)) acpi_madt_record_source_override_t;
 
 //BGRT
 

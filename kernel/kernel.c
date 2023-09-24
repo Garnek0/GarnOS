@@ -23,8 +23,9 @@
 
 #include <exec/elf.h>
 
-#include <drivers/serial/serial.h>
-#include <drivers/rtc/rtc.h>
+#include <hw/serial/serial.h>
+#include <hw/rtc/rtc.h>
+#include <hw/pit/pit.h>
 
 #include <module/module.h>
 
@@ -41,6 +42,7 @@
 #include <sys/ksym.h>
 #include <sys/rblogs.h>
 #include <sys/compat.h>
+#include <sys/timer.h>
 
 #include <consoledemo/kcon.h>
 
@@ -67,6 +69,8 @@ void _start(void) {
     gdt_init(); //load the GDT
 
     interrupts_init(); //enables interrupts
+    
+    pit_init(); //initialise the PIT
 
     pmm_init(); //initialise PMM
 

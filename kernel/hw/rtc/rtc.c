@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "rtc.h"
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <cpu/interrupts/interrupts.h>
 #include <kstdio.h>
 #include <sys/rblogs.h>

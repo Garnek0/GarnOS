@@ -12,7 +12,7 @@
 #include <kstdio.h>
 #include <sys/rblogs.h>
 #include <cpu/apic/apic.h>
-#include <drivers/ioapic/ioapic.h>
+#include <hw/ioapic/ioapic.h>
 
 #include <term/term.h>
 

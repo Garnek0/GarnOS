@@ -14,7 +14,7 @@
 #include <sys/panic.h>
 #include <mem/memmap/memmap.h>
 #include <mem/memutil/memutil.h>
-#include <drivers/serial/serial.h>
+#include <hw/serial/serial.h>
 
 static uint8_t* bitmap;
 size_t bitmapSize;

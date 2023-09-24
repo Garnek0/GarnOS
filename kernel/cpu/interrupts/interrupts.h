@@ -70,6 +70,7 @@ typedef struct {
 } stack_frame_t;
 
 typedef struct {
+   void (*pit_handler)(stack_frame_t* frame);
    void (*keyboard_handler)(stack_frame_t* frame);
    void (*rtc_handler)(stack_frame_t* frame);
 } irq_handler_t;

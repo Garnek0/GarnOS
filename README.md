@@ -47,7 +47,7 @@ See LICENSE.md for details.
 - [x] RTC
 - [x] SMP
 - [x] APIC, I/O APIC
-- [ ] Timer (PIT or APIC Timer)
+- [x] Timer (PIT or APIC Timer)
 - [ ] PCI Enumeration
 - [ ] AHCI driver
 - [ ] IDE driver
@@ -59,6 +59,10 @@ See LICENSE.md for details.
 - [ ] USB Driver
 - [ ] SB16 Driver
 - [ ] Networking
+
+## Known Bugs
+
+- APIC Doesn't work properly on some systems
 
 # Acknowledgments
 

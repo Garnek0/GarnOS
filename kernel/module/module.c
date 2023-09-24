@@ -11,7 +11,7 @@
 #include <exec/elf.h>
 #include <mem/memutil/memutil.h>
 #include <mem/mm/kheap.h>
-#include <drivers/ports.h>
+#include <hw/ports.h>
 #include <fs/initrd/initrd.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/spinlock.h>
