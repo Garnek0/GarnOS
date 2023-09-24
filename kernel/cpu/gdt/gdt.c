@@ -16,7 +16,7 @@ gdt_entry_t gdt[GDT_ENTRIES];
 gdtr_t gdtr;
 
 //This is implemented in assembly
-extern gdt_load(gdtr_t* gdtr);
+extern void gdt_load(gdtr_t* gdtr);
 
 //set a GDT entry
 static void gdt_set_entry(uint16_t entry, uint8_t access, uint8_t flags){
@@ -46,7 +46,7 @@ void gdt_init(){
     //user dataseg
     gdt_set_entry(4, 0xF2, 0xC);
 
-    gdtr.offset = gdt;
+    gdtr.offset = (uint64_t)gdt;
     gdtr.size = sizeof(gdt_entry_t)*GDT_ENTRIES - 1;
 
     gdt_load(&gdtr);

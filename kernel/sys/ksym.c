@@ -69,4 +69,5 @@ Elf64_Addr ksym_find(char* name){
             ksym = ksym->next;
         }
     });
+    return 0;
 }

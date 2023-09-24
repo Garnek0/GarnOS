@@ -10,6 +10,7 @@
 
 #include <kstdio.h>
 #include <term/term.h>
+#include <mem/memutil/memutil.h>
 
 spinlock_t kvprintfLock;
 
@@ -85,7 +86,7 @@ int kvprintf(char* fmt, va_list args){
                     case 'p':
                         //Hex Number
                         uint64_t xnum = va_arg(args, uint64_t);
-                        uint8_t* xvalPtr = &xnum;
+                        uint8_t* xvalPtr = (uint8_t*)&xnum;
                         uint8_t* xptr;
                         uint8_t xtmp;
                         uint8_t xsize = 1*2-1;

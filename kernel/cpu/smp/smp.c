@@ -44,7 +44,7 @@ void smp_init(){
     }
 
     struct limine_smp_info* smpinfo;
-    for(int i = 0; i < bl_get_cpu_count(); i++){
+    for(size_t i = 0; i < bl_get_cpu_count(); i++){
         smpinfo = bl_get_cpu_info(i);
         smpinfo->goto_address = smp_ready_cpus;
     }

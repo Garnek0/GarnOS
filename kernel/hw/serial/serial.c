@@ -77,7 +77,7 @@ void serial_write(uint8_t data){
 
     lock(serialLock, {
         //poll bit 5 of the line status register
-        while(inb(COM_LINE_STATUS) & 0x20 == 0);
+        while((inb(COM_LINE_STATUS) & 0x20) == 0);
         outb(COM_DATA, data);
     });
 }

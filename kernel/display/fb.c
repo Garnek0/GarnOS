@@ -39,8 +39,8 @@ void fb_clear(uint32_t colour){
     lock(fbLock, {
         uint32_t* fbPtr = framebuffer_info.address;
         uint32_t* fbReadPtr = framebuffer_info.readAddress;
-        for(int i = 0; i < framebuffer_info.height; i++){
-            for(int j = 0; j < framebuffer_info.pitch/(framebuffer_info.bpp/8); j++){
+        for(uint32_t i = 0; i < framebuffer_info.height; i++){
+            for(uint32_t j = 0; j < framebuffer_info.pitch/(framebuffer_info.bpp/8); j++){
                 fbPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
                 fbReadPtr[(framebuffer_info.pitch/(framebuffer_info.bpp/8)*i)+j] = colour;
             }
@@ -51,7 +51,7 @@ void fb_clear(uint32_t colour){
 //initialise the framebuffer
 void fb_init(){
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    framebuffer_info.address = framebuffer_info.readAddress = (uint64_t*)framebuffer->address;
+    framebuffer_info.address = framebuffer_info.readAddress = (uint32_t*)framebuffer->address;
     framebuffer_info.bpp = framebuffer->bpp;
     framebuffer_info.pitch = framebuffer->pitch;
     //calculate width using the pitch (it needs to be like this because on

@@ -7,6 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
+#include "kcon.h"
 #include <kstdio.h>
 #include <mem/mm/pmm.h>
 #include <mem/mm/kheap.h>
@@ -16,6 +17,8 @@
 #include <hw/rtc/rtc.h>
 #include <display/fb.h>
 #include <term/term.h>
+
+kcon_command_t* firstCommand, *lastCommand;
 
 static void console_help(){
     kprintf("commands:\n"
@@ -74,29 +77,50 @@ static void console_timedate(){
     kprintf("%d\n", rtc.seconds);
 }
 
+void kcon_add_command(char* cmd, void* function){
+    memcpy(lastCommand->cmd, cmd, strlen(cmd));
+    lastCommand->function = function;
+
+    lastCommand->next = kmalloc(sizeof(kcon_command_t));
+    memset(lastCommand->next, 0, sizeof(kcon_command_t));
+
+    lastCommand = lastCommand->next;
+}
+
 void init_kcon(){
     fb_clear(0x00000000);
     cursor_set(&tc.cursor, 0, 0);
+
+    firstCommand = lastCommand = kmalloc(sizeof(kcon_command_t));
+    memset(firstCommand, 0, sizeof(kcon_command_t));
+
+    kcon_add_command("help", console_help);
+    kcon_add_command("ver", console_ver);
+    kcon_add_command("mm", console_mm);
+    kcon_add_command("rblogs", console_rblogs);
+    kcon_add_command("timedate", console_timedate);
+
     kprintf("GarnOS Kernel Console Demo\n");
     char* cmd;
 
+    kcon_command_t* currentCommand;
+
     while(true){
         cmd = kreadline(">");
-        if(!strcmp(cmd, "help")){
-            console_help();
-        } else if(!strcmp(cmd, "mm")){
-            console_mm();
-        } else if(!strcmp(cmd, "rblogs")){
-            console_rblogs();
-        } else if(!strcmp(cmd, "ver")){
-            console_ver();
-        } else if(!strcmp(cmd, "timedate")){
-            console_timedate();
-        } else if(cmd[0] == 0){
-            continue;
-        } else {
-            kprintf("unknown command: %s\n", cmd);
+        if(cmd[0] == 0) continue;
+
+        currentCommand = firstCommand;
+
+        while(currentCommand){
+            if(!strcmp(currentCommand->cmd, cmd)){
+                currentCommand->function();
+                break;
+            }
+            currentCommand = currentCommand->next;
         }
-        kmfree(cmd);
+
+        if(!currentCommand){
+            kprintf("Unknown command: %s\n", cmd);
+        }
     }
 }

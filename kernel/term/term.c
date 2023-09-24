@@ -95,7 +95,7 @@ void term_scroll(uint16_t pix){
         size_t cpySize = framebuffer_info.size - framebuffer_info.pitch*pix;
 
         //scroll the read buffer
-        memcpy(cpyDest, cpySrc, cpySize);
+        memcpy((void*)cpyDest, (void*)cpySrc, cpySize);
 
         //zero out the last row of (framebuffer_info.pitch*pix) pixels
         memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0, framebuffer_info.pitch*pix);
@@ -116,10 +116,10 @@ static void term_putchar_raw(char chr){
             cursor_return(&tc.cursor);
             break;
         default:
-            for(int i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
-                for(int j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
+            for(uint32_t i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
+                for(uint32_t j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
                     fb_pixel(j, i, tc.backgroundColour);
-                    if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> j-tc.cursor.posX)){
+                    if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> (j-tc.cursor.posX))){
                         fb_pixel(j, i, tc.foregroundColour);
                     }
                 }

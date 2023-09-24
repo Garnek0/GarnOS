@@ -21,7 +21,7 @@ size_t bitmapSize;
 
 pmm_info_t pmm_info;
 
-static void pmm_bitmap_set(int page){
+static void pmm_bitmap_set(uint64_t page){
     if(page/8 > bitmapSize){
         panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (A)", page);
         return;
@@ -31,7 +31,7 @@ static void pmm_bitmap_set(int page){
     bitmap[page/8] |= (0b10000000 >> (page%8));
 }
 
-static void pmm_bitmap_clear(int page){
+static void pmm_bitmap_clear(uint64_t page){
     if(page/8 > bitmapSize){
         panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (D)", page);
         return;
@@ -49,8 +49,8 @@ static uint64_t pmm_find_free(int npages){
     int foundPages = 0;
     uint64_t base = 0;
     bool inChunk = false;
-    for(int i = 0; i < bitmapSize; i++){
-        for(int j = 0; j < 8; j++){
+    for(size_t i = 0; i < bitmapSize; i++){
+        for(uint8_t j = 0; j < 8; j++){
             if(!(bitmap[i] & (0b10000000 >> j))){
                 if(!inChunk){
                     inChunk = true;
@@ -70,7 +70,7 @@ static uint64_t pmm_find_free(int npages){
     }
     panic("Out of Memory!");
     serial_log("Kernel Panic from PMM: Out of Memory!\n");
-    return NULL;
+    return 0;
 }
 
 void* pmm_allocate(int npages){
@@ -81,7 +81,7 @@ void* pmm_allocate(int npages){
             pmm_bitmap_set(i);
         }
     });
-    return base;
+    return (void*)base;
 }
 
 void pmm_free(void* base, int npages){

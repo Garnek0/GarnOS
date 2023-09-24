@@ -30,7 +30,7 @@ static volatile struct limine_memmap_request memmap_request = {
 
 void memmap_print(){
     struct limine_memmap_response* memmap = memmap_request.response;
-    for(int i = 0; i < memmap->entry_count; i++){
+    for(uint64_t i = 0; i < memmap->entry_count; i++){
         kprintf("[0x%x->0x%x] %uB %s\n", memmap->entries[i]->base, memmap->entries[i]->base + memmap->entries[i]->length, memmap->entries[i]->length, memmap_type_strings[memmap->entries[i]->type]);
     }
 }
@@ -42,7 +42,7 @@ int memmap_get_entry_count(){
 uint64_t memmap_get_highest_usable_address(){
     uint64_t highest = 0;
     struct limine_memmap_response* memmap = memmap_request.response;
-    for(int i = 0; i < memmap->entry_count; i++){
+    for(uint64_t i = 0; i < memmap->entry_count; i++){
         if(memmap->entries[i]->type == LIMINE_MEMMAP_USABLE){
             highest = memmap->entries[i]->base+memmap->entries[i]->length;
         }

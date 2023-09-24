@@ -43,7 +43,7 @@ static bool acpi_tables_validate_checksum(uint64_t ptr, size_t length){
     //if it is != 0, then the table is invalid and it should be assumed to have
     //bogus values. In GarnOS, this causes a kernel panic even if an optional table is invalid
     //because an invalid checksum on any table means something is terribly wrong with the ACPI.
-    for(int i = 0; i < length; i++){
+    for(size_t i = 0; i < length; i++){
         checksum += ((uint8_t*)ptr)[i];
     }
     checksum &= 0xFF;
@@ -65,7 +65,7 @@ static uint64_t acpi_tables_find(const char* sig){
         acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)XSDT->tableArea[i*ACPIVer];
         if(!strncmp(h->signature, sig, 4)) return (uint64_t)h;
     }
-    return NULL;
+    return 0;
 }
 
 void acpi_tables_parse(){
@@ -124,9 +124,9 @@ void acpi_tables_parse(){
 
     //DSDT, probably this won't be very useful for long while. Same goes for some other tables.
     if(FADT->DSDT != 0){
-        DSDT = FADT->DSDT;
+        DSDT = (acpi_dsdt_t*)FADT->DSDT;
     } else {
-        DSDT = FADT->X_DSDT;
+        DSDT = (acpi_dsdt_t*)FADT->X_DSDT;
     }
     if(DSDT == NULL || !acpi_tables_validate_checksum((uint64_t)DSDT, DSDT->header.length)){
         kprintf("\n");

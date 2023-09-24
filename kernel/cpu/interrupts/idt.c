@@ -25,7 +25,7 @@ void idt_set_entry(uint8_t entry, void* isr, uint8_t PDPLGateType){
 
 //initialise IDT
 void idt_init(){
-    idtr.offset = idt;
+    idtr.offset = (uint64_t)idt;
     idtr.size = sizeof(idt_entry_t)*256 - 1; //256 max entries in an IDT
 
     //load the IDT and set the interrupt flag

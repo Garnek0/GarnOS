@@ -151,7 +151,7 @@ void elf_load_module(char* modulePath){
 				kmfree(sh->sh_addr);
 			}
 		}
-		kmfree(elf_module);
+		kmfree((void*)elf_module);
 		vfs_close(file);
 		klog("Attempt to load already loaded module \'%s\'!\n", KLOG_WARNING, modulePath);
 		return;

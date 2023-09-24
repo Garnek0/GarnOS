@@ -34,7 +34,7 @@ void ioapic_write_reg(uint64_t ioapicAddress, uint8_t reg, uint32_t data){
 }
 
 uint32_t ioapic_read_reg(uint64_t ioapicAddress, uint32_t reg){
-    if(fallback) return;
+    if(fallback) return 0;
     lock(ioapicLock, {
         *(volatile uint32_t*)(IOREGSEL(ioapicAddress)) = reg;
     });
@@ -46,10 +46,10 @@ void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
     uint64_t data = redirection.bits;
     size_t ioapic;
 
-    for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg(ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
+    for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
 
-    ioapic_write_reg(ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
-    ioapic_write_reg(ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
+    ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
+    ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
 }
 
 void ioapic_init(){
@@ -100,7 +100,7 @@ void ioapic_init(){
         ioapicRec = (acpi_madt_record_ioapic_t*)hdr;
         ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
         ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
-        ioapicAddresses[ioapicCount] = ioapicRec->ioapicAddress + bl_get_hhdm_offset();
+        ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->ioapicAddress + bl_get_hhdm_offset());
         vmm_map(ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), 0x13);
         ioapicCount++;
     }

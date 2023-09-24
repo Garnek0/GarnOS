@@ -14,13 +14,13 @@
 #include <cpu/smp/spinlock.h>
 
 #define VMM_PRESENT 1
-#define VMM_RW 1 << 1
-#define VMM_USER 1 << 2
-#define VMM_PWT 1 << 3
-#define VMM_PCD 1 << 4
-#define VMM_ACCESSED 1 << 5
-#define VMM_PS 1 << 7
-#define VMM_NX 1 << 63
+#define VMM_RW (1 << 1)
+#define VMM_USER (1 << 2)
+#define VMM_PWT (1 << 3)
+#define VMM_PCD (1 << 4)
+#define VMM_ACCESSED (1 << 5)
+#define VMM_PS (1 << 7)
+#define VMM_NX (1 << 63)
 
 typedef struct {
     bool present : 1;
