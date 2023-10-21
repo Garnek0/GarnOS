@@ -12,9 +12,11 @@
 #include <cpu/smp/spinlock.h>
 #include <sys/bootloader.h>
 
-spinlock_t panicLock; //i dont know if this is needed or not
+spinlock_t panicLock;
 
 void panic(char* str, ...){
+
+    //TODO: only halts bsp, make panic() halt the other processors too
 
     va_list args;
     va_start(args, str);

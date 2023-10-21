@@ -12,6 +12,126 @@
 #include "ps2.h"
 #include <module/module.h>
 #include <cpu/interrupts/interrupts.h>
+#include <mem/mm/kheap.h>
+#include <sys/input.h>
+
+#define LEFT_SHIFT 0x2A
+#define LEFT_CTRL 0x1D
+#define RIGHT_SHIFT 0x36
+#define RIGHT_CTRL 0x1D
+#define ENTER 0x1C
+#define BACKSPACE 0x0E
+#define CAPSLOCK 0x3A
+#define EX_SCANCODE 0xE0
+
+device_driver_t driver_metadata;
+
+char keymap[] = {
+     0,  '\e', '1', '2',
+    '3', '4', '5', '6',
+    '7', '8', '9', '0',
+    '-', '=',  '\b',  0,
+    'q', 'w', 'e', 'r',
+    't', 'y', 'u', 'i',
+    'o', 'p', '[', ']',
+     '\n',  0, 'a', 's',
+    'd', 'f', 'g', 'h',
+    'j', 'k', 'l', ';',
+    '\'','`',  0, '\\',
+    'z', 'x', 'c', 'v',
+    'b', 'n', 'm', ',',
+    '.', '/',  0, '*',
+     0, ' '
+};
+
+char keymapUppercase[] = {
+     0,  '\e', '!', '@',
+    '#', '$', '%', '^',
+    '&', '*', '(', ')',
+    '_', '+',  '\b',  0,
+    'Q', 'W', 'E', 'R',
+    'T', 'Y', 'U', 'I',
+    'O', 'P', '{', '}',
+     '\n',  0, 'A', 'S',
+    'D', 'F', 'G', 'H',
+    'J', 'K', 'L', ':',
+    '\"','~',  0, '|',
+    'Z', 'X', 'C', 'V',
+    'B', 'N', 'M', '<',
+    '>', '?',  0, '*',
+     0, ' '
+};
+
+void keyboard_handler(stack_frame_t* frame){
+    uint8_t scancode = ps2_read(PS2_DATA);
+    kb_input_t input;
+    switch(scancode){
+        case LEFT_SHIFT:
+            input.special = true;
+            input.pressed = true;
+            input.key = INPUT_LEFT_SHIFT;
+            input_send_key(input);
+            break;
+        case LEFT_SHIFT + 0x80:
+            input.special = true;
+            input.pressed = false;
+            input.key = INPUT_LEFT_SHIFT;
+            input_send_key(input);
+            break;
+        case RIGHT_SHIFT:
+            input.special = true;
+            input.pressed = true;
+            input.key = INPUT_RIGHT_SHIFT;
+            input_send_key(input);
+            break;
+        case RIGHT_SHIFT + 0x80:
+            input.special = true;
+            input.pressed = false;
+            input.key = INPUT_RIGHT_SHIFT;
+            input_send_key(input);
+            break;
+        case LEFT_CTRL:
+            input.special = true;
+            input.pressed = true;
+            input.key = INPUT_LEFT_CTRL;
+            input_send_key(input);
+            break;
+        case LEFT_CTRL + 0x80:
+            input.special = true;
+            input.pressed = false;
+            input.key = INPUT_LEFT_CTRL;
+            input_send_key(input);
+            break;
+        case CAPSLOCK:
+            input.special = true;
+            input.pressed = true;
+            input.key = INPUT_CAPSLOCK;
+            input_send_key(input);
+            break;
+        case CAPSLOCK + 0x80:
+            input.special = true;
+            input.pressed = false;
+            input.key = INPUT_CAPSLOCK;
+            input_send_key(input);
+            break;
+        default:
+            if(scancode <= 58){
+                input.special = false;
+                input.pressed = true;
+            } else if ((scancode - 0x80) <= 58){
+                scancode -= 0x80;
+                input.special = false;
+                input.pressed = false;
+            } else {
+                break;
+            }
+
+            if(keyboardState.lShift || keyboardState.rShift || keyboardState.capsLock) input.key = keymapUppercase[scancode];
+            else input.key = keymap[scancode];
+            input_send_key(input);
+            break;
+    }
+}
 
 void init(){
 
@@ -73,14 +193,32 @@ void init(){
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
     rb_log("PS2Controller", KLOG_OK);
+
+    device_t* kbdevice = new_device();
+    kbdevice->bus = DEVICE_BUS_NONE;
+    kbdevice->type = DEVICE_TYPE_KEYBOARD;
+    kbdevice->name = "PS/2 Keyboard";
+    kbdevice->driver = &driver_metadata;
+
+    irqHandler.keyboard_handler = keyboard_handler;
+    klog("PS2 Keyboard Initialised\n", KLOG_OK);
+    rb_log("PS2Keyboard", KLOG_OK);
 }
 
 void fini(){
     return;
 }
 
+bool probe(device_t* device){
+    return false;
+}
+
 module_t metadata = {
-    .name = "8042ps2",
+    .name = "i8042ps2",
     .init = init,
     .fini = fini
+};
+
+device_driver_t driver_metadata = {
+    .probe = probe
 };

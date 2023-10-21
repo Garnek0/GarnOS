@@ -17,17 +17,30 @@
 #include <hw/rtc/rtc.h>
 #include <display/fb.h>
 #include <term/term.h>
+#include <sys/device.h>
+#include <ds/list.h>
+#include <fs/vfs/vfs.h>
 
-kcon_command_t* firstCommand, *lastCommand;
+list_t* commandList;
 
 static void console_help(){
     kprintf("commands:\n"
             "\n"
             "help       - show this text\n"
+            "clear      - clear screen\n"
             "ver        - show kernel version\n"
             "mm         - show memory and mm info\n"
             "rblogs     - show logs inside the ringbuffer\n"
-            "timedate   - show RTC Time and Date\n");
+            "timedate   - show RTC Time and Date\n"
+            "dev        - list all devices\n"
+            "cpu        - show all detected processors\n"
+            "fs         - list mounted filesystems\n"
+            "drives     - list all drives\n"
+            "halt       - halt the system\n");
+}
+
+static void console_clear(){
+    term_clear();
 }
 
 static void console_mm(){
@@ -77,50 +90,103 @@ static void console_timedate(){
     kprintf("%d\n", rtc.seconds);
 }
 
+static void console_dev(){
+    device_t device;
+    for(size_t i = 0; i < device_get_device_count(); i++){
+        device = device_get_device(i);
+        kprintf("Device: %s\nDriver: ", device.name);
+        if(!device.driver){
+            kprintf("No Device Driver Loaded\n\n");
+            continue;
+        }
+        kprintf("%s\n\n", device.driver->name);
+    }
+}
+
+static void console_cpu(){
+    device_t device;
+    for(size_t i = 0; i < device_get_device_count(); i++){
+        device = device_get_device(i);
+        if(device.type == DEVICE_TYPE_PROCESSOR){
+            kprintf("%s\n", device.name);
+        }
+    }
+}
+
+static void console_fs(){
+    filesys_t* filesys = filesys_get_all();
+    for(size_t i = 0; i < MAX_FILESYSTEMS; i++){
+        if(!filesys[i]._avail) continue;
+        kprintf("%d: %s\n", filesys[i].mountNumber, filesys[i].name);
+    }
+}
+
+static void console_drives(){
+    drive_t* drives = drive_get_all();
+    for(size_t i = 0; i < MAX_DRIVES; i++){
+        if(!drives[i]._avail) continue;
+        kprintf("%d) %s\n", i, drives[i].name);
+    }
+}
+
+static void console_halt(){
+    kprintf("Halted."); //only halts bsp
+    asm volatile("cli");
+    for(;;){
+        asm volatile("hlt");
+    }
+}
+
 void kcon_add_command(char* cmd, void* function){
-    memcpy(lastCommand->cmd, cmd, strlen(cmd));
-    lastCommand->function = function;
+    kcon_command_t* command = kmalloc(sizeof(kcon_command_t)); 
+    memcpy(command->cmd, cmd, strlen(cmd));
+    command->function = function;
 
-    lastCommand->next = kmalloc(sizeof(kcon_command_t));
-    memset(lastCommand->next, 0, sizeof(kcon_command_t));
-
-    lastCommand = lastCommand->next;
+    list_insert(commandList, (void*)command); 
 }
 
 void init_kcon(){
     fb_clear(0x00000000);
     cursor_set(&tc.cursor, 0, 0);
 
-    firstCommand = lastCommand = kmalloc(sizeof(kcon_command_t));
-    memset(firstCommand, 0, sizeof(kcon_command_t));
+    commandList = list_create("commandList");
 
     kcon_add_command("help", console_help);
+    kcon_add_command("clear", console_clear);
     kcon_add_command("ver", console_ver);
     kcon_add_command("mm", console_mm);
     kcon_add_command("rblogs", console_rblogs);
     kcon_add_command("timedate", console_timedate);
+    kcon_add_command("dev", console_dev);
+    kcon_add_command("cpu", console_cpu);
+    kcon_add_command("fs", console_fs);
+    kcon_add_command("drives", console_drives);
+    kcon_add_command("halt", console_halt);
 
     kprintf("GarnOS Kernel Console Demo\n");
     char* cmd;
 
-    kcon_command_t* currentCommand;
+    kcon_command_t* command;
 
     while(true){
         cmd = kreadline(">");
         if(cmd[0] == 0) continue;
 
-        currentCommand = firstCommand;
+        foreach(item, commandList){
+            command = (kcon_command_t*)item->value;
 
-        while(currentCommand){
-            if(!strcmp(currentCommand->cmd, cmd)){
-                currentCommand->function();
-                break;
+            if(!strcmp(command->cmd, cmd)){
+                command->function();
+                goto foundCommand;
             }
-            currentCommand = currentCommand->next;
         }
+        goto unknownCommand;
 
-        if(!currentCommand){
-            kprintf("Unknown command: %s\n", cmd);
-        }
+unknownCommand:
+        kprintf("Unknown command: %s\n", cmd);
+        continue;
+
+foundCommand:
+        continue;
     }
 }

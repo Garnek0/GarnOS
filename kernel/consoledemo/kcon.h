@@ -8,10 +8,9 @@
 #ifndef KCONDEMO_H
 #define KCONDEMO_H
 
-typedef struct _kcon_command {
+typedef struct {
     char cmd[16];
     void (*function)();
-    struct _kcon_command* next;
 } kcon_command_t;
 
 void init_kcon();

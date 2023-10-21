@@ -20,8 +20,6 @@
 #define KLOG_WARNING 3
 #define KLOG_FATAL 4
 
-extern char stdin;
-
 int kprintf(char* str, ...);
 int kvprintf(char* str, va_list args);
 char kputchar(char chr);

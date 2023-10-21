@@ -16,12 +16,13 @@
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>
+#include <sys/device.h>
 
 spinlock_t moduleLoaderLock;
 
 void elf_load_module(char* modulePath){
     Elf64_Ehdr* h;
-    vfs_file_t* file = vfs_open(modulePath, VFS_FILE_ACCESS_R);
+    file_t* file = kfopen(modulePath, FILE_ACCESS_R);
 
     h = (Elf64_Ehdr*)file->address;
 
@@ -42,7 +43,7 @@ void elf_load_module(char* modulePath){
 	}
 
 	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
-	vfs_read(file, file->size, (void*)elf_module);
+	kfread(file, file->size, (void*)elf_module);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
 	//the correct load addresses for each section
@@ -61,6 +62,7 @@ void elf_load_module(char* modulePath){
 	}
 
 	module_t* modData = NULL;
+	device_driver_t* driverData = NULL;
 
 	//Load symbols
 	for(size_t i = 0; i < h->e_shnum; i++){
@@ -81,17 +83,22 @@ void elf_load_module(char* modulePath){
 				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
 			}
 
-			//if the symbol is called "metadata", then save it. (We will need the metadata struct to check
-			//if this module is already loaded and call its init function if it isn't.)
+			//if the symbol is called "metadata", then save it. (We will need the metadata struct to
+			//retrieve info about the module.)
+			//if the symbol is called "driver_metadata", then this module is a driver and should
+			//be treated accordingly
 			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
-				modData = (void*)symTable[sym].st_value;
+				modData = (module_t*)symTable[sym].st_value;
+			} else if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "driver_metadata")){
+				driverData = (device_driver_t*)symTable[sym].st_value;
 			}
 		}
 	}
 
-	//if no metadata struct was found, panic.
+	//if no metadata struct was found, call the module invalid and unload.
 	if(!modData){
-		panic("Module %s has invalid/missing metadata structure!", modulePath);
+		goto unload;
+		klog("Module '%s' has invalid metadata struct!\n", modulePath);
 	}
 
 	//calculate relocations
@@ -151,21 +158,30 @@ void elf_load_module(char* modulePath){
 				kmfree(sh->sh_addr);
 			}
 		}
-		kmfree((void*)elf_module);
-		vfs_close(file);
+		goto unload;
 		klog("Attempt to load already loaded module \'%s\'!\n", KLOG_WARNING, modulePath);
 		return;
 	}
 
 	module_list_add(entry);
+	if(driverData){
+		driverData->name = entry.metadata->name;
+		device_driver_add(driverData);
+	}
 
 	//cleanup
 
-	vfs_close(file);
+	kfclose(file);
 
 	klog("Module: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
 
 	lock(moduleLoaderLock, {
 		modData->init();
 	});
+
+	return;
+
+unload:
+	kmfree((void*)elf_module);
+	kfclose(file);
 }

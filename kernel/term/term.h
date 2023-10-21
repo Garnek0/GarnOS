@@ -39,6 +39,7 @@ typedef struct {
 extern term_context_t tc;
 
 void term_init();
+void term_clear();
 char term_putchar(char chr);
 void term_scroll(uint16_t pix);
 int term_print(char* str);

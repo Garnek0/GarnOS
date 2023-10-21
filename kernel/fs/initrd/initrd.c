@@ -36,7 +36,7 @@ static uint64_t initrd_tar_conv_number(char* str, size_t size){
     return n;
 }
 
-vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
+file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
 
     initrd_tar_header_t* h = initrd;
     uint64_t haddr = (uint64_t)h;
@@ -52,11 +52,11 @@ vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
         } else if (!strcmp(path, h->filename)){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
-            vfs_file_t* file = kmalloc(sizeof(vfs_file_t));
-            file->access = VFS_FILE_ACCESS_R;
+            file_t* file = kmalloc(sizeof(file_t));
+            file->access = FILE_ACCESS_R;
             //the file is already in memory
             file->address = (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
-            file->fsNumber = fsNumber;
+            file->fs = fs;
             file->seek = 0;
             file->size = size;
 
@@ -75,11 +75,11 @@ vfs_file_t* initrd_open(char* path, uint8_t access, uint8_t fsNumber){
     }
 }
 
-void initrd_close(vfs_file_t* file){
+void initrd_close(filesys_t* fs, file_t* file){
     kmfree((void*)file);
 }
 
-void initrd_read(vfs_file_t* file, size_t size, void* buf){
+void initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf){
 
     if(file->seek > file->size){
         file->seek = file->size;
@@ -94,13 +94,14 @@ void initrd_read(vfs_file_t* file, size_t size, void* buf){
 
 }
 
-void initrd_write(vfs_file_t* file, size_t size, void* buf){
+void initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf){
     return; //no need to write to the initrd
 }
 
 //initialise initrd
 void initrd_init(){
-    vfs_fs_t initrdFS;
+    filesys_t initrdFS;
+
     initrdFS.name = "init";
     initrdFS.open = initrd_open;
     initrdFS.close = initrd_close;
@@ -115,5 +116,5 @@ void initrd_init(){
 
     initrdFS.context = (void*)initrd;
 
-    vfs_add(initrdFS);
+    filesys_mount(initrdFS);
 }

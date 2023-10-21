@@ -33,7 +33,7 @@ run-uefi: ovmf $(IMAGE_NAME).iso
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -m 2G -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -m 2G -hda $(IMAGE_NAME).hdd -d int -M q35
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd

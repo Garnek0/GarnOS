@@ -10,6 +10,7 @@
 #include <kstdio.h>
 #include <term/term.h>
 #include <mem/mm/kheap.h>
+#include <sys/input.h>
 
 spinlock_t kreadlineLock;
 
@@ -21,23 +22,23 @@ char* kreadline(char* prompt){
 
     char chr;
 
-    stdin = 0;
+    keyBuffer = 0;
 
     lock(kreadlineLock, {
-        while(stdin!='\n'){
-            stdin = 0;
-            while(!stdin) asm volatile("nop");
-            if(stdin == '\b' && backspaces){
-                kputchar(stdin);
+        while(keyBuffer!='\n'){
+            keyBuffer = 0;
+            while(!keyBuffer) asm volatile("nop");
+            if(keyBuffer == '\b' && backspaces){
+                kputchar(keyBuffer);
                 backspaces--;
                 i--;
                 continue;
-            } else if (stdin == '\b' && !backspaces){
+            } else if (keyBuffer == '\b' && !backspaces){
                 continue;
             }
-            chr = kputchar(stdin);
+            chr = kputchar(keyBuffer);
             if(tc.escape || chr == 0) continue;
-            line[i] = stdin;
+            line[i] = keyBuffer;
             i++;
             backspaces++;
             if(i > 255){

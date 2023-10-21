@@ -48,7 +48,7 @@ See LICENSE.md for details.
 - [x] SMP
 - [x] APIC, I/O APIC
 - [x] Timer (PIT or APIC Timer)
-- [ ] PCI Enumeration
+- [x] PCI Driver
 - [ ] AHCI driver
 - [ ] IDE driver
 - [ ] FAT32 Driver

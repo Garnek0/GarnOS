@@ -38,10 +38,17 @@ void vmm_init(){
     memset((void*)PML4, 0, PAGE_SIZE);
     
     //map kernel
-    for(uint64_t i = 0; i <= ALIGN_UP(bl_get_kernel_file_size(), PAGE_SIZE); i+=PAGE_SIZE){
-        vmm_map(i+bl_get_kernel_phys_base(), i+bl_get_kernel_virt_base(), 0x3);
+
+    memmap_entry_t entry;
+    for(size_t i = 0; i < memmap_get_entry_count(); i++){
+        entry = memmap_get_entry(i);
+        if(entry.type != MEMMAP_KERNEL_AND_MODULES) continue;
+
+        for(uint64_t i = 0; i <= ALIGN_UP(entry.length, PAGE_SIZE); i+=PAGE_SIZE){
+            vmm_map(i+bl_get_kernel_phys_base(), i+bl_get_kernel_virt_base(), 0x3);
+        }
     }
-	//long boi
+
 	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, bl_get_kernel_phys_base(), ALIGN_UP((bl_get_kernel_phys_base()+bl_get_kernel_file_size()), PAGE_SIZE), bl_get_kernel_virt_base(), ALIGN_UP((bl_get_kernel_virt_base()+bl_get_kernel_file_size()), PAGE_SIZE));
 
     //map first 4 GiB

@@ -60,6 +60,11 @@ void term_init(){
     tc.enabled = true;
 }
 
+void term_clear(){
+    fb_clear(0x00000000);
+    cursor_set(&tc.cursor, 0, 0);
+}
+
 void term_disable(){
     tc.enabled = false;
 }

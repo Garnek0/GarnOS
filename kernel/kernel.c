@@ -31,6 +31,7 @@
 
 #include <fs/vfs/vfs.h>
 #include <fs/initrd/initrd.h>
+#include <fs/vfs/vfs.h>
 
 #include <display/fb.h>
 
@@ -43,6 +44,7 @@
 #include <sys/rblogs.h>
 #include <sys/compat.h>
 #include <sys/timer.h>
+#include <sys/device.h>
 
 #include <consoledemo/kcon.h>
 
@@ -86,10 +88,14 @@ void _start(void) {
 
     ksym_init(); //initialise kernel symbol table
 
+    device_init(); //initialise device manager
+
     smp_init(); //initialise SMP
 
     module_init(); //initialise module manager
 
+    pci_init(); //initialise PCI devices
+    
     init_kcon(); //initialise demo console
 
     halt(); //halt

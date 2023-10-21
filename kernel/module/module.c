@@ -15,6 +15,7 @@
 #include <fs/initrd/initrd.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/spinlock.h>
+#include <hw/pci/pci.h>
 
 loaded_mod_list_entry_t* modListEntryLast;
 loaded_mod_list_entry_t* modListEntryFirst;
@@ -31,15 +32,8 @@ void module_init(){
 
     //predefined modules
 
-    //TODO: first make sure the machine supports ide
-    elf_load_module("0:/ide.mod");
-
-    //TODO: first make sure the machine supports ahci
-    elf_load_module("0:/ahci.mod");
-
     if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
         elf_load_module("0:/ps2.mod");
-        elf_load_module("0:/ps2kb.mod");
     }
 }
 
