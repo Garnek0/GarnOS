@@ -12,14 +12,13 @@
 #include <mem/mm/pmm.h>
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
-#include <sys/rblogs.h>
 #include <kernel.h>
 #include <hw/rtc/rtc.h>
 #include <display/fb.h>
 #include <term/term.h>
-#include <sys/device.h>
+#include <sys/dal/dal.h>
 #include <ds/list.h>
-#include <fs/vfs/vfs.h>
+#include <sys/fal/fal.h>
 
 list_t* commandList;
 
@@ -30,7 +29,6 @@ static void console_help(){
             "clear      - clear screen\n"
             "ver        - show kernel version\n"
             "mm         - show memory and mm info\n"
-            "rblogs     - show logs inside the ringbuffer\n"
             "timedate   - show RTC Time and Date\n"
             "dev        - list all devices\n"
             "cpu        - show all detected processors\n"
@@ -47,32 +45,6 @@ static void console_mm(){
     kprintf("available pages: %d (%uKiB free memory)\n"
             "used pages: %d (%uKiB used memory)\n"
             "kheap size: %uKiB\n", pmm_info.usablePages, (pmm_info.usablePages*PAGE_SIZE/1024), pmm_info.usedPages, (pmm_info.usedPages*PAGE_SIZE/1024), (kheap_info.kheapSize/1024));
-}
-
-bool rblogsFirstIssued = true;
-static void console_rblogs(){
-    char* statusStrings[] = {
-        "OK",
-        "FAILED",
-        "INFO",
-        "WARNING",
-        "FATAL"
-    };
-
-    if(rblogsFirstIssued){
-        rblogsFirstIssued = false;
-        kprintf("NOTE: ringbuffer logs are an experimental concept.\nThese logs may be incomplete or even inaccutare\n\n");
-    }
-
-    int spaces;
-    for(int i = 0; i < RINGBUFFER_ENTRIES; i++){
-        if(!RBEntries[i].log[0]) continue;
-        spaces = 32;
-        kprintf("LOG: %s", RBEntries[i].log);
-        spaces -= strlen(RBEntries[i].log);
-        for(int j = 0; j < spaces; j++) kprintf(" ");
-        kprintf("STATUS: %s\n", statusStrings[RBEntries[i].status]);
-    }
 }
 
 static void console_ver(){
@@ -116,16 +88,27 @@ static void console_cpu(){
 static void console_fs(){
     filesys_t* filesys = filesys_get_all();
     for(size_t i = 0; i < MAX_FILESYSTEMS; i++){
-        if(!filesys[i]._avail) continue;
-        kprintf("%d: %s\n", filesys[i].mountNumber, filesys[i].name);
+        if(!filesys[i]._valid) continue;
+        kprintf("%d: %s - Size: %dKiB (%d Bytes)\n", filesys[i].mountNumber, filesys[i].name, filesys[i].size/1024, filesys[i].size);
     }
 }
 
 static void console_drives(){
     drive_t* drives = drive_get_all();
     for(size_t i = 0; i < MAX_DRIVES; i++){
-        if(!drives[i]._avail) continue;
+        if(!drives[i]._valid) continue;
         kprintf("%d) %s\n", i, drives[i].name);
+        if(drives[i].type == DRIVE_TYPE_OPTICAL) {
+            kprintf("   (Optical Media does not support Partitions)\n");
+            return;
+        }
+        if(drives[i].partitionCount == 0){
+            kprintf("   (Drive not Partitioned)\n");
+            return;
+        }
+        for(int j = 0; j < drives[i].partitionCount; j++){
+            kprintf("   Partition %d: Start LBA: 0x%x, End LBA: 0x%x, Size: %dKiB (%d Bytes)\n", j, drives[i].partitions[j].startLBA, drives[i].partitions[j].endLBA, drives[i].partitions[j].size/1024, drives[i].partitions[j].size);
+        }
     }
 }
 
@@ -155,7 +138,6 @@ void init_kcon(){
     kcon_add_command("clear", console_clear);
     kcon_add_command("ver", console_ver);
     kcon_add_command("mm", console_mm);
-    kcon_add_command("rblogs", console_rblogs);
     kcon_add_command("timedate", console_timedate);
     kcon_add_command("dev", console_dev);
     kcon_add_command("cpu", console_cpu);

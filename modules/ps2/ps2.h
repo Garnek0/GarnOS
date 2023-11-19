@@ -12,8 +12,7 @@
 
 #include <hw/ports.h>
 #include <kstdio.h>
-#include <sys/device.h>
-#include <sys/rblogs.h>
+#include <sys/dal/dal.h>
 
 #define TIMEOUT 100000
 

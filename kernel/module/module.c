@@ -12,41 +12,39 @@
 #include <mem/memutil/memutil.h>
 #include <mem/mm/kheap.h>
 #include <hw/ports.h>
-#include <fs/initrd/initrd.h>
+#include <sys/fal/initrd/initrd.h>
+#include <sys/fal/fal.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/spinlock.h>
-#include <hw/pci/pci.h>
+#include <ds/list.h>
+#include <kstdio.h>
 
-loaded_mod_list_entry_t* modListEntryLast;
-loaded_mod_list_entry_t* modListEntryFirst;
+list_t* moduleList;
 
 spinlock_t moduleListLock;
 
 void module_init(){
     initrd_init(); //initialise initial ramdisk
-
-    modListEntryLast = modListEntryFirst = kmalloc(sizeof(loaded_mod_list_entry_t));
-    memset(modListEntryFirst, 0, sizeof(loaded_mod_list_entry_t));
-
     //init should always be 0:
 
-    //predefined modules
+    moduleList = list_create("moduleList");
 
+    //Detect PS/2 Devices
     if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
         elf_load_module("0:/ps2.mod");
+        klog("DAL: Found Driver for PS2 Controller\n", KLOG_OK);
     }
 }
 
 bool module_list_search(char* name){
-    loaded_mod_list_entry_t* modListEntry = modListEntryFirst;
+    loaded_mod_list_entry_t* entry;
 
     lock(moduleListLock, {
-        while(modListEntry && modListEntry->metadata){
-            if(!strcmp(name, modListEntry->metadata->name)){
-                releaseLock(&moduleListLock);
+        foreach(item, moduleList){
+            entry = (loaded_mod_list_entry_t*)item->value;
+            if(!strcmp(entry->metadata->name, name)){
                 return true;
             }
-            modListEntry = modListEntry->next;
         }
     });
 
@@ -54,15 +52,14 @@ bool module_list_search(char* name){
 }
 
 loaded_mod_list_entry_t* module_list_get(char* name){
-    loaded_mod_list_entry_t* modListEntry = modListEntryFirst;
+    loaded_mod_list_entry_t* entry;
 
     lock(moduleListLock, {
-        while(modListEntry && modListEntry->metadata){
-            if(!strcmp(name, modListEntry->metadata->name)){
-                releaseLock(&moduleListLock);
-                return modListEntry;
+        foreach(item, moduleList){
+            entry = (loaded_mod_list_entry_t*)item->value;
+            if(!strcmp(entry->metadata->name, name)){
+                return entry;
             }
-            modListEntry = modListEntry->next;
         }
     });
 
@@ -70,16 +67,15 @@ loaded_mod_list_entry_t* module_list_get(char* name){
 }
 
 void module_list_add(loaded_mod_list_entry_t entry){
+    loaded_mod_list_entry_t* newModListEntry = kmalloc(sizeof(loaded_mod_list_entry_t));
+    memset((void*)newModListEntry, 0, sizeof(loaded_mod_list_entry_t));
+
     lock(moduleListLock, {
-        loaded_mod_list_entry_t* newModListEntry = kmalloc(sizeof(loaded_mod_list_entry_t));
-        memset((void*)newModListEntry, 0, sizeof(loaded_mod_list_entry_t));
+        newModListEntry->address = entry.address;
+        newModListEntry->metadata = entry.metadata;
+        newModListEntry->size = entry.size;
+        newModListEntry->next = NULL;
 
-        modListEntryLast->address = entry.address;
-        modListEntryLast->metadata = entry.metadata;
-        modListEntryLast->size = entry.size;
-        modListEntryLast->next = NULL;
-
-        modListEntryLast->next = newModListEntry;
-        modListEntryLast = newModListEntry;
+        list_insert(moduleList, (void*)newModListEntry);
     });
 }

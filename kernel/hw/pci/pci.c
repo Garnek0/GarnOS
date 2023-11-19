@@ -13,7 +13,7 @@
 #include <exec/elf.h>
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
-#include <sys/device.h>
+#include <sys/dal/dal.h>
 
 uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
     uint32_t address;
@@ -35,8 +35,4 @@ uint32_t pci_config_read_address(uint8_t bus, uint8_t dev, uint8_t func, uint8_t
     address |= (((uint32_t)pci_config_read_word(bus, dev, func, offset+2) << 16) & 0xFFFF0000);
 
     return address;
-}
-
-void pci_init(){
-    pcidev_init();
 }

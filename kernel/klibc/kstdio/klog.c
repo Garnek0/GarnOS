@@ -20,8 +20,6 @@ void klog(char* fmt, uint8_t status, ...){
 
     lock(klogLock, {
         //TODO: Add string formatting for this:
-        serial_log(fmt);
-        serial_log("\r");
 
         uint32_t colour = term_get_colour(FOREGROUND);
         r = ((colour >> 16) & 0xff);

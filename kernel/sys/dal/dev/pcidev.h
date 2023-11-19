@@ -1,15 +1,15 @@
 /*  
-*   File: smp.h
+*   File: pcidev.h
 *
 *   Author: Garnek
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#ifndef SMP_H
-#define SMP_H
+#ifndef PCIDEV_H
+#define PCIDEV_H
 
 #include <types.h>
 
-void smp_init();
+void pcidev_init();
 
-#endif //SMP_H
+#endif //PCIDEV_H

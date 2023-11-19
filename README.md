@@ -50,7 +50,7 @@ See LICENSE.md for details.
 - [x] Timer (PIT or APIC Timer)
 - [x] PCI Driver
 - [ ] AHCI driver
-- [ ] IDE driver
+- [x] IDE driver
 - [ ] FAT32 Driver
 - [ ] Syscalls, userland and ELF executables
 - [ ] Driver interface (Custom or UDI)

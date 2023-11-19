@@ -16,7 +16,6 @@
 #include <sys/bootloader.h>
 #include <limine.h>
 #include <kstdio.h>
-#include <sys/rblogs.h>
 
 page_table_t* PML4;
 
@@ -76,7 +75,6 @@ void vmm_init(){
 
     asm ("mov %0, %%cr3" : : "r" (PML4));
 	klog("Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, PML4);
-    rb_log("VMM", KLOG_OK);
 }
 
 void vmm_map(uint64_t physAddr, uint64_t virtAddr, uint32_t flags){

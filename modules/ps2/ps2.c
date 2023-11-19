@@ -157,7 +157,6 @@ void init(){
     res = ps2_read(PS2_DATA);
     if(res != 0x55){
         klog("PS2: PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, res);
-        rb_log("PS2Controller", KLOG_FAILED);
         return;
     }
 
@@ -192,7 +191,6 @@ void init(){
     asm volatile("sti");
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
-    rb_log("PS2Controller", KLOG_OK);
 
     device_t* kbdevice = new_device();
     kbdevice->bus = DEVICE_BUS_NONE;
@@ -200,9 +198,8 @@ void init(){
     kbdevice->name = "PS/2 Keyboard";
     kbdevice->driver = &driver_metadata;
 
-    irqHandler.keyboard_handler = keyboard_handler;
+    irq_set_handler(1, keyboard_handler);
     klog("PS2 Keyboard Initialised\n", KLOG_OK);
-    rb_log("PS2Keyboard", KLOG_OK);
 }
 
 void fini(){
@@ -213,6 +210,10 @@ bool probe(device_t* device){
     return false;
 }
 
+bool attach(device_t* device){
+    return false;
+}
+
 module_t metadata = {
     .name = "i8042ps2",
     .init = init,
@@ -220,5 +221,6 @@ module_t metadata = {
 };
 
 device_driver_t driver_metadata = {
-    .probe = probe
+    .probe = probe,
+    .attach = attach
 };

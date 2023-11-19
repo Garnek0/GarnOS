@@ -9,7 +9,6 @@
 
 #include "pmm.h"
 #include <kstdio.h>
-#include <sys/rblogs.h>
 #include <limine.h>
 #include <sys/panic.h>
 #include <mem/memmap/memmap.h>
@@ -69,7 +68,6 @@ static uint64_t pmm_find_free(int npages){
         }
     }
     panic("Out of Memory!");
-    serial_log("Kernel Panic from PMM: Out of Memory!\n");
     return 0;
 }
 
@@ -109,9 +107,7 @@ void pmm_init(){
     }
 
     klog("Could not Initialise Physical Memory Allocator", KLOG_FAILED);
-    rb_log("PMM", KLOG_FAILED);
     panic("Not enough free memory to allocate for bitmap.");
-    serial_log("Kernel Panic from PMM: Not enough free memory to allocate for bitmap.\n");
 
 success:
     memset(bitmap, 0xff, bitmapSize);
@@ -133,5 +129,4 @@ success:
     }
 
     klog("Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, bitmap);
-    rb_log("PMM", KLOG_OK);
 }

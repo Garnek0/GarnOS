@@ -11,8 +11,7 @@
 #include <kstdio.h>
 #include <hw/ports.h>
 #include <acpi/tables/tables.h>
-#include <sys/rblogs.h>
-#include <cpu/smp/smp.h>
+#include <cpu/smp/cpus.h>
 #include <mem/mm/vmm.h>
 #include <sys/bootloader.h>
 
@@ -53,6 +52,8 @@ void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
 }
 
 void ioapic_init(){
+    asm volatile("cli");
+
     outb(0x20, 0x20); //PIC EOI
     outb(0xA0, 0x20);
 
@@ -82,11 +83,15 @@ void ioapic_init(){
 	io_wait();
 
     outb(PIC1_DATA, m1);
+    io_wait();
     outb(PIC2_DATA, m2);
+    io_wait();
 
     //Disable PIC
     outb(PIC1_DATA, 0xff);
+    io_wait();
     outb(PIC2_DATA, 0xff);
+    io_wait();
 
     acpi_madt_record_hdr_t* hdr = &MADT->MADTRecords;
     acpi_madt_record_ioapic_t* ioapicRec;
@@ -106,14 +111,17 @@ void ioapic_init(){
     }
 
     if(ioapicCount == 0){
-        //fallback to the PIC
+        //use the PIC as a fallback interrupt controller
         outb(PIC1_DATA, 0x00);
+        io_wait();
         outb(PIC2_DATA, 0x00);
+        io_wait();
 
         klog("I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED);
-        rb_log("I/O APICs", KLOG_FAILED);
 
         fallback = true;
+
+        asm volatile("sti");
 
         return;
     }
@@ -130,8 +138,8 @@ void ioapic_init(){
     ioapic_redirect(red, 0);
     red.fields.vector = 33;
     ioapic_redirect(red, 1);
-    red.fields.vector = 32; //PIT is irq 2 when using the I/O APIC
-    ioapic_redirect(red, 2);
+    red.fields.vector = 32;
+    ioapic_redirect(red, 2); 
     red.fields.vector = 35;
     ioapic_redirect(red, 3);
     red.fields.vector = 36;
@@ -175,6 +183,7 @@ void ioapic_init(){
 
     //TODO: Find NMI entries in the madt
 
+    asm volatile("sti");
+
     klog("I/O APICs Initialised Successfully.\n", KLOG_OK);
-    rb_log("I/O APICs", KLOG_OK);
 }

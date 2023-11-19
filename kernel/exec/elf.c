@@ -9,14 +9,14 @@
 
 #include "elfabi.h"
 #include "elf.h"
-#include <fs/vfs/vfs.h>
+#include <sys/fal/fal.h>
 #include <sys/panic.h>
 #include <sys/ksym.h>
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>
-#include <sys/device.h>
+#include <sys/dal/dal.h>
 
 spinlock_t moduleLoaderLock;
 
@@ -97,8 +97,8 @@ void elf_load_module(char* modulePath){
 
 	//if no metadata struct was found, call the module invalid and unload.
 	if(!modData){
-		goto unload;
 		klog("Module '%s' has invalid metadata struct!\n", modulePath);
+		goto unload;
 	}
 
 	//calculate relocations
@@ -158,8 +158,8 @@ void elf_load_module(char* modulePath){
 				kmfree(sh->sh_addr);
 			}
 		}
-		goto unload;
 		klog("Attempt to load already loaded module \'%s\'!\n", KLOG_WARNING, modulePath);
+		goto unload;
 		return;
 	}
 

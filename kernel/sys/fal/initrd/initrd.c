@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "initrd.h"
-#include <fs/vfs/vfs.h>
+#include <sys/fal/fal.h>
 #include <kstdio.h>
 #include <sys/panic.h>
 #include <sys/bootloader.h>
@@ -98,15 +98,26 @@ void initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf){
     return; //no need to write to the initrd
 }
 
+void initrd_rmdir(filesys_t* fs, char* path){
+    return; //no need to remove directories from the initrd
+}
+
+void initrd_mkdir(filesys_t* fs, char* path){
+    return; //no need to make directories inside the initrd
+}
+
 //initialise initrd
 void initrd_init(){
     filesys_t initrdFS;
 
-    initrdFS.name = "init";
+    filesys_set_name(&initrdFS, "init");
+    initrdFS.type = FILESYS_TYPE_INIT_USTAR;
     initrdFS.open = initrd_open;
     initrdFS.close = initrd_close;
     initrdFS.read = initrd_read;
     initrdFS.write = initrd_write;
+    initrdFS.mkdir = initrd_mkdir;
+    initrdFS.rmdir = initrd_rmdir;
 
     //fetch module address from limine
     initrd = (initrd_tar_header_t*)(module_request.response->modules[0]->address);
@@ -115,6 +126,7 @@ void initrd_init(){
     }
 
     initrdFS.context = (void*)initrd;
+    initrdFS.size = initrd_tar_conv_number(initrd->size, 11);
 
     filesys_mount(initrdFS);
 }

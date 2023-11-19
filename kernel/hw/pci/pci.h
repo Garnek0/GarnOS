@@ -218,8 +218,6 @@ typedef struct {
     //TODO: Do this
 } pci_config_pci_to_cardbus_t;
 
-void pci_init();
-void pcidev_init();
 uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset);
 uint32_t pci_config_read_address(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset);
 

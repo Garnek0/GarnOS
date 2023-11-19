@@ -10,7 +10,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <module/module.h>
-#include <sys/device.h>
+#include <sys/dal/dal.h>
 #include <hw/pci/pci.h>
 #include <kstdio.h>
 

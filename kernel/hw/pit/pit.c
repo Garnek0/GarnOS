@@ -51,5 +51,5 @@ void pit_init(){
 
     pit_set_frequency(1000); //1ms per tick
 
-    irqHandler.pit_handler = pit_handler;
+    irq_set_handler(0, pit_handler);
 }

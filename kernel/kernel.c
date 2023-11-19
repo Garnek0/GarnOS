@@ -14,7 +14,7 @@
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>
-#include <cpu/smp/smp.h>
+#include <cpu/smp/cpus.h>
 
 #include <mem/memmap/memmap.h>
 #include <mem/mm/pmm.h>
@@ -29,9 +29,8 @@
 
 #include <module/module.h>
 
-#include <fs/vfs/vfs.h>
-#include <fs/initrd/initrd.h>
-#include <fs/vfs/vfs.h>
+#include <sys/fal/fal.h>
+#include <sys/fal/initrd/initrd.h>
 
 #include <display/fb.h>
 
@@ -41,10 +40,9 @@
 
 #include <sys/panic.h>
 #include <sys/ksym.h>
-#include <sys/rblogs.h>
 #include <sys/compat.h>
 #include <sys/timer.h>
-#include <sys/device.h>
+#include <sys/dal/dal.h>
 
 #include <consoledemo/kcon.h>
 
@@ -57,9 +55,7 @@ static void halt(void) {
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void) {
-
-    rb_init(); //initialise ringbuffer for logs
-
+    
     fb_init(); //initialise framebuffer
 
     term_init(); //initialise terminal emulator
@@ -88,13 +84,7 @@ void _start(void) {
 
     ksym_init(); //initialise kernel symbol table
 
-    device_init(); //initialise device manager
-
-    smp_init(); //initialise SMP
-
-    module_init(); //initialise module manager
-
-    pci_init(); //initialise PCI devices
+    dal_init(); //initialise Device Abstraction Layer
     
     init_kcon(); //initialise demo console
 

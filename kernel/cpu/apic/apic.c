@@ -9,12 +9,11 @@
 
 #include "apic.h"
 #include <kstdio.h>
-#include <sys/rblogs.h>
 #include <module/module.h>
 #include <sys/bootloader.h>
 #include <mem/mm/vmm.h>
 #include <acpi/tables/tables.h>
-#include <cpu/smp/smp.h>
+#include <cpu/smp/cpus.h>
 #include <hw/ports.h>
 
 static uint64_t* LAPICAddress;

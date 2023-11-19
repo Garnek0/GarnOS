@@ -1,5 +1,5 @@
 /*  
-*   File: device.c
+*   File: device.h
 *
 *   Author: Garnek
 */
@@ -46,22 +46,10 @@ typedef struct _device {
     struct _device_driver* driver;
 } device_t;
 
-typedef struct _device_driver {
-    char* name;
-    bool (*probe)(struct _device* device);
-    bool (*attach)(struct _device* device);
-    bool (*remove)(struct _device* device);
-    void* data;
-} device_driver_t;
-
 void device_init();
 void device_add(device_t* device);
-void device_driver_add(device_driver_t* driver);
-bool device_driver_attach(device_t* device);
 size_t device_get_device_count();
-size_t device_get_driver_count();
 device_t device_get_device(size_t i);
-device_driver_t device_get_driver(size_t i);
 device_t* new_device();
 
 #endif //DEVICE_H
