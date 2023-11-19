@@ -51,7 +51,7 @@ See LICENSE.md for details.
 - [x] PCI Driver
 - [ ] AHCI driver
 - [x] IDE driver
-- [ ] FAT32 Driver
+- [ ] FAT Driver
 - [ ] Syscalls, userland and ELF executables
 - [ ] Driver interface (Custom or UDI)
 - [ ] GUI
