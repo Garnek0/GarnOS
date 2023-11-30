@@ -32,6 +32,14 @@ filesys_t* filesys_mount(filesys_t filesys){
     device_t* fsDev = kmalloc(sizeof(device_t));    //dont create device with "new_device()" as this
                                                     //is not an actual device
     lock(filesysLock, {
+        if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
+            filesystems[0] = filesys;
+            filesystems[0].mountNumber = 0;
+            fsAddr = &filesystems[0];
+            releaseLock(&filesysLock);
+            return fsAddr;
+        }
+
         filesystems[nextAvailFSIndex] = filesys;
         filesystems[nextAvailFSIndex].mountNumber = nextAvailFSIndex;
         fsAddr = &filesystems[nextAvailFSIndex];

@@ -13,6 +13,9 @@
 
 void* bl_get_kernel_file_address();
 uint64_t bl_get_kernel_file_size();
+uint64_t* bl_get_gpt_system_disk_uuid();
+uint64_t* bl_get_gpt_system_partition_uuid();
+uint64_t* bl_get_mbr_system_disk_id();
 uint64_t bl_get_kernel_phys_base();
 uint64_t bl_get_kernel_virt_base();
 uint64_t bl_get_hhdm_offset();

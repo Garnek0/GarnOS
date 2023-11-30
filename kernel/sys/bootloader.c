@@ -38,6 +38,18 @@ uint64_t bl_get_kernel_file_size(){
     return kernel_file_request.response->kernel_file->size;
 }
 
+uint64_t* bl_get_gpt_system_disk_uuid(){
+    return (uint64_t*)&kernel_file_request.response->kernel_file->gpt_disk_uuid;
+}
+
+uint64_t* bl_get_gpt_system_partition_uuid(){
+    return (uint64_t*)&kernel_file_request.response->kernel_file->gpt_part_uuid;
+}
+
+uint64_t* bl_get_mbr_system_disk_id(){
+    return (uint64_t*)&kernel_file_request.response->kernel_file->mbr_disk_id;
+}
+
 uint64_t bl_get_kernel_phys_base(){
     return kernel_address_request.response->physical_base;
 }

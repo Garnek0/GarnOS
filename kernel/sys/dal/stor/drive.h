@@ -30,6 +30,7 @@ typedef struct _partition {
     uint64_t startLBA;
     uint64_t endLBA;
     uint64_t attribs;
+    bool isSystemPartition;
     size_t size;
 
     //automatically set by the DAL. should not be touched
@@ -40,6 +41,7 @@ typedef struct _partition {
 typedef struct _drive {
     char* name;
     int interface;
+    bool isSystemDrive;
     uint8_t type;
     size_t size;
     size_t blockSize;

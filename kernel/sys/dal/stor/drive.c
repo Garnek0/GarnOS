@@ -43,6 +43,7 @@ drive_t* drive_add(drive_t drive){
         drvDevice->data = (void*)&drives[nextAvailDriveIndex];
 
         drive._device = drvDevice;
+        drive.isSystemDrive = false; //assume this is not a system drive
 
         drives[nextAvailDriveIndex] = drive;
         drvAddr = &drives[nextAvailDriveIndex];
