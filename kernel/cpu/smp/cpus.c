@@ -22,6 +22,7 @@
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <cpuid.h>
+#include <kerrno.h>
 
 bool isx2APIC;
 
@@ -61,12 +62,22 @@ void _ready_cpus(){
     while(1) asm("hlt");
 }
 
+bool cpus_check_x2apic(){
+    if(bl_is_x2apic()) return true;
+    else {
+        kerrno = ENODEV;
+        return false;
+    }
+}
+
 void cpus_init(){
-    if(bl_is_x2apic()){
-        klog("Set x2APIC mode.\n", KLOG_OK);
+    kerrno = 0;
+
+    if(cpus_check_x2apic()){
+        klog("SMP: Set x2APIC mode.\n", KLOG_OK);
         isx2APIC = true;
     } else {
-        klog("Could not set x2APIC mode!\n", KLOG_FAILED);
+        klog("SMP: Could not set x2APIC mode!\n", KLOG_FAILED);
         isx2APIC = false;
     }
 
@@ -81,5 +92,5 @@ void cpus_init(){
 
     ioapic_init();
 
-    klog("SMP and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, bl_get_cpu_count());
+    klog("SMP: SMP and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, bl_get_cpu_count());
 }

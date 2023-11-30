@@ -85,7 +85,7 @@ void _start(void) {
     ksym_init(); //initialise kernel symbol table
 
     dal_init(); //initialise Device Abstraction Layer
-    
+
     init_kcon(); //initialise demo console
 
     halt(); //halt

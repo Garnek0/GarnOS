@@ -52,4 +52,6 @@ void pit_init(){
     pit_set_frequency(1000); //1ms per tick
 
     irq_set_handler(0, pit_handler);
+
+    klog("PIT: Timer Initialised.\n", KLOG_OK);
 }

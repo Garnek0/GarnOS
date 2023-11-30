@@ -11,6 +11,7 @@
 #include <term/term.h>
 #include <mem/mm/kheap.h>
 #include <sys/input.h>
+#include <kerrno.h>
 
 spinlock_t kreadlineLock;
 
@@ -25,6 +26,7 @@ char* kreadline(char* prompt){
     keyBuffer = 0;
 
     lock(kreadlineLock, {
+        kerrno = 0;
         while(keyBuffer!='\n'){
             keyBuffer = 0;
             while(!keyBuffer) asm volatile("nop");
@@ -44,6 +46,7 @@ char* kreadline(char* prompt){
             if(i > 255){
                 kprintf("\n");
                 klog("kreadline Buffer Overflow!\n", KLOG_WARNING);
+                kerrno = EOVERFLOW;
                 line[0] = 0;
                 break;
             }

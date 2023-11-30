@@ -25,5 +25,8 @@ int kvprintf(char* str, va_list args);
 char kputchar(char chr);
 void klog(char* str, uint8_t loglevel, ...);
 char* kreadline(char* prompt);
+void kperror(const char* str);
+void kerrlog(const char* str, uint8_t loglevel);
+char* kstrerror(int err);
 
 #endif //KSTDIO_H

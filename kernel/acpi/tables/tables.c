@@ -75,8 +75,8 @@ void acpi_tables_parse(){
 
     //there is definitely a better way to determine the size of the RSDP...
     if(!acpi_tables_validate_checksum((uint64_t)RSDP, (ACPI_RSDP_1_SZ + (RSDP->revision*(ACPI_RSDP_2_SZ/2))))){
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid RSDP or RSDP Pointer!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid RSDP or RSDP Pointer!");
     }
 
     if(RSDP->revision == 0){
@@ -86,24 +86,24 @@ void acpi_tables_parse(){
         XSDT = (acpi_xsdt_t*)RSDP->XSDTAddress;
         ACPIVer = 2;
     } else {
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid RSDP or RSDP Pointer!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid RSDP or RSDP Pointer!");
     }
 
     if(!acpi_tables_validate_checksum((uint64_t)XSDT, XSDT->header.length)){
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid RSDT/XSDT or RSDT/XSDT Pointer!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid RSDT/XSDT or RSDT/XSDT Pointer!");
     }
 
     //Start actually parsing tables
-    klog("Parsed ACPI Tables: ", KLOG_INFO);
+    klog("ACPI: Parsed ACPI Tables: ", KLOG_INFO);
 
     //FADT, probably the most important one
     FADT = (acpi_fadt_t*)acpi_tables_find("FACP");
     if(FADT == NULL || !acpi_tables_validate_checksum((uint64_t)FADT, FADT->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid FADT or FADT Not Found!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid FADT or FADT Not Found!");
     }
     kprintf("FADT ");
 
@@ -111,8 +111,8 @@ void acpi_tables_parse(){
     MADT = (acpi_madt_t*)acpi_tables_find("APIC");
     if(MADT == NULL || !acpi_tables_validate_checksum((uint64_t)MADT, MADT->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid MADT or MADT Not Found!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid MADT or MADT Not Found!");
     }
     kprintf("MADT ");
 
@@ -124,8 +124,8 @@ void acpi_tables_parse(){
     }
     if(DSDT == NULL || !acpi_tables_validate_checksum((uint64_t)DSDT, DSDT->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid DSDT or DSDT Not Found!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid DSDT or DSDT Not Found!");
     }
     kprintf("DSDT ");
 
@@ -135,8 +135,8 @@ void acpi_tables_parse(){
     BGRT = (acpi_bgrt_t*)acpi_tables_find("BGRT");
     if(BGRT != NULL && !acpi_tables_validate_checksum((uint64_t)BGRT, BGRT->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid BGRT Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid BGRT Structure!");
     } else if (BGRT != NULL){
         kprintf("BGRT ");
     }
@@ -144,8 +144,8 @@ void acpi_tables_parse(){
     BERT = (acpi_bert_t*)acpi_tables_find("BERT");
     if(BERT != NULL && !acpi_tables_validate_checksum((uint64_t)BERT, BERT->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid BERT Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid BERT Structure!");
     } else if (BERT != NULL){
         kprintf("BERT ");
     }
@@ -155,8 +155,8 @@ void acpi_tables_parse(){
     FACS = (acpi_facs_t*)acpi_tables_find("FACS");
     if(FACS != NULL && !acpi_tables_validate_checksum((uint64_t)FACS, FACS->length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid FACS Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid FACS Structure!");
     } else if (FACS != NULL){
         kprintf("FACS ");
     }
@@ -165,8 +165,8 @@ void acpi_tables_parse(){
     HPET = (acpi_hpet_t*)acpi_tables_find("HPET");
     if(HPET != NULL && !acpi_tables_validate_checksum((uint64_t)HPET, HPET->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid HPET Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid HPET Structure!");
     } else if (HPET != NULL){
         kprintf("HPET ");
     }
@@ -176,8 +176,8 @@ void acpi_tables_parse(){
     SBST = (acpi_sbst_t*)acpi_tables_find("SBST");
     if(SBST != NULL && !acpi_tables_validate_checksum((uint64_t)SBST, SBST->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid SBST Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid SBST Structure!");
     } else if (SBST != NULL){
         kprintf("SBST ");
     }
@@ -186,12 +186,12 @@ void acpi_tables_parse(){
     MCFG = (acpi_mcfg_t*)acpi_tables_find("MCFG");
     if(MCFG != NULL && !acpi_tables_validate_checksum((uint64_t)MCFG, MCFG->header.length)){
         kprintf("\n");
-        klog("Could not Parse ACPI Tables.\n", KLOG_FAILED);
-        panic("Invalid MCFG Structure!");
+        klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
+        panic("ACPI: Invalid MCFG Structure!");
     } else if (MCFG != NULL){
         kprintf("MCFG ");
     }
 
     kprintf("\n");
-    klog("ACPI Tables Parsed Successfully.\n", KLOG_OK);
+    klog("ACPI: ACPI Tables Parsed Successfully.\n", KLOG_OK);
 }

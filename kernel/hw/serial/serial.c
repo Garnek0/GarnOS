@@ -41,28 +41,28 @@ int serial_init(){
     outb(COM_DATA, 0xAE);
     if(inb(COM_DATA) != 0xAE) {
         serialPresent = false;
-        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         return 1;
     }
 
     outb(COM_DATA, 0x56);
     if(inb(COM_DATA) != 0x56) {
         serialPresent = false;
-        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         return 1;
     }
 
     outb(COM_DATA, 0xA3);
     if(inb(COM_DATA) != 0xA3) {
         serialPresent = false;
-        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
         return 1;
     }
  
     outb(COM_MODEM_CTRL, 0x0F);
 
-    serial_log("Serial Initialised.\n\r");
-    klog("Serial Console Initialised.\n", KLOG_OK);
+    serial_log("SerialConsole: Serial Initialised.\n\r");
+    klog("SerialConsole: Serial Console Initialised.\n", KLOG_OK);
 
     return 0;
 }

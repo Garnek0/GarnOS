@@ -74,7 +74,7 @@ void vmm_init(){
     }
 
     asm ("mov %0, %%cr3" : : "r" (PML4));
-	klog("Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, PML4);
+	klog("VMM: Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, PML4);
 }
 
 void vmm_map(uint64_t physAddr, uint64_t virtAddr, uint32_t flags){

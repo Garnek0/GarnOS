@@ -17,12 +17,25 @@
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>
 #include <sys/dal/dal.h>
+#include <kstdio.h>
+#include <kerrno.h>
 
 spinlock_t moduleLoaderLock;
 
-void elf_load_module(char* modulePath){
+int elf_load_module(char* modulePath){
+
+	kerrno = 0;
+	int err;
+
     Elf64_Ehdr* h;
     file_t* file = kfopen(modulePath, FILE_ACCESS_R);
+
+	err = kerrno;
+
+	if(!file){
+		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
+		return -1;
+	}
 
     h = (Elf64_Ehdr*)file->address;
 
@@ -31,15 +44,21 @@ void elf_load_module(char* modulePath){
 	    h->e_ident[1] != ELFMAG1 ||
 	    h->e_ident[2] != ELFMAG2 ||
 	    h->e_ident[3] != ELFMAG3) {
-		panic("Corrupt Kernel Module \'%s\'! Invalid Header.", modulePath);
+		kerrno = ENOEXEC;
+		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+		return -1;
 	}
 
     if (h->e_ident[EI_CLASS] != ELFCLASS64) {
-		panic("Invalid Kernel Module \'%s\'! ELF Class not 64-bit.", modulePath);
+		kerrno = ENOEXEC;
+		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+		return -1;
 	}
 
     if (h->e_type != ET_REL) {
-		panic("Invalid Kernel Module \'%s\'! Module not a relocatable object.", modulePath);
+		kerrno = ENOEXEC;
+		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+		return -1;
 	}
 
 	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
@@ -56,7 +75,7 @@ void elf_load_module(char* modulePath){
 		} else {
 			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
 			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
-				klog("Module %s not correctly aligned!\n", KLOG_WARNING, modulePath);
+				klog("ML: Module %s not correctly aligned!\n", KLOG_WARNING, modulePath);
 			}
 		}
 	}
@@ -97,7 +116,7 @@ void elf_load_module(char* modulePath){
 
 	//if no metadata struct was found, call the module invalid and unload.
 	if(!modData){
-		klog("Module '%s' has invalid metadata struct!\n", modulePath);
+		klog("ML: Module '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, modulePath);
 		goto unload;
 	}
 
@@ -132,7 +151,9 @@ void elf_load_module(char* modulePath){
 					T32 = S + A - P;
 					break;
 				default:
-					panic("Invalid Kernel Module \'%s\'! Module has Unsupported Relocation %d", modulePath, ELF64_R_TYPE(table[rela].r_info));
+					kerrno = ENOEXEC;
+					klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+					goto unload;
 					break;
 			}
 		}
@@ -158,9 +179,9 @@ void elf_load_module(char* modulePath){
 				kmfree(sh->sh_addr);
 			}
 		}
-		klog("Attempt to load already loaded module \'%s\'!\n", KLOG_WARNING, modulePath);
+		kerrno = EEXIST;
+		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
 		goto unload;
-		return;
 	}
 
 	module_list_add(entry);
@@ -173,15 +194,16 @@ void elf_load_module(char* modulePath){
 
 	kfclose(file);
 
-	klog("Module: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
+	klog("ML: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
 
 	lock(moduleLoaderLock, {
 		modData->init();
 	});
 
-	return;
+	return 0;
 
 unload:
 	kmfree((void*)elf_module);
 	kfclose(file);
+	return -1;
 }

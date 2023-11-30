@@ -15,6 +15,10 @@
 #define FILE_ACCESS_W 1
 #define FILE_ACCESS_RW 2
 
+#define FILE_SEEK_SET 1
+#define FILE_SEEK_CUR 2 
+#define FILE_SEEK_END 3
+
 typedef struct _file {
     char* filename;
     void* address;
@@ -28,15 +32,15 @@ typedef struct _file {
 file_t* kfopen(char* path, uint8_t access);
 
 //modify current seek position
-void kfseek(file_t* file, size_t seekPos);
+int kfseek(file_t* file, int seekPos, int whence);
 
 //close file
-void kfclose(file_t* file);
+int kfclose(file_t* file);
 
 //read from file
-void kfread(file_t* file, size_t size, void* buf);
+int kfread(file_t* file, size_t size, void* buf);
 
 //write to file
-void kfwrite(file_t* file, size_t size, void* buf);
+int kfwrite(file_t* file, size_t size, void* buf);
 
 #endif //FILE_H

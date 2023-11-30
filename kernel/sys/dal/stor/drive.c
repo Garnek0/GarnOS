@@ -25,7 +25,7 @@ static size_t _drive_get_next_avail_index(){
         if(!drives[i]._valid) return i;
     }
 
-        panic("Too many drives attached! Limit of %d Drives exceeded!", MAX_DRIVES);
+        panic("DAL: Too many drives attached! Limit of %d Drives exceeded!", MAX_DRIVES);
 }
 
 drive_t* drive_add(drive_t drive){
