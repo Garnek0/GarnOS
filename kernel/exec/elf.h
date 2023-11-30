@@ -10,6 +10,6 @@
 
 #include <types.h>
 
-void elf_load_module(char* modulePath);
+int elf_load_module(char* modulePath);
 
 #endif //ELF_H

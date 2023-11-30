@@ -1,3 +1,12 @@
+/*  
+*   File: list.c
+*
+*   Author: Garnek
+*   
+*   Description: Linked list data structure implementation
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include "list.h"
 #include <mem/mm/kheap.h>
 

@@ -123,6 +123,7 @@ static void console_halt(){
 void kcon_add_command(char* cmd, void* function){
     kcon_command_t* command = kmalloc(sizeof(kcon_command_t)); 
     memcpy(command->cmd, cmd, strlen(cmd));
+    command->cmd[strlen(cmd)] = 0;
     command->function = function;
 
     list_insert(commandList, (void*)command); 

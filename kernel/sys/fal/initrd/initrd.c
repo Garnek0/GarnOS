@@ -16,6 +16,7 @@
 #include <mem/mm/kheap.h>
 #include <mem/mm/pmm.h>
 #include <limine.h>
+#include <kerrno.h>
 
 static volatile struct limine_module_request module_request = {
     .id = LIMINE_MODULE_REQUEST,
@@ -47,8 +48,11 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
     //...or not found, in which case a kernel panic is triggered 
     for(int i = 0; ; i++){
         if(h->filename[0] == 0){
-            klog("Couldn't find %s inside initrd!\n", KLOG_FAILED, path);
-            panic("Module %s missing from initrd!", path);
+            klog("initrd: Couldn't find %s\n", KLOG_FAILED, path);
+            //FIXME: There's really no need to trigger a panic here...
+            panic("initrd: %s missing from initrd!", path);
+            kerrno = ENOENT;
+            return NULL;
         } else if (!strcmp(path, h->filename)){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
@@ -75,35 +79,33 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
     }
 }
 
-void initrd_close(filesys_t* fs, file_t* file){
+int initrd_close(filesys_t* fs, file_t* file){
     kmfree((void*)file);
+    return 0;
 }
 
-void initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf){
-
-    if(file->seek > file->size){
-        file->seek = file->size;
-    }
-
-    uint64_t readAddr = (uint64_t)file->address + file->seek;
-    uint8_t* readPtr = (uint8_t*)readAddr;
-
+int initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf){
     for(size_t i = 0; i < size; i++){
-        ((uint8_t*)buf)[i] = readPtr[i];
+        if(file->seek >= file->size) {file->seek--; return i;}
+        ((uint8_t*)buf)[i] = ((uint8_t*)file->address)[file->seek];
+        file->seek++;
     }
-
+    return size;
 }
 
-void initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf){
-    return; //no need to write to the initrd
+int initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf){
+    kerrno = EACCES;
+    return -1; //no need to write to the initrd
 }
 
-void initrd_rmdir(filesys_t* fs, char* path){
-    return; //no need to remove directories from the initrd
+int initrd_rmdir(filesys_t* fs, char* path){
+    kerrno = EACCES;
+    return -1; //no need to remove directories from the initrd
 }
 
-void initrd_mkdir(filesys_t* fs, char* path){
-    return; //no need to make directories inside the initrd
+int initrd_mkdir(filesys_t* fs, char* path){
+    kerrno = EACCES;
+    return -1; //no need to make directories inside the initrd
 }
 
 //initialise initrd

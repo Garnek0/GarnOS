@@ -72,6 +72,7 @@ typedef struct {
     size_t firstFATSector;
     size_t dataSectors;
     size_t clusterCount;
+    size_t clusterSize;
 } fat_context_t;
 
 typedef struct {

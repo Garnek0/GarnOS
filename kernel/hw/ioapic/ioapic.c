@@ -117,7 +117,7 @@ void ioapic_init(){
         outb(PIC2_DATA, 0x00);
         io_wait();
 
-        klog("I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED);
+        klog("ioapic: I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED);
 
         fallback = true;
 
@@ -185,5 +185,5 @@ void ioapic_init(){
 
     asm volatile("sti");
 
-    klog("I/O APICs Initialised Successfully.\n", KLOG_OK);
+    klog("ioapic: I/O APICs Initialised Successfully.\n", KLOG_OK);
 }

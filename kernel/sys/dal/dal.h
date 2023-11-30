@@ -24,14 +24,14 @@
 static inline void dal_init(){
     device_init(); //initialise device manager
 
+    klog("DAL Initialised\n", KLOG_OK);
+
     cpus_init(); //initialize CPUs
 
     driver_init(); //initialise device driver manager
     module_init(); //initialise module manager
 
     pcidev_init(); //detect pci devices and load appropriate drivers
-
-    klog("DAL Initialised\n", KLOG_OK);
 }
 
 #endif //DAL_H

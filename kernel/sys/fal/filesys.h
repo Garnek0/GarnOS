@@ -31,11 +31,11 @@ typedef struct _filesys {
     size_t size;
 
     struct _file* (*open)(struct _filesys* self, char* path, uint8_t access);
-    uint8_t (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf);
-    uint8_t (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf);
-    uint8_t (*close)(struct _filesys* self, struct _file* file);
-    uint8_t (*mkdir)(struct _filesys* self, char* path);
-    uint8_t (*rmdir)(struct _filesys* self, char* path);
+    int (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf);
+    int (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf);
+    int (*close)(struct _filesys* self, struct _file* file);
+    int (*mkdir)(struct _filesys* self, char* path);
+    int (*rmdir)(struct _filesys* self, char* path);
 
     //should not be touched by drivers
     bool _valid;

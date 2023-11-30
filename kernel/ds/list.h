@@ -1,3 +1,12 @@
+/*  
+*   File: list.h
+*
+*   Author: Garnek
+*   
+*   Description: Linked list data structure implementation
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef DS_LIST_H
 #define DS_LIST_H
 

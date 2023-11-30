@@ -14,6 +14,7 @@
 #include <mem/memmap/memmap.h>
 #include <mem/memutil/memutil.h>
 #include <hw/serial/serial.h>
+#include <kerrno.h>
 
 static uint8_t* bitmap;
 size_t bitmapSize;
@@ -67,7 +68,8 @@ static uint64_t pmm_find_free(int npages){
             }
         }
     }
-    panic("Out of Memory!");
+    kerrno = ENOMEM;
+    panic("PMM: Out of Memory!");
     return 0;
 }
 
@@ -106,8 +108,8 @@ void pmm_init(){
         goto success;
     }
 
-    klog("Could not Initialise Physical Memory Allocator", KLOG_FAILED);
-    panic("Not enough free memory to allocate for bitmap.");
+    klog("PMM: Could not Initialise Physical Memory Allocator", KLOG_FAILED);
+    panic("PMM: Not enough free memory to allocate for bitmap.");
 
 success:
     memset(bitmap, 0xff, bitmapSize);
@@ -128,5 +130,5 @@ success:
         pmm_info.usablePages--;
     }
 
-    klog("Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, bitmap);
+    klog("PMM: Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, bitmap);
 }
