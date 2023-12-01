@@ -38,6 +38,7 @@ void list_insert(list_t* list, void* value){
     } else {
         list->tail->next = node;
         list->tail = node;
+        node->next = NULL;
         list->nodeCount++;
     }
 }

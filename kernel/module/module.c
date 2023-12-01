@@ -28,13 +28,6 @@ void module_init(){
     //init should always be 0:
 
     moduleList = list_create("moduleList");
-
-    //Detect PS/2 Devices
-    if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
-        elf_load_module("0:/ps2.mod");
-        //TODO: move this somewhere in the DAL
-        klog("DAL: Found Driver for PS2 Controller\n", KLOG_OK);
-    }
 }
 
 bool module_list_search(char* name){

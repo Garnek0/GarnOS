@@ -21,6 +21,9 @@
 #include "stor/part/part.h"
 #include <cpu/smp/cpus.h>
 
+#include <sys/dal/dev/pcidev.h>
+#include <sys/dal/dev/miscdev.h>
+
 static inline void dal_init(){
     device_init(); //initialise device manager
 
@@ -32,6 +35,7 @@ static inline void dal_init(){
     module_init(); //initialise module manager
 
     pcidev_init(); //detect pci devices and load appropriate drivers
+    miscdev_init(); //detect misc devices
 }
 
 #endif //DAL_H

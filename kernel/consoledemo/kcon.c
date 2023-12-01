@@ -163,9 +163,7 @@ void init_kcon(){
                 goto foundCommand;
             }
         }
-        goto unknownCommand;
 
-unknownCommand:
         kprintf("Unknown command: %s\n", cmd);
         continue;
 
