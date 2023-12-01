@@ -22,6 +22,39 @@
 
 spinlock_t moduleLoaderLock;
 
+//FIXME: File closes with modData and other stuff still pointing to the file address
+// in memory instead of having a copy and pointing to that instead. Doesn't always cause UB
+// but when it does... its ugly.
+
+void* elf_find_symbol(void* elf, const char* symbol){
+	Elf64_Ehdr* h = (Elf64_Ehdr*)elf;
+
+    for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
+        sh->sh_addr = (Elf64_Addr)(elf + sh->sh_offset);
+	}
+
+    for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
+		if(sh->sh_type != SHT_SYMTAB) continue;
+
+		Elf64_Shdr* strtab_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * sh->sh_link);
+		char* symNames = (char*)strtab_hdr->sh_addr;
+		Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
+
+		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
+			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
+				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
+				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
+			}
+			
+			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, symbol)){
+                return (void*)symTable[sym].st_value;
+			}
+		}
+	}
+}
+
 int elf_load_module(char* modulePath){
 
 	kerrno = 0;

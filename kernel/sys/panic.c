@@ -14,6 +14,9 @@
 
 spinlock_t panicLock;
 
+//FIXME: rip is not accurate because the displayed rip is actually the rip 
+//       at which panic() halts the kernel
+
 void panic(char* str, ...){
 
     //TODO: only halts bsp, make panic() halt the other processors too

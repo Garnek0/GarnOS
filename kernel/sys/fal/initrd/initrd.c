@@ -49,8 +49,6 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
     for(int i = 0; ; i++){
         if(h->filename[0] == 0){
             klog("initrd: Couldn't find %s\n", KLOG_FAILED, path);
-            //FIXME: There's really no need to trigger a panic here...
-            panic("initrd: %s missing from initrd!", path);
             kerrno = ENOENT;
             return NULL;
         } else if (!strcmp(path, h->filename)){
@@ -59,7 +57,8 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
             file_t* file = kmalloc(sizeof(file_t));
             file->access = FILE_ACCESS_R;
             //the file is already in memory
-            file->address = (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
+            file->address = kmalloc(size);
+            memcpy(file->address, (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512)), size);
             file->fs = fs;
             file->seek = 0;
             file->size = size;
@@ -80,6 +79,7 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
 }
 
 int initrd_close(filesys_t* fs, file_t* file){
+    kmfree((void*)file->address);
     kmfree((void*)file);
     return 0;
 }

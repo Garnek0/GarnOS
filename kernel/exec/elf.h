@@ -11,5 +11,6 @@
 #include <types.h>
 
 int elf_load_module(char* modulePath);
+void* elf_find_symbol(void* elf, const char* symbol);
 
 #endif //ELF_H

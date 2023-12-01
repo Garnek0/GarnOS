@@ -141,6 +141,8 @@ void init(){
 
     asm volatile("cli");
 
+    inb(PS2_DATA); //Discard leftover data
+
     ps2_write(PS2_COMMAND, PS2_COMMAND_DISABLE_PORT1);
     ps2_write(PS2_COMMAND, PS2_COMMAND_DISABLE_PORT2);
 
