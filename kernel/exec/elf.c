@@ -219,8 +219,12 @@ int elf_load_module(char* modulePath){
 
 	module_list_add(entry);
 	if(driverData){
-		driverData->name = entry.metadata->name;
-		device_driver_add(driverData);
+		driver_node_t* driverNode = kmalloc(sizeof(driver_node_t));
+		driverNode->driver = driverData;
+		driverNode->loaded = true;
+		driverNode->path = kmalloc(strlen(modulePath)+1);
+		memcpy(driverNode->path, modulePath, strlen(modulePath)+1);
+		device_driver_add(driverNode);
 	}
 
 	//cleanup

@@ -29,8 +29,7 @@ filesys_t* filesys_mount(filesys_t filesys){
     filesys._valid = true;
     
     filesys_t* fsAddr;
-    device_t* fsDev = kmalloc(sizeof(device_t));    //dont create device with "new_device()" as this
-                                                    //is not an actual device
+
     lock(filesysLock, {
         if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
             filesystems[0] = filesys;

@@ -67,11 +67,11 @@ static void console_dev(){
     for(size_t i = 0; i < device_get_device_count(); i++){
         device = device_get_device(i);
         kprintf("Device: %s\nDriver: ", device.name);
-        if(!device.driver){
+        if(!device.node){
             kprintf("No Device Driver Loaded\n\n");
             continue;
         }
-        kprintf("%s\n\n", device.driver->name);
+        kprintf("%s\n\n", device.node->path);
     }
 }
 

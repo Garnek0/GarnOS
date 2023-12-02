@@ -38,7 +38,7 @@ drive_t* drive_add(drive_t drive){
     lock(driveLock, {
         drvDevice->type = DEVICE_TYPE_DRIVE;
         drvDevice->bus = DEVICE_BUS_NONE;
-        drvDevice->driver = NULL;
+        drvDevice->node = NULL;
         drvDevice->name = drive.name;
         drvDevice->data = (void*)&drives[nextAvailDriveIndex];
 
@@ -50,7 +50,7 @@ drive_t* drive_add(drive_t drive){
 
         nextAvailDriveIndex = _drive_get_next_avail_index();
 
-        klog("DAL: Added New Drive \"%s\".\n", KLOG_OK, drvAddr->name);
+        klog("DAL: Found Drive \"%s\".\n", KLOG_OK, drvAddr->name);
 
         //search for partitions
 

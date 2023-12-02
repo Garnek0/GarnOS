@@ -63,8 +63,6 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
             file->seek = 0;
             file->size = size;
 
-            klog("initrd: Found Module \'%s\'.\n", KLOG_INFO, path);
-
             return file;
         }
 

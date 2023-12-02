@@ -134,6 +134,20 @@ void keyboard_handler(stack_frame_t* frame){
 }
 
 void init(){
+    
+}
+
+void fini(){
+    return;
+}
+
+bool probe(device_t* device){
+    if(device->type == DEVICE_TYPE_INPUT_CONTROLLER && device->bus == DEVICE_BUS_NONE) return true;
+    return false;
+}
+
+bool attach(device_t* device){
+    if(!probe(device)) return false;
 
     uint8_t configByte; //used to store the configuration byte
     uint8_t res; //used to store test results
@@ -190,30 +204,22 @@ void init(){
     ps2_write(PS2_DATA, 2);
     ps2_read(PS2_DATA);
 
+    irq_set_handler(1, keyboard_handler);
+    klog("PS2 Keyboard Initialised\n", KLOG_OK);
+
+    device_t* ps2keyboard = kmalloc(sizeof(device_t));
+    ps2keyboard->bus = DEVICE_BUS_NONE;
+    ps2keyboard->data = NULL;
+    ps2keyboard->name = "PS/2 Keyboard";
+    ps2keyboard->node = device->node;
+    ps2keyboard->type = DEVICE_TYPE_KEYBOARD;
+    device_add(ps2keyboard);
+
     asm volatile("sti");
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
 
-    device_t* kbdevice = new_device();
-    kbdevice->bus = DEVICE_BUS_NONE;
-    kbdevice->type = DEVICE_TYPE_KEYBOARD;
-    kbdevice->name = "PS/2 Keyboard";
-    kbdevice->driver = &driver_metadata;
-
-    irq_set_handler(1, keyboard_handler);
-    klog("PS2 Keyboard Initialised\n", KLOG_OK);
-}
-
-void fini(){
-    return;
-}
-
-bool probe(device_t* device){
-    return false;
-}
-
-bool attach(device_t* device){
-    return false;
+    return true;
 }
 
 module_t metadata = {

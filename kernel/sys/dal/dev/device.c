@@ -55,6 +55,7 @@ device_t device_get_device(size_t i){
     return *device;
 }
 
+//TODO: Remove this
 device_t* new_device(){
     device_t* device = kmalloc(sizeof(device_t));
     memset(device, 0, sizeof(device_t));

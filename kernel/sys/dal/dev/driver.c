@@ -14,6 +14,9 @@
 #include <cpu/smp/spinlock.h>
 #include <ds/list.h>
 #include <kstdio.h>
+#include <kerrno.h>
+#include <sys/fal/fal.h>
+#include <exec/elf.h>
 
 spinlock_t driverManagerLock;
 
@@ -25,9 +28,9 @@ void driver_init(){
     driverList = list_create("DALdriverList");   
 }
 
-void device_driver_add(device_driver_t* driver){
+void device_driver_add(driver_node_t* node){
     lock(driverManagerLock, {
-        list_insert(driverList, (void*)driver);
+        list_insert(driverList, (void*)node);
         driverCount++;
     });
 }
@@ -36,23 +39,25 @@ void device_driver_add(device_driver_t* driver){
 bool device_driver_attach(device_t* device){
     if(driverCount == 0) return false;
     device_driver_t* driver;
+    driver_node_t* node;
     bool status = false;
 
     lock(driverManagerLock, {
         foreach(item, driverList){
-            driver = (device_driver_t*)item->value;
+            node = (driver_node_t*)item->value;
+            driver = (device_driver_t*)node->driver;
             if(!driver || !driver->probe){
                 continue;
             }
             status = driver->probe(device);
             if(status){
+                device->node = node;
                 status = driver->attach(device);
                 if(status){
-                    device->driver = driver;
                     klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
                     releaseLock(&driverManagerLock);
                     return true;
-                }
+                } else device->node = NULL;
             }
         }
     });

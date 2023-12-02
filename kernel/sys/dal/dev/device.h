@@ -43,7 +43,7 @@ typedef struct _device {
     uint16_t bus;
     uint16_t type;
     void* data;
-    struct _device_driver* driver;
+    struct _driver_node* node;
 } device_t;
 
 void device_init();

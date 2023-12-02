@@ -30,7 +30,7 @@ static void smp_configure_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
     cpuDevice->bus = DEVICE_BUS_NONE;
     cpuDevice->data = NULL;
-    cpuDevice->driver = NULL;
+    cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
 
     uint32_t regs[13];
