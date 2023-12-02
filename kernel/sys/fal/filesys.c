@@ -36,6 +36,7 @@ filesys_t* filesys_mount(filesys_t filesys){
             filesystems[0] = filesys;
             filesystems[0].mountNumber = 0;
             fsAddr = &filesystems[0];
+            klog("FAL: Mounted system partition.\n", KLOG_OK);
             releaseLock(&filesysLock);
             return fsAddr;
         }

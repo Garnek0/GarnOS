@@ -2,7 +2,7 @@
 override MAKEFLAGS += -rR
 
 override IMAGE_NAME := garnos
-override MODULES := $(shell find modules -name '*.mod')
+override MODULES = $(shell find ./modules -name '*.mod')
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
