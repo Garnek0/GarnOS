@@ -33,7 +33,7 @@ void device_driver_add(driver_node_t* node){
     driverCount++;
 }
 
-void device_driver_register(const char* path){
+int device_driver_register(const char* path){
 
     if(driverCount != 0){
         driver_node_t* node;
@@ -153,6 +153,49 @@ bool device_driver_attach(device_t* device){
     });
 
     return false;
+}
+
+int device_driver_autoreg(const char* path){
+    file_t* file = kfopen(path, FILE_ACCESS_R);
+    if(!file){
+        klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, path);
+        return -1;
+    }
+
+    char str[128]; //should be enough for a single filename
+    char* regPath;
+
+    size_t ptr = 0;
+    size_t tempPtr = 0;
+
+    for(size_t i = 0; i < file->size; i++){
+        kfread(file, 1, &str[ptr]);
+        if(str[ptr] == '\n'){
+            if(ptr <= 0) continue;
+            str[ptr] = 0;
+            regPath = kmalloc(256);
+
+            for(int j = 0; j < strlen(path); j++){
+                if(path[j] == '/'){
+                    tempPtr = j+1;
+                    break;
+                }
+            }
+
+            memcpy(regPath, path, tempPtr);
+            memcpy(regPath+tempPtr, str, strlen(str)+1);
+
+            device_driver_register(regPath);
+
+            kmfree(regPath);
+            ptr = 0;
+            continue;
+        }
+        ptr++;
+        if(ptr >= 128) ptr = 0;
+    }
+    kfclose(file);
+    return 0;
 }
 
 size_t device_driver_get_driver_count(){

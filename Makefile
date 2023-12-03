@@ -3,6 +3,7 @@ override MAKEFLAGS += -rR
 
 override IMAGE_NAME := garnos
 override MODULES = $(shell find ./modules -name '*.mod')
+override AUTOREG = ./modules/autoreg.list
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
@@ -60,7 +61,7 @@ $(IMAGE_NAME).iso: limine kernel modules
 	rm -rf iso_root
 	mkdir -p iso_root
 	cp -v kernel/kernel.elf \
-		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin $(MODULES) iso_root/
+		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin $(MODULES) $(AUTOREG) iso_root/
 	mkdir -p iso_root/EFI/BOOT
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
 	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
@@ -84,7 +85,7 @@ $(IMAGE_NAME).hdd: limine kernel modules
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
 	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v kernel/kernel.elf modules/initrd.grd limine.cfg limine/limine-bios.sys $(MODULES) img_mount/
+	sudo cp -v kernel/kernel.elf modules/initrd.grd limine.cfg limine/limine-bios.sys $(MODULES) $(AUTOREG) img_mount/
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sudo cp -v limine/BOOTIA32.EFI img_mount/EFI/BOOT/
 	sync

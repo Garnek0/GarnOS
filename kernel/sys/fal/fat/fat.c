@@ -216,7 +216,6 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
                     currentSector = partitionOffset + context->firstDataSector + fat32ebpb->bpb.sectsPerCluster * (currentCluster - 2);
                 } else {
                     //FILE NOT FOUND/BAD PATH
-                    klog("%s: File Not Found.\n", KLOG_FAILED, pathTmp);
                     kerrno = ENOENT;
                     return NULL;
                 }
@@ -224,7 +223,6 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
             if(found && isTargetObject){
                 if(currentDir->attr & FAT_ATTR_DIRECTORY){
                     //TARGET IS A DIRECTORY
-                    klog("%s: Is a directory.\n", KLOG_FAILED, pathTmp);
                     kerrno = EISDIR;
                 }
                 file_t* file = kmalloc(sizeof(file_t));

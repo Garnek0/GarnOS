@@ -36,7 +36,9 @@ filesys_t* filesys_mount(filesys_t filesys){
             filesystems[0].mountNumber = 0;
             fsAddr = &filesystems[0];
 
-            device_driver_register("0:/ps2.mod");
+            if(device_driver_autoreg("0:/autoreg.list") != 0){
+                panic("autoreg.list not found on system fs!");
+            }
 
             klog("FAL: Mounted system partition.\n", KLOG_OK);
             releaseLock(&filesysLock);

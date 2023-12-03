@@ -32,23 +32,36 @@ override CC = gcc
 
 override CFILES := $(shell find -L . -type f -name '*.c')
 override MOD_OBJ := $(CFILES:.c=.mod)
+override MODULES = $(shell find -L . -type f -name '*.mod' | sed 's!.*/!!')
+
 override INITRD_MODS := ide.mod ahci.mod
+override INITRD_AUTOREG := initreg.list
+override AUTOREG := autoreg.list
+
 override HEADER_DEPS := $(CFILES:.c=.d)
 
 .PHONY: all
-all: $(MOD_OBJ) initrd
+all: $(MOD_OBJ) initrd autoreg
 
 %.mod: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 	cp $@ .
 	rm $@
 
+.PHONY: autoreg
+autoreg:
+	touch $(AUTOREG)
+	echo "${MODULES}" | sed 's/ /\n/g' > $(AUTOREG)
+
 .PHONY: initrd
 initrd:
-	tar -cvf $(INITRD_FILENAME) $(INITRD_MODS)
+	touch $(INITRD_AUTOREG)
+	echo "${INITRD_MODS}" | sed 's/ /\n/g' > $(INITRD_AUTOREG)
+	tar -cvf $(INITRD_FILENAME) $(INITRD_MODS) $(INITRD_AUTOREG)
 
 .PHONY: clean
 clean:
 	rm -rf $(HEADER_DEPS)
-	rm -rf initrd.grd
+	rm -rf $(INITRD_AUTOREG) $(AUTOREG)
+	rm -rf $(INITRD_FILENAME)
 	rm -rf *.mod
