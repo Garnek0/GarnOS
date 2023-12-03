@@ -42,13 +42,11 @@ file_t* kfopen(char* path, uint8_t access){
             goto invalidfsindex;
         }
         path++;
-
         //make sure the filesystem exists
         filesys_t* fs = filesys_get(fsNumber);
         if(fs->open == NULL){
             goto invalidfsindex;
         }
-
         //open the file
         file_t* file;
         file = fs->open(fs, path, access);

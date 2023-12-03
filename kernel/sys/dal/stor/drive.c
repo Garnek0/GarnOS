@@ -25,24 +25,16 @@ static size_t _drive_get_next_avail_index(){
         if(!drives[i]._valid) return i;
     }
 
-        panic("DAL: Too many drives attached! Limit of %d Drives exceeded!", MAX_DRIVES);
+    panic("DAL: Too many drives attached! Limit of %d Drives exceeded!", MAX_DRIVES);
 }
 
 drive_t* drive_add(drive_t drive){
     drive._valid = true;
     drive.partitionCount = 0;
 
-    device_t* drvDevice = new_device();
     drive_t* drvAddr;
 
     lock(driveLock, {
-        drvDevice->type = DEVICE_TYPE_DRIVE;
-        drvDevice->bus = DEVICE_BUS_NONE;
-        drvDevice->node = NULL;
-        drvDevice->name = drive.name;
-        drvDevice->data = (void*)&drives[nextAvailDriveIndex];
-
-        drive._device = drvDevice;
         drive.isSystemDrive = false; //assume this is not a system drive
 
         drives[nextAvailDriveIndex] = drive;

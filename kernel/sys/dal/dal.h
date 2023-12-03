@@ -19,10 +19,12 @@
 #include "dev/driver.h"
 #include "stor/drive.h"
 #include "stor/part/part.h"
+#include "checksysfs.h"
 #include <cpu/smp/cpus.h>
 
 #include <sys/dal/dev/pcidev.h>
 #include <sys/dal/dev/miscdev.h>
+#include <sys/panic.h>
 
 static inline void dal_init(){
     device_init(); //initialise device manager
@@ -34,8 +36,10 @@ static inline void dal_init(){
     driver_init(); //initialise device driver manager
     module_init(); //initialise module manager
 
-    pcidev_init(); //detect pci devices and load appropriate drivers
+    pcidev_init(); //detect pci devices
     miscdev_init(); //detect misc devices
+
+    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!");
 }
 
 #endif //DAL_H

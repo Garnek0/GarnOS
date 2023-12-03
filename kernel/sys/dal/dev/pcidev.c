@@ -45,8 +45,7 @@ void pcidev_init(){
                 device = kmalloc(sizeof(device_t));
                 memset(device, 0, sizeof(device_t));
                 device->bus = DEVICE_BUS_PCI;
-                device->type = DEVICE_TYPE_UNDEFINED;
-                device->name = "Unknown PCI Bus Device";
+                device->id = DEVICE_CREATE_ID_PCI(hdr.vendorID, hdr.deviceID, hdr.class, hdr.subclass);
 
                 switch(hdr.headerType & 0x7F){
                     case PCI_HEADER_DEVICE:
@@ -69,264 +68,142 @@ void pcidev_init(){
                         pciDevice->intPIN = (pci_config_read_word(i, j, k, 0x3C) >> 8) & 0xFF;
                         pciDevice->minGrant = pci_config_read_word(i, j, k, 0x3E) & 0xFF;
                         pciDevice->maxLatency = (pci_config_read_word(i, j, k, 0x3E) >> 8) & 0xFF;
+
                         device->data = (void*)pciDevice;
 
                         switch(pciDevice->hdr.class){
                             case PCI_CLASS_UNCLASSIFIED:
-                            {
                                 device->type = DEVICE_TYPE_UNDEFINED;
+                                device->name = "Unclassified PCI Device";
                                 break;
-                            }
                             case PCI_CLASS_STORAGE_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_STORAGE_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_SCSI_BUS:
                                         device->name = "SCSI Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_IDE:
                                         device->name = "IDE Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        elf_load_module("0:/ide.mod");
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_FLOPPY:
                                         device->name = "Floppy Disk Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
-                                    case PCI_SUBCLASS_IPI:
-                                        device->name = "IPI Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                    case PCI_SUBCLASS_IPI: 
+                                        device->name = "IPI Bus Storage Controller";
                                         break;
-
                                     case PCI_SUBCLASS_RAID:
                                         device->name = "RAID Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_ATA:
                                         device->name = "ATA Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_SATA:
                                         device->name = "SATA Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        elf_load_module("0:/ahci.mod");
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_SAS:
                                         device->name = "SAS Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_NVM:
-                                        device->name = "NVM Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Non-Volatile Memory Controller";
                                         break;
-
                                     case PCI_SUBCLASS_UFS:
-                                        device->name = "UFS Storage Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "UFS Controller";
                                         break;
-
                                     default:
-                                        device->name = "Storage Controller";
+                                        device->name = "Mass Storage Controller";
                                         break;
-                                }
+                                }  
                                 break;
-                            }
                             case PCI_CLASS_NETWORK_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_NETWORK_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_ETHERNET:
                                         device->name = "Ethernet Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_TOKEN_RING:
                                         device->name = "Token Ring Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_FDDI:
                                         device->name = "FDDI Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_ATM:
                                         device->name = "ATM Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_ISDN:
                                         device->name = "ISDN Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_WORLDFLIP:
                                         device->name = "WorldFlip Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_PICMG_2_14:
-                                        device->name = "PICMG 2.14 Multi Computing Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "PICMG Network Controller";
                                         break;
-
                                     case PCI_SUBCLASS_INFINIBAND:
                                         device->name = "Infiniband Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_FABRIC:
                                         device->name = "Fabric Network Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     default:
                                         device->name = "Network Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_DISPLAY_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_DISPLAY_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_VGA:
-                                        device->name = "VGA Compatible Display Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "VGA Display Controller";
                                         break;
-                                    
                                     case PCI_SUBCLASS_XGA:
-                                        device->name = "XGA Compatible Display Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "XGA Display Controller";
                                         break;
-
                                     case PCI_SUBCLASS_3D:
-                                        device->name = "Non-VGA 3D Display Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "3D Display Controller";
                                         break;
-
                                     default:
                                         device->name = "Display Controller";
-                                        break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_MULTIMEDIA_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_MULTIMEDIA_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_VIDEO:
-                                        device->name = "Multimedia Video Device";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Multimedia Video Controller";
                                         break;
-
                                     case PCI_SUBCLASS_AUDIO:
-                                        device->name = "Multimedia Audio Device";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Multimedia Audio Controller";
                                         break;
-
                                     case PCI_SUBCLASS_TELEPHONY:
-                                        device->name = "Multimedia Computer Telephony Device";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Computer Telephony Device";
                                         break;
-
                                     case PCI_SUBCLASS_HDA:
-                                        device->name = "High Definition Audio Device";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "HDA Device";
                                         break;
-
                                     default:
                                         device->name = "Multimedia Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_MEMORY_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_MEMORY_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_RAM:
                                         device->name = "RAM Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_FLASH:
-                                        device->name = "Flash Memory Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "FLASH Controller";
                                         break;
-
+                                    case PCI_SUBCLASS_CXL:
+                                        device->name = "CXL";
+                                        break;
                                     default:
                                         device->name = "Memory Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_BRIDGE:
-                            {
                                 device->type = DEVICE_TYPE_SYSTEM_DEVICE;
-
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_HOST:
                                         device->name = "Host Bridge";
@@ -344,80 +221,48 @@ void pcidev_init(){
                                         device->name = "PCMCIA Bridge";
                                         break;
                                     case PCI_SUBCLASS_NUBUS:
-                                        device->name = "NUBUS Bridge";
+                                        device->name = "NuBus Bridge";
                                         break;
                                     case PCI_SUBCLASS_RACEWAY:
-                                        device->name = "RACEWAY Bridge";
+                                        device->name = "RACEWay Bridge";
                                         break;
                                     case PCI_SUBCLASS_INFINIBAND_TO_PCI:
-                                        device->name = "InfiniBand-to-PCI Host Bridge";
+                                        device->name = "Infiniband to PCI Host Bridge";
                                         break;
                                     default:
-                                        device->name = "Unknown Bridge";
+                                        device->name = "Bridge";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_COMMUNICATION_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_COMMUNICATION_DEVICE;
                                 switch(pciDevice->hdr.subclass){
-                                    case PCI_SUBCLASS_SERIAL:
-                                        device->name = "Serial Communications Device";
-                                        device->type = DEVICE_TYPE_SERIAL_DEVICE;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
-                                        break;
-                                    
-                                    case PCI_SUBCLASS_PARALLEL:
-                                        device->name = "Parallel Communications Device";
-                                        device->type = DEVICE_TYPE_PARALLEL_DEVICE;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
-                                        break;
-
                                     case PCI_SUBCLASS_MULTIPORT_SERIAL:
-                                        device->name = "Multiport Serial Communications Device";
+                                    case PCI_SUBCLASS_SERIAL:
                                         device->type = DEVICE_TYPE_SERIAL_DEVICE;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Serial Controller";
                                         break;
-
+                                    case PCI_SUBCLASS_PARALLEL:
+                                        device->type = DEVICE_TYPE_PARALLEL_DEVICE;
+                                        device->name = "Parallel Controller";
+                                        break;
                                     case PCI_SUBCLASS_MODEM:
-                                        device->name = "Modem";
                                         device->type = DEVICE_TYPE_MODEM;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Modem";
                                         break;
-
                                     case PCI_SUBCLASS_GPIB:
-                                        device->name = "General Purpose Interface Bus";
                                         device->type = DEVICE_TYPE_GPIB;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "GPIB Controller";
                                         break;
-
                                     case PCI_SUBCLASS_SMART_CARD:
-                                        device->name = "Smart Card Device";
-                                        device->type = DEVICE_TYPE_SMART_CARD;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Smart Card Controller";
                                         break;
-
                                     default:
-                                        device->name = "Simple Communications Device";
+                                        device->name = "Communication Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_BASE_SYSTEM_PERIPHERAL:
-                            {
                                 device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_PIC:
@@ -427,73 +272,56 @@ void pcidev_init(){
                                         device->name = "DMA Controller";
                                         break;
                                     case PCI_SUBCLASS_TIMER:
-                                        device->name = "Timer";
+                                        device->name = "System Timer";
                                         break;
                                     case PCI_SUBCLASS_RTC:
-                                        device->name = "Realtime Clock";
+                                        device->name = "Real-Time Clock";
                                         break;
                                     case PCI_SUBCLASS_HOT_PLUG:
-                                        device->name = "PCI Hot-Plug Controller";
+                                        device->name = "PCI Hot-plug Controller";
                                         break;
                                     case PCI_SUBCLASS_SD:
-                                        device->name = "SD Host Controller";
                                         device->type = DEVICE_TYPE_SD_HOST_CONTROLLER;
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "SD Host Controller";
                                         break;
                                     case PCI_SUBCLASS_IOMMU:
                                         device->name = "IOMMU";
                                         break;
                                     case PCI_SUBCLASS_EVENT_COLLECTOR:
-                                        device->name = "Root Complex Event Collector";
+                                        device->name = "Event Collector";
+                                        break;
+                                    case PCI_SUBCLASS_TIMING_CARD:
+                                        device->name = "Timing Card";
                                         break;
                                     default:
-                                        device->name = "PCI Base Peripheral Device";
+                                        device->name = "System Peripheral";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_INPUT_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_INPUT_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_KEYBOARD_CONTROLLER:
                                         device->name = "Keyboard Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
-                                    case PCI_SUBCLASS_DIGITISER:
-                                        device->name = "Digitiser";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                    case PCI_SUBCLASS_DIGITIZER:
+                                        device->name = "Digitizer Pen";
                                         break;
-
                                     case PCI_SUBCLASS_MOUSE_CONTROLLER:
                                         device->name = "Mouse Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
+                                    case PCI_SUBCLASS_SCANNER_CONTROLLER:
+                                        device->name = "Scanner Controller";
+                                        break;
                                     case PCI_SUBCLASS_GAMEPORT_CONTROLLER:
                                         device->name = "Gameport Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-                                    
                                     default:
-                                        device->name = "Input Controller";
+                                        device->name = "Input Device Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_DOCKING_STATION:
-                            {
                                 device->type = DEVICE_TYPE_DOCKING_STATION;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_GENERIC:
@@ -504,205 +332,142 @@ void pcidev_init(){
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_PROCESSOR:
-                            {
                                 device->type = DEVICE_TYPE_PROCESSOR;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_386:
-                                        device->name = "PCI Mounted i386 Processor";
+                                        device->name = "PCI Attached 386 Processor";
                                         break;
                                     case PCI_SUBCLASS_486:
-                                        device->name = "PCI Mounted i486 Processor";
+                                        device->name = "PCI Attached 486 Processor";
                                         break;
                                     case PCI_SUBCLASS_PENTIUM:
-                                        device->name = "PCI Mounted Pentium Processor";
+                                        device->name = "PCI Attached Pentium Processor";
                                         break;
                                     case PCI_SUBCLASS_PENTIUM_PRO:
-                                        device->name = "PCI Mounted Pentium Pro Processor";
-                                        break;
-                                    case PCI_SUBCLASS_PPC:
-                                        device->name = "PCI Mounted PowerPC Processor";
+                                        device->name = "PCI Attached Pentium Pro Processor";
                                         break;
                                     case PCI_SUBCLASS_ALPHA:
-                                        device->name = "PCI Mounted Alpha Processor";
+                                        device->name = "PCI Attached Alpha Processor";
+                                        break;
+                                    case PCI_SUBCLASS_PPC:
+                                        device->name = "PCI Attached PowerPC Processor";
                                         break;
                                     case PCI_SUBCLASS_MIPS:
-                                        device->name = "PCI Mounted MIPS Processor";
-                                        break;
-                                    case PCI_SUBCLASS_COPROCESSOR:
-                                        device->name = "PCI Mounted Co-Processor";
+                                        device->name = "PCI Attached MIPS Processor";
                                         break;
                                     default:
-                                        device->name = "PCI Mounted Processor/Co-Processor";
+                                        device->name = "Co-Processor";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_SERIAL_BUS_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_SERIAL_BUS;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_FIREWIRE:
                                         device->name = "FireWire Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_ACCESS_BUS:
                                         device->name = "ACCESS Bus Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_SSA:
                                         device->name = "SSA Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_USB:
-                                        device->name = "Universal Serial Bus Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "USB Controller";
                                         break;
-
                                     case PCI_SUBCLASS_FIBRE:
                                         device->name = "Fibre Channel Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_SMBUS:
                                         device->name = "SMBus Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_SERIAL_INFINIBAND:
                                         device->name = "InfiniBand Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_IPMI:
-                                        device->name = "IPMI Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "IPMI Interface";
                                         break;
-
                                     case PCI_SUBCLASS_SERCOS:
-                                        device->name = "SERCOS Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "SERCOS Interface";
                                         break;
-
                                     case PCI_SUBCLASS_CANBUS:
                                         device->name = "CANBUS Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     default:
                                         device->name = "Serial Bus Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_WIRELESS_CONTROLLER:
-                            {
                                 device->type = DEVICE_TYPE_NETWORK_CONTROLLER;
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_IRDA:
-                                        device->name = "iRDA Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "IRDA Controller";
                                         break;
-
                                     case PCI_SUBCLASS_IR:
-                                        device->name = "IR Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Consumer IR Controller";
                                         break;
-
                                     case PCI_SUBCLASS_RF:
                                         device->name = "RF Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-                                    
                                     case PCI_SUBCLASS_BLUETOOTH:
                                         device->name = "Bluetooth Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
                                     case PCI_SUBCLASS_BROADBAND:
                                         device->name = "Broadband Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
                                         break;
-
-                                    case PCI_SUBCLASS_ETHERNET_802_11A:
-                                        device->name = "Wireless 802.11a Ethernet Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                    case PCI_SUBCLASS_ETHERNET_802_1A:
+                                        device->name = "802.1a Controller";
                                         break;
-
-                                    case PCI_SUBCLASS_ETHERNET_802_11B:
-                                        device->name = "Wireless 802.11b Ethernet Controller";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                    case PCI_SUBCLASS_ETHERNET_802_1B:
+                                        device->name = "802.1b Controller";
                                         break;
-
                                     case PCI_SUBCLASS_CELLULAR_CONTROLLER_MODEM:
-                                        device->name = "Cellular Controller/Modem";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Cellular Controller Modem";
                                         break;
-
                                     case PCI_SUBCLASS_CELLULAR_CONTROLLER_MODEM_WITH_ETHERNET:
-                                        device->name = "Cellular Controller/Modem With Ethernet (802.11)";
-                                        if(device_driver_attach(device)) break;
-                                        //No driver module for this yet
-                                        if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                        device->name = "Cellular Controller Modem with Ethernet";
                                         break;
-                                    
                                     default:
                                         device->name = "Wireless Controller";
                                         break;
                                 }
                                 break;
-                            }
                             case PCI_CLASS_INTELLIGENT_CONTROLLER:
-                            {
-                                device->name = "I20 Intelligent I/O Controller";
-                                if(device_driver_attach(device)) break;
-                                //No driver module for this yet
-                                if(!device_driver_attach(device)) klog("Could not find driver for %s!\n", KLOG_WARNING, device->name);
+                                device->type = DEVICE_TYPE_SYSTEM_DEVICE;
+                                device->name = "I2O Intelligent Controller";
                                 break;
-                            }
+                            case PCI_CLASS_SATELLITE_COMMUNICATION_CONTROLLER:
+                                device->type = DEVICE_TYPE_MULTIMEDIA_CONTROLLER;
+                                device->name = "Sattelite Communication Device";
+                                break;
+                            case PCI_CLASS_ENCRYPTION_CONTROLLER:
+                                device->type = DEVICE_TYPE_SYSTEM_DEVICE;
+                                device->name = "Encryption Controller";
+                                break;
+                            case PCI_CLASS_SIGNAL_PROCESSING_CONTROLLER:
+                                device->type = DEVICE_TYPE_SYSTEM_DEVICE;
+                                device->name = "Signal Processing Controller";
+                                break;
+                            case PCI_CLASS_PROCESSING_ACCELERATOR:
+                                device->type = DEVICE_TYPE_SYSTEM_DEVICE;
+                                device->name = "Smart Data Accelerator Interface (SDXI)";
+                                break;
+                            case PCI_CLASS_NON_ESSENTIAL:
+                                device->type = DEVICE_TYPE_UNDEFINED;
+                                device->name = "Non-Essential Intrumentation";
+                                break;
+                            case PCI_CLASS_COPROCESSOR:
+                                device->type = DEVICE_TYPE_PROCESSOR;
+                                device->name = "Co-Processor";
+                                break;
                             default:
+                                device->type = DEVICE_TYPE_UNDEFINED;
+                                device->name = "Unknown PCI Device";
                                 break;
                         }
+
                         device_add(device);
                         break;
                     case PCI_HEADER_PCI_TO_PCI:
@@ -732,9 +497,11 @@ void pcidev_init(){
                         pciToPci->intLine = pci_config_read_word(i, j, k, 0x3C) & 0xFF;
                         pciToPci->intPIN = (pci_config_read_word(i, j, k, 0x3C) >> 8) & 0xFF;
                         pciToPci->bridgeControl = pci_config_read_word(i, j, k, 0x3E);
+
                         device->data = (void*)pciToPci;
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                         device->name = "PCI-to-PCI Bridge";
+
                         device_add(device);
                         break;
                     case PCI_HEADER_PCI_TO_CARDBUS:

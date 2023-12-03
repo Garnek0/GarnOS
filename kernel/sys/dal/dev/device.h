@@ -9,6 +9,7 @@
 #define DEVICE_H
 
 #include <types.h>
+#include <sys/dal/dal.h>
 
 #define DEVICE_BUS_UNDEFINED 0
 #define DEVICE_BUS_NONE 1
@@ -35,21 +36,44 @@
 #define DEVICE_TYPE_SERIAL_BUS 18
 #define DEVICE_TYPE_DRIVE 19
 
-#define DRIVER_TYPE_GENERIC 0
-#define DRIVER_TYPE_PCI 1
+#define DEVICE_ID_CLASS(x) ((x & 0xFF00000000000000) >> 56)
+#define DEVICE_ID_CLASS_NONE 0
+
+//PS/2 Class
+
+#define DEVICE_ID_CLASS_PS2 0x01ull
+
+#define DEVICE_CREATE_ID_PS2 (DEVICE_ID_CLASS_PS2 << 56)
+
+//PCI Class
+
+#define DEVICE_ID_CLASS_PCI 0x02ull
+
+#define DEVICE_ID_PCI_VENDOR(x) ((x & 0x00FFFF0000000000) >> 40)
+#define DEVICE_ID_PCI_VENDOR_ANY 0xFFFF
+#define DEVICE_ID_PCI_DEVICE(x) ((x & 0x000000FFFF000000) >> 24)
+#define DEVICE_ID_PCI_DEVICE_ANY 0xFFFF
+#define DEVICE_ID_PCI_CLASS(x) ((x & 0x0000000000FF0000) >> 16)
+#define DEVICE_ID_PCI_SUBCLASS(x) ((x & 0x000000000000FF00) >> 8)
+
+#define DEVICE_CREATE_ID_PCI(vid, did, cls, scls) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8))
+//...
+
+typedef uint64_t device_id_t;
 
 typedef struct _device {
     char* name;
     uint16_t bus;
     uint16_t type;
     void* data;
+    device_id_t id;
     struct _driver_node* node;
 } device_t;
 
 void device_init();
-void device_add(device_t* device);
+void device_add(struct _device* device);
 size_t device_get_device_count();
 device_t device_get_device(size_t i);
-device_t* new_device();
+bool device_attach_to_driver(struct _driver_node* node);
 
 #endif //DEVICE_H

@@ -207,14 +207,6 @@ bool attach(device_t* device){
     irq_set_handler(1, keyboard_handler);
     klog("PS2 Keyboard Initialised\n", KLOG_OK);
 
-    device_t* ps2keyboard = kmalloc(sizeof(device_t));
-    ps2keyboard->bus = DEVICE_BUS_NONE;
-    ps2keyboard->data = NULL;
-    ps2keyboard->name = "PS/2 Keyboard";
-    ps2keyboard->node = device->node;
-    ps2keyboard->type = DEVICE_TYPE_KEYBOARD;
-    device_add(ps2keyboard);
-
     asm volatile("sti");
 
     klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
@@ -231,4 +223,9 @@ module_t metadata = {
 device_driver_t driver_metadata = {
     .probe = probe,
     .attach = attach
+};
+
+device_id_t* driver_ids[] = {
+    DEVICE_CREATE_ID_PS2,
+    0
 };

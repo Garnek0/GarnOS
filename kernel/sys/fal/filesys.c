@@ -35,6 +35,9 @@ filesys_t* filesys_mount(filesys_t filesys){
             filesystems[0] = filesys;
             filesystems[0].mountNumber = 0;
             fsAddr = &filesystems[0];
+
+            device_driver_register("0:/ps2.mod");
+
             klog("FAL: Mounted system partition.\n", KLOG_OK);
             releaseLock(&filesysLock);
             return fsAddr;
@@ -58,10 +61,7 @@ void filesys_unmount(filesys_t* filesys){
 }
 
 filesys_t* filesys_get(size_t index){
-    lock(filesysLock, {
-        releaseLock(&filesysLock);
-        return &filesystems[index];
-    });
+    return &filesystems[index];
 }
 
 filesys_t* filesys_get_all(){

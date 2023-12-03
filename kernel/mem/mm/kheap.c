@@ -52,7 +52,7 @@ static void kheap_extend(size_t size){
 static void kheap_create_block(kheap_block_header_t* h, size_t size){
     kheap_block_header_t* newh = (kheap_block_header_t*)((uint64_t)h + size + sizeof(kheap_block_header_t));
 
-    newh->size = h->size - size;
+    newh->size = h->size - (size + sizeof(kheap_block_header_t));
     h->size = size;
     newh->next = h->next;
     h->next = newh;
@@ -71,10 +71,10 @@ static void kheap_create_block(kheap_block_header_t* h, size_t size){
 
 void kheap_init(){
     start = end = (kheap_block_header_t*)((uint64_t)pmm_allocate(KHEAP_INIT_PAGES) + bl_get_hhdm_offset()); //Initial kernel heap size is 16KiB
-    kprintf("%p", end);
     memset(start, 0, sizeof(kheap_block_header_t));
     start->size = KHEAP_INIT_PAGES * PAGE_SIZE - sizeof(kheap_block_header_t);
     start->prev = NULL;
+    start->next = NULL;
     start->flags = KHEAP_FLAGS_FREE;
 
     kheap_info.kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
@@ -100,6 +100,7 @@ void* kmalloc(size_t size){
                 return (void*)((uint64_t)h + sizeof(kheap_block_header_t));
             }
         }
+        
         kheap_extend(size);
     });
 

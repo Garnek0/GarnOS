@@ -63,7 +63,6 @@ See LICENSE.md for details.
 ## Known Bugs
 
 - APIC Doesn't work properly on some systems
-- Module loader saves metadata structures from the temporary loaded file which results in UB when the file gets closed
 
 # Acknowledgments
 

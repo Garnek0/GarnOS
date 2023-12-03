@@ -316,7 +316,6 @@ probesuccess:
 bool fat_attach(drive_t* drive, size_t partition){
     if(!fat_probe(drive, partition)) return false;\
 
-    //TODO: Actual file operations
     //TODO: Move to module
 
     void* buf = kmalloc(512);

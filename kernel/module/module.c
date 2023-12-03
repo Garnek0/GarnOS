@@ -27,6 +27,9 @@ void module_init(){
     initrd_init(); //initialise initial ramdisk
     //init should always be 0:
 
+    device_driver_register("0:/ide.mod");
+    device_driver_register("0:/ahci.mod");
+
     moduleList = list_create("moduleList");
 }
 

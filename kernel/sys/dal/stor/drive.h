@@ -51,7 +51,6 @@ typedef struct _drive {
 
     //automatically set by the DAL. should not be touched
     //by drivers.
-    device_t* _device;
     bool _valid;
     size_t partitionCount;
     partition_t partitions[MAX_PARTITIONS];

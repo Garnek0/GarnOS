@@ -32,6 +32,7 @@ static void smp_configure_cpu_device(){
     cpuDevice->data = NULL;
     cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
+    cpuDevice->id = 0;
 
     uint32_t regs[13];
 

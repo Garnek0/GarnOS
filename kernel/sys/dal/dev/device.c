@@ -16,6 +16,7 @@
 #include <ds/list.h>
 #include <acpi/tables/tables.h>
 #include <kstdio.h>
+#include <sys/dal/dal.h>
 
 spinlock_t deviceManagerLock;
 
@@ -28,10 +29,9 @@ void device_init(){
 }
 
 void device_add(device_t* device){
-    lock(deviceManagerLock, {
-        list_insert(deviceList, (void*)device);
-        deviceCount++;
-    });
+    list_insert(deviceList, (void*)device);
+    deviceCount++;
+    device_driver_attach(device);
 }
 
 size_t device_get_device_count(){
@@ -55,10 +55,64 @@ device_t device_get_device(size_t i){
     return *device;
 }
 
-//TODO: Remove this
-device_t* new_device(){
-    device_t* device = kmalloc(sizeof(device_t));
-    memset(device, 0, sizeof(device_t));
-    device_add(device);
-    return device;
+bool device_attach_to_driver(driver_node_t* node){
+    if(deviceCount == 0) return false;
+    device_t* device;
+    device_driver_t* driver;
+    bool status;
+    int i = 0;
+
+    lock(deviceManagerLock, {
+        foreach(item, deviceList){
+            i = 0;
+            status = false;
+            device = (device_t*)item->value;
+            if(!device) continue;
+
+            for(;; i++){
+                if(node->ids[i] == 0) break;
+                switch(DEVICE_ID_CLASS(node->ids[i])){
+                    case DEVICE_ID_CLASS_PS2:
+                    {
+                        if(node->ids[i] == device->id) status = true;
+                        break;
+                    }
+                    case DEVICE_ID_CLASS_PCI:
+                    {
+                        if((DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR(device->id) || DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR_ANY) &&
+                        (DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE(device->id) || DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE_ANY) &&
+                        DEVICE_ID_PCI_CLASS(node->ids[i]) == DEVICE_ID_PCI_CLASS(device->id) &&
+                        DEVICE_ID_PCI_SUBCLASS(node->ids[i]) == DEVICE_ID_PCI_SUBCLASS(device->id)) status = true;
+                        break;
+                    }
+                    default:
+                        break;
+
+                }
+                if(status){
+                    if(!node->loaded) elf_load_driver(node);
+                    break;
+                }
+            }
+            if(!status) continue;
+ 
+            driver = (device_driver_t*)node->driver;
+            if(!driver || !driver->probe){
+                continue;
+            }
+
+            status = driver->probe(device);
+            if(status){
+                device->node = node;
+                status = driver->attach(device);
+                if(status){
+                    klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
+                    releaseLock(&deviceManagerLock);
+                    return true;
+                } else device->node = NULL;
+            }
+        }
+    });
+
+    return false;
 }

@@ -7,7 +7,6 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "elfabi.h"
 #include "elf.h"
 #include <sys/fal/fal.h>
 #include <sys/panic.h>
@@ -16,44 +15,71 @@
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>
-#include <sys/dal/dal.h>
 #include <kstdio.h>
 #include <kerrno.h>
 
 spinlock_t moduleLoaderLock;
 
-//FIXME: File closes with modData and other stuff still pointing to the file address
-// in memory instead of having a copy and pointing to that instead. Doesn't always cause UB
-// but when it does... its ugly.
-
 void* elf_find_symbol(void* elf, const char* symbol){
 	Elf64_Ehdr* h = (Elf64_Ehdr*)elf;
 
-    for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
-        sh->sh_addr = (Elf64_Addr)(elf + sh->sh_offset);
-	}
+	lock(moduleLoaderLock, {
+		for(size_t i = 0; i < h->e_shnum; i++){
+			Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
+			sh->sh_addr = (Elf64_Addr)(elf + sh->sh_offset);
+		}
 
-    for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
-		if(sh->sh_type != SHT_SYMTAB) continue;
+		for(size_t i = 0; i < h->e_shnum; i++){
+			Elf64_Shdr* sh = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * i);
+			if(sh->sh_type != SHT_SYMTAB) continue;
 
-		Elf64_Shdr* strtab_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * sh->sh_link);
-		char* symNames = (char*)strtab_hdr->sh_addr;
-		Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
+			Elf64_Shdr* strtab_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * sh->sh_link);
+			char* symNames = (char*)strtab_hdr->sh_addr;
+			Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
 
-		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
-			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
-				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
-				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
-			}
-			
-			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, symbol)){
-                return (void*)symTable[sym].st_value;
+			for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
+				if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
+					Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
+					symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
+				}
+				
+				if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, symbol)){
+					releaseLock(&moduleLoaderLock);
+					return (void*)symTable[sym].st_value;
+				}
 			}
 		}
+	});
+	return NULL;
+}
+
+bool elf_validate(void* elf, Elf64_Half etype){
+	kerrno = 0;
+
+	Elf64_Ehdr* h = (Elf64_Ehdr*)elf;
+
+	if (h->e_ident[0] != ELFMAG0 ||
+	    h->e_ident[1] != ELFMAG1 ||
+	    h->e_ident[2] != ELFMAG2 ||
+	    h->e_ident[3] != ELFMAG3) {
+		kerrno = ENOEXEC;
+		return -1;
+	}
+
+    if (h->e_ident[EI_CLASS] != ELFCLASS64) {
+		kerrno = ENOEXEC;
+		return -1;
+	}
+
+    if (h->e_type != etype) {
+		kerrno = ENOEXEC;
+		return -1;
 	}
 }
+
+//FIXME: File closes with modData and other stuff still pointing to the file address
+// in memory instead of having a copy and pointing to that instead. Doesn't always cause UB
+// but when it does... its ugly.
 
 int elf_load_module(char* modulePath){
 
@@ -73,23 +99,7 @@ int elf_load_module(char* modulePath){
     h = (Elf64_Ehdr*)file->address;
 
 	//Validate module
-    if (h->e_ident[0] != ELFMAG0 ||
-	    h->e_ident[1] != ELFMAG1 ||
-	    h->e_ident[2] != ELFMAG2 ||
-	    h->e_ident[3] != ELFMAG3) {
-		kerrno = ENOEXEC;
-		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
-		return -1;
-	}
-
-    if (h->e_ident[EI_CLASS] != ELFCLASS64) {
-		kerrno = ENOEXEC;
-		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
-		return -1;
-	}
-
-    if (h->e_type != ET_REL) {
-		kerrno = ENOEXEC;
+	if(!elf_validate(file->address, ET_REL)){
 		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
 		return -1;
 	}
@@ -114,7 +124,6 @@ int elf_load_module(char* modulePath){
 	}
 
 	module_t* modData = NULL;
-	device_driver_t* driverData = NULL;
 
 	//Load symbols
 	for(size_t i = 0; i < h->e_shnum; i++){
@@ -137,12 +146,8 @@ int elf_load_module(char* modulePath){
 
 			//if the symbol is called "metadata", then save it. (We will need the metadata struct to
 			//retrieve info about the module.)
-			//if the symbol is called "driver_metadata", then this module is a driver and should
-			//be treated accordingly
 			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
 				modData = (module_t*)symTable[sym].st_value;
-			} else if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "driver_metadata")){
-				driverData = (device_driver_t*)symTable[sym].st_value;
 			}
 		}
 	}
@@ -198,6 +203,11 @@ int elf_load_module(char* modulePath){
 #undef T64
 #undef P
 
+	module_t* modDataStore = kmalloc(sizeof(module_t));
+	modDataStore->name = kmalloc(strlen(modData->name)+1);
+	memcpy(modDataStore, modData, sizeof(module_t));
+	memcpy(modDataStore->name, modData->name, strlen(modData->name)+1);
+
 	//loading done, now check if the module is already loaded.
 	//If it is, then unload its copy.
 	loaded_mod_list_entry_t entry;
@@ -218,20 +228,190 @@ int elf_load_module(char* modulePath){
 	}
 
 	module_list_add(entry);
-	if(driverData){
-		driver_node_t* driverNode = kmalloc(sizeof(driver_node_t));
-		driverNode->driver = driverData;
-		driverNode->loaded = true;
-		driverNode->path = kmalloc(strlen(modulePath)+1);
-		memcpy(driverNode->path, modulePath, strlen(modulePath)+1);
-		device_driver_add(driverNode);
-	}
 
 	//cleanup
 
 	kfclose(file);
 
 	klog("ML: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
+
+	lock(moduleLoaderLock, {
+		modData->init();
+	});
+
+	return 0;
+
+unload:
+	kmfree((void*)elf_module);
+	kfclose(file);
+	return -1;
+}
+
+//TODO: This is very similar to elf_module_load(), put the common parts in subroutines.
+
+int elf_load_driver(driver_node_t* node){
+	kerrno = 0;
+	int err;
+
+    Elf64_Ehdr* h;
+    file_t* file = kfopen(node->path, FILE_ACCESS_R);
+
+	err = kerrno;
+
+	if(!file){
+		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(err), KLOG_FAILED);
+		return -1;
+	}
+
+    h = (Elf64_Ehdr*)file->address;
+
+	//Validate module
+	if(!elf_validate(file->address, ET_REL)){
+		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+		return -1;
+	}
+
+	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
+	kfread(file, file->size, (void*)elf_module);
+
+	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
+	//the correct load addresses for each section
+	for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+		if(sh->sh_type == SHT_NOBITS){
+			if(!sh->sh_size || !(sh->sh_flags & SHF_ALLOC)) continue;
+			sh->sh_addr = (Elf64_Addr)kmalloc(sh->sh_size);
+			memset((void*)sh->sh_addr, 0, sh->sh_size);
+		} else {
+			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
+			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
+				klog("ML: Driver %s not correctly aligned!\n", KLOG_WARNING, node->path);
+			}
+		}
+	}
+
+	module_t* modData = NULL;
+	device_driver_t* driverData = NULL;
+
+	//Load symbols
+	for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+		if(sh->sh_type != SHT_SYMTAB) continue;
+
+		Elf64_Shdr* strtab_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
+		char* symNames = (char*)strtab_hdr->sh_addr;
+		Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
+
+		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
+
+			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
+				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
+				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
+			} else if(symTable[sym].st_shndx == SHN_UNDEF) { //need to load kernel symbol here.
+				//look for the kernel symbol in the kernel symbol list.
+				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
+			}
+
+			//if the symbol is called "metadata", then save it. (We will need the metadata struct to
+			//retrieve info about the module.)
+			//if the symbol is called "driver_metadata", then this module is a driver and should
+			//be treated accordingly
+			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
+				modData = (module_t*)symTable[sym].st_value;
+			} else if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "driver_metadata")){
+				driverData = (device_driver_t*)symTable[sym].st_value;
+			}
+		}
+	}
+
+	//if no metadata struct was found, call the module invalid and unload.
+	if(!modData){
+		klog("ML: Driver '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, node->path);
+		goto unload;
+	}
+
+	//calculate relocations
+	for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+		if(sh->sh_type != SHT_RELA) continue;
+
+		Elf64_Rela* table = (Elf64_Rela*)sh->sh_addr;
+
+		Elf64_Shdr* targetSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_info);
+
+		Elf64_Shdr* symbolSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
+		Elf64_Sym* symbolTable = (Elf64_Sym*)symbolSection->sh_addr;
+
+#define S (symbolTable[ELF64_R_SYM(table[rela].r_info)].st_value)
+#define A (table[rela].r_addend)
+#define T32 (*(uint32_t*)target)
+#define T64 (*(uint64_t*)target)
+#define P  (target)
+
+		for (size_t rela = 0; rela < sh->sh_size / sizeof(Elf64_Rela); rela++) {
+			size_t target = table[rela].r_offset + targetSection->sh_addr;
+			switch (ELF64_R_TYPE(table[rela].r_info)) {
+				case R_X86_64_64:
+					T64 = S + A;
+					break;
+				case R_X86_64_32:
+					T32 = S + A;
+					break;
+				case R_X86_64_PC32:
+					T32 = S + A - P;
+					break;
+				default:
+					kerrno = ENOEXEC;
+					klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+					goto unload;
+					break;
+			}
+		}
+	}
+
+#undef S
+#undef A
+#undef T32
+#undef T64
+#undef P
+
+	module_t* modDataStore = kmalloc(sizeof(module_t));
+	modDataStore->name = kmalloc(strlen(modData->name)+1);
+	memcpy(modDataStore, modData, sizeof(module_t));
+	memcpy(modDataStore->name, modData->name, strlen(modData->name)+1);
+
+	//loading done, now check if the module is already loaded.
+	//If it is, then unload its copy.
+	loaded_mod_list_entry_t entry;
+	entry.address = (void*)elf_module;
+	entry.metadata = modDataStore;
+	entry.size = file->size;
+
+	if(module_list_search(entry.metadata->name)){
+		for(size_t i = 0; i < h->e_shnum; i++){
+			Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+			if(sh->sh_type == SHT_NOBITS){
+				kmfree(sh->sh_addr);
+			}
+		}
+		kerrno = EEXIST;
+		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+		goto unload;
+	}
+
+	module_list_add(entry);
+	if(driverData){
+		device_driver_t* driver = kmalloc(sizeof(device_driver_t));
+		memcpy(driver, driverData, sizeof(device_driver_t));
+		node->driver = driver;
+		node->loaded = true;
+	}
+
+	//cleanup
+
+	kfclose(file);
+
+	klog("ML: Loaded Driver \'%s\'\n", KLOG_OK, node->path);
 
 	lock(moduleLoaderLock, {
 		modData->init();
