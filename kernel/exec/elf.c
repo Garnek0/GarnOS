@@ -215,17 +215,20 @@ int elf_load_module(char* modulePath){
 	entry.metadata = modData;
 	entry.size = file->size;
 
-	if(module_list_search(entry.metadata->name)){
-		for(size_t i = 0; i < h->e_shnum; i++){
-			Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-			if(sh->sh_type == SHT_NOBITS){
-				kmfree(sh->sh_addr);
+	lock(moduleLoaderLock, {
+		if(module_list_search(entry.metadata->name)){
+			for(size_t i = 0; i < h->e_shnum; i++){
+				Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+				if(sh->sh_type == SHT_NOBITS){
+					kmfree(sh->sh_addr);
+				}
 			}
+			kerrno = EEXIST;
+			klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+			releaseLock(&moduleLoaderLock);
+			goto unload;
 		}
-		kerrno = EEXIST;
-		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
-		goto unload;
-	}
+	});
 
 	module_list_add(entry);
 
@@ -235,9 +238,7 @@ int elf_load_module(char* modulePath){
 
 	klog("ML: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
 
-	lock(moduleLoaderLock, {
-		modData->init();
-	});
+	modData->init();
 
 	return 0;
 
@@ -387,17 +388,20 @@ int elf_load_driver(driver_node_t* node){
 	entry.metadata = modDataStore;
 	entry.size = file->size;
 
-	if(module_list_search(entry.metadata->name)){
-		for(size_t i = 0; i < h->e_shnum; i++){
-			Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-			if(sh->sh_type == SHT_NOBITS){
-				kmfree(sh->sh_addr);
+	lock(moduleLoaderLock, {
+		if(module_list_search(entry.metadata->name)){
+			for(size_t i = 0; i < h->e_shnum; i++){
+				Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+				if(sh->sh_type == SHT_NOBITS){
+					kmfree(sh->sh_addr);
+				}
 			}
+			kerrno = EEXIST;
+			klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+			releaseLock(&moduleLoaderLock);
+			goto unload;
 		}
-		kerrno = EEXIST;
-		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
-		goto unload;
-	}
+	});
 
 	module_list_add(entry);
 	if(driverData){
@@ -413,9 +417,7 @@ int elf_load_driver(driver_node_t* node){
 
 	klog("ML: Loaded Driver \'%s\'\n", KLOG_OK, node->path);
 
-	lock(moduleLoaderLock, {
-		modData->init();
-	});
+	modData->init();
 
 	return 0;
 

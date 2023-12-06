@@ -65,7 +65,8 @@ typedef struct _device {
     char* name;
     uint16_t bus;
     uint16_t type;
-    void* data;
+    void* data; //Data of the device
+    void* driverData; //Drivers can store their own data in this field
     device_id_t id;
     struct _driver_node* node;
 } device_t;
@@ -75,5 +76,6 @@ void device_add(struct _device* device);
 size_t device_get_device_count();
 device_t device_get_device(size_t i);
 bool device_attach_to_driver(struct _driver_node* node);
+int device_remove(device_t* device);
 
 #endif //DEVICE_H

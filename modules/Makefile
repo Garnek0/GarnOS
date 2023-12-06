@@ -35,8 +35,8 @@ override MOD_OBJ := $(CFILES:.c=.mod)
 override MODULES = $(shell find -L . -type f -name '*.mod' | sed 's!.*/!!')
 
 override INITRD_MODS := ide.mod ahci.mod
-override INITRD_AUTOREG := initreg.list
-override AUTOREG := autoreg.list
+override INITRD_AUTOREG := initreg.txt
+override AUTOREG := autoreg.txt
 
 override HEADER_DEPS := $(CFILES:.c=.d)
 

@@ -31,5 +31,7 @@ void list_destroy(list_t* list);
 void list_insert(list_t* list, void* value);
 int list_index_of(list_t* list, void* value);
 void* list_index(list_t* list, size_t index);
+int list_remove(list_t* list, void* value);
+int list_remove_index(list_t* list, size_t index);
 
 #endif //DS_LIST_H

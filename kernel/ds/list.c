@@ -10,6 +10,7 @@
 #include "list.h"
 #include <mem/mm/kheap.h>
 #include <cpu/smp/spinlock.h>
+#include <kstdio.h>
 
 spinlock_t listLock;
 
@@ -37,14 +38,12 @@ void list_insert(list_t* list, void* value){
     lock(listLock, {
         if(list->nodeCount == 0){
             list->head = list->tail = node;
-            node->next = NULL;
-            list->nodeCount++;
         } else {
             list->tail->next = node;
             list->tail = node;
-            node->next = NULL;
-            list->nodeCount++;
         }
+        node->next = NULL;
+        list->nodeCount++;
     });
 }
 
@@ -75,4 +74,56 @@ void* list_index(list_t* list, size_t index){
         }
     });
     return NULL;
+}
+
+int list_remove(list_t* list, void* value){
+    list_node_t* prev = NULL;
+    lock(listLock, {
+        foreach(node, list){
+            if(node->value == value){
+                if(list->head == node){
+                    list->head = node->next;
+                }
+                if(list->tail == node){
+                    list->tail = prev;
+                }
+                if(prev != NULL){
+                    prev->next = node->next;
+                }
+                list->nodeCount--;
+                kmfree(node);
+                releaseLock(&listLock);
+                return 0;
+            }
+            prev = node;
+        }
+    });
+    return -1;
+}
+
+int list_remove_index(list_t* list, size_t index){
+    list_node_t* prev = NULL;
+    int i = 0;
+    lock(listLock, {
+        foreach(node, list){
+            if(i == index){
+                if(list->head == node){
+                    list->head = node->next;
+                }
+                if(list->tail == node){
+                    list->tail = prev;
+                }
+                if(prev != NULL){
+                    prev->next = node->next;
+                }
+                list->nodeCount--;
+                kmfree(node);
+                releaseLock(&listLock);
+                return 0;
+            }
+            prev = node;
+            i++;
+        }
+    });
+    return -1;
 }

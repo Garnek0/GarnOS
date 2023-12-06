@@ -27,8 +27,8 @@ void module_init(){
     initrd_init(); //initialise initial ramdisk
     //init should always be 0:
 
-    if(device_driver_autoreg("0:/initreg.list") != 0){
-        panic("initreg.list not found on system fs!");
+    if(device_driver_autoreg("0:/initreg.txt") != 0){
+        panic("initreg.txt not found on initrd!");
     }
 
     moduleList = list_create("moduleList");

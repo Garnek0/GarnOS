@@ -34,6 +34,17 @@ void device_add(device_t* device){
     device_driver_attach(device);
 }
 
+int device_remove(device_t* device){
+    if(device->node && device->node->loaded && device->node->driver->remove){
+        if(!device->node->driver->remove(device)){
+            klog("DAL: Could not remove device \'%s\'! Driver returned false.\n", KLOG_FAILED, device->name);
+            return -1;
+        }
+    }
+    if(list_remove(deviceList, device) != 0) return -1;
+    deviceCount--;
+}
+
 size_t device_get_device_count(){
     return deviceCount;
 }
@@ -69,7 +80,7 @@ bool device_attach_to_driver(driver_node_t* node){
             device = (device_t*)item->value;
             if(!device) continue;
 
-            for(;; i++){
+            for(;; i++){        
                 if(node->ids[i] == 0) break;
                 switch(DEVICE_ID_CLASS(node->ids[i])){
                     case DEVICE_ID_CLASS_PS2:

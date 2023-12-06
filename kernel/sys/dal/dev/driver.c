@@ -80,7 +80,7 @@ int device_driver_register(const char* path){
 
     device_driver_add(driverNode);
 
-    klog("Registered Driver \'%s\'.\n", KLOG_OK, path);
+    klog("DAL: Registered Driver \'%s\'.\n", KLOG_OK, path);
     kfclose(file);
 
     device_attach_to_driver(driverNode);
@@ -89,6 +89,28 @@ int device_driver_register(const char* path){
 
 fail:
     kfclose(file);
+    return -1;
+}
+
+int device_driver_unregister_node(driver_node_t* node){
+    if(node->loaded){
+        klog("DAL: Failed to unregister driver \'%s\'! Already Loaded.\n", KLOG_FAILED, node->path);
+        return -1;
+    }
+    if(list_remove(driverList, (void*)node) != 0) return -1;
+    klog("DAL: Unregistered Driver \'%s\'.\n", KLOG_OK, node->path);
+    kmfree(node);
+    return 0;
+}
+
+int device_driver_unregister(const char* path){
+    driver_node_t* driverNode;
+    foreach(node, driverList){
+        driverNode = (driver_node_t*)node->value;
+        if(!strcmp(driverNode->path, path)){
+            return device_driver_unregister_node(driverNode);
+        }
+    }
     return -1;
 }
 

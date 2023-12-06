@@ -3,7 +3,7 @@ override MAKEFLAGS += -rR
 
 override IMAGE_NAME := garnos
 override MODULES = $(shell find ./modules -name '*.mod')
-override AUTOREG = ./modules/autoreg.list
+override AUTOREG = ./modules/autoreg.txt
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =

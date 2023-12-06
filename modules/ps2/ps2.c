@@ -214,6 +214,11 @@ bool attach(device_t* device){
     return true;
 }
 
+bool remove(device_t* device){
+    irq_set_handler(1, NULL);
+    return true;
+}
+
 module_t metadata = {
     .name = "i8042ps2",
     .init = init,
@@ -222,7 +227,8 @@ module_t metadata = {
 
 device_driver_t driver_metadata = {
     .probe = probe,
-    .attach = attach
+    .attach = attach,
+    .remove = remove
 };
 
 device_id_t* driver_ids[] = {

@@ -30,6 +30,8 @@ typedef struct _driver_node {
 void driver_init();
 void device_driver_add(driver_node_t* driver);
 bool device_driver_attach(struct _device* device);
+int device_driver_unregister_node(driver_node_t* node);
+int device_driver_unregister(const char* path);
 int device_driver_register(const char* path);
 int device_driver_autoreg(const char* path);
 size_t device_driver_get_driver_count();

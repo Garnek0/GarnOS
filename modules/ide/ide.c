@@ -35,7 +35,15 @@ typedef struct {
     char model[41];
 
     ide_channel_t* channel;
+    drive_t* drive;
 } ide_drive_t;
+
+typedef struct {
+    ide_drive_t* primaryMaster;
+    ide_drive_t* primarySlave;
+    ide_drive_t* secondaryMaster;
+    ide_drive_t* secondarySlave;
+} ide_controller_t;
 
 uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     uint8_t result;
@@ -325,6 +333,13 @@ bool attach(device_t* device){
     ide_drive_t* secondarySlave = kmalloc(sizeof(ide_drive_t));
     memset(secondarySlave, 0, sizeof(ide_drive_t));
 
+    ide_controller_t* controller = kmalloc(sizeof(ide_controller_t));
+    controller->primaryMaster = primaryMaster;
+    controller->primarySlave = primarySlave;
+    controller->secondaryMaster = secondaryMaster;
+    controller->secondarySlave = secondarySlave;
+    device->driverData = (void*)controller;
+
     primaryMaster->ideChannel = ATA_PRIMARY;
     primaryMaster->masterSlave = ATA_MASTER;
     primarySlave->ideChannel = ATA_PRIMARY;
@@ -471,14 +486,17 @@ bool attach(device_t* device){
                 drive.write = ide_atapi_write;
                 drive.type = DRIVE_TYPE_OPTICAL;
             }
-
-            drive_add(drive);
+            currentDrive->drive = drive_add(drive);
         }
     }
 
     klog("IDE: Initialised Controller! (BAR0: 0x%x, BAR1: 0x%x, BAR2: 0x%x, BAR3: 0x%x, BAR4: 0x%x)\n", KLOG_OK, channelPrimary->iobase, channelPrimary->control, channelSecondary->iobase, channelSecondary->control, pciConfig->BAR4);
 
     return true;
+}
+
+bool remove(device_t* dev){
+    return false; //IDE Controllers should probably never be removed anyway.
 }
 
 module_t metadata = {
@@ -489,7 +507,8 @@ module_t metadata = {
 
 device_driver_t driver_metadata = {
     .probe = probe,
-    .attach = attach
+    .attach = attach,
+    .remove = remove
 };
 
 device_id_t driver_ids[] = {
