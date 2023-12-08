@@ -45,7 +45,7 @@ void pcidev_init(){
                 device = kmalloc(sizeof(device_t));
                 memset(device, 0, sizeof(device_t));
                 device->bus = DEVICE_BUS_PCI;
-                device->id = DEVICE_CREATE_ID_PCI(hdr.vendorID, hdr.deviceID, hdr.class, hdr.subclass);
+                device->id = DEVICE_CREATE_ID_PCI(hdr.vendorID, hdr.deviceID, hdr.class, hdr.subclass, hdr.progIF);
 
                 switch(hdr.headerType & 0x7F){
                     case PCI_HEADER_DEVICE:

@@ -512,6 +512,6 @@ device_driver_t driver_metadata = {
 };
 
 device_id_t driver_ids[] = {
-    DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY, 0x01, 0x01),
+    DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY, 0x01, 0x01, DEVICE_ID_PCI_PROGIF_ANY),
     0
 };

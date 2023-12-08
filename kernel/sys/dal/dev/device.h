@@ -55,8 +55,10 @@
 #define DEVICE_ID_PCI_DEVICE_ANY 0xFFFF
 #define DEVICE_ID_PCI_CLASS(x) ((x & 0x0000000000FF0000) >> 16)
 #define DEVICE_ID_PCI_SUBCLASS(x) ((x & 0x000000000000FF00) >> 8)
+#define DEVICE_ID_PCI_PROGIF(x) ((x & 0x00000000000000FF))
+#define DEVICE_ID_PCI_PROGIF_ANY 0xFF
 
-#define DEVICE_CREATE_ID_PCI(vid, did, cls, scls) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8))
+#define DEVICE_CREATE_ID_PCI(vid, did, cls, scls, progif) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8) | ((uint64_t)progif))
 //...
 
 typedef uint64_t device_id_t;
