@@ -53,13 +53,25 @@ static void smp_configure_cpu_device(){
     device_add(cpuDevice);
 }
 
-void _ready_cpus(){
+void _ready_cpus(struct limine_smp_info* cpuinfo){
     //boot the other cpus
-    gdt_init();
+
+    //GDT and TSS
+    gdt_init(cpuinfo->processor_id);
+
+    //IDT and Interrupts
     interrupts_init();
+
+    //Page tables
     asm ("mov %0, %%cr3" : : "r" (PML4));
+
+    //APIC
     apic_init(isx2APIC);
+
+    //CPU device
     smp_configure_cpu_device();
+
+    //Halt (for now)
     while(1) asm("hlt");
 }
 
@@ -82,10 +94,10 @@ void cpus_init(){
         isx2APIC = false;
     }
 
-    struct limine_smp_info* smpinfo;
+    struct limine_smp_info* cpuinfo;
     for(size_t i = 0; i < bl_get_cpu_count(); i++){
-        smpinfo = bl_get_cpu_info(i);
-        smpinfo->goto_address = _ready_cpus;
+        cpuinfo = bl_get_cpu_info(i);
+        cpuinfo->goto_address = _ready_cpus;
     }
     apic_init(isx2APIC);
 

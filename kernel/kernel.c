@@ -64,7 +64,7 @@ void _start(void) {
 
     serial_init(); //Initialise serial for debugging
 
-    gdt_init(); //load the GDT
+    gdt_init(0); //load the GDT
 
     interrupts_init(); //enables interrupts
     
