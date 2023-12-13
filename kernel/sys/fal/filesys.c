@@ -36,11 +36,12 @@ filesys_t* filesys_mount(filesys_t filesys){
             filesystems[0].mountNumber = 0;
             fsAddr = &filesystems[0];
 
+            klog("FAL: Mounted system partition.\n", KLOG_OK);
+
             if(device_driver_autoreg("0:/autoreg.txt") != 0){
                 panic("autoreg.txt not found on system fs!");
             }
 
-            klog("FAL: Mounted system partition.\n", KLOG_OK);
             releaseLock(&filesysLock);
             return fsAddr;
         }

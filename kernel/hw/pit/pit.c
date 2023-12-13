@@ -24,8 +24,9 @@ void pit_handler(stack_frame_t* regs){
 
 //TODO: Make it so that this can be used by multiple processors at once
 void pit_sleep(size_t ms){
+    if(ms < 10) ms = 10;
     lock(PITLock, {
-        uint64_t finalTicks = PITInfo.ticksSinceOSBoot + ms;
+        uint64_t finalTicks = PITInfo.ticksSinceOSBoot + (ms/10);
         while(PITInfo.ticksSinceOSBoot < finalTicks){
             asm volatile("nop");
         }
@@ -49,7 +50,7 @@ void pit_init(){
 
     outb(PIT_MODE_OR_COMMAND, 0b00110100);
 
-    pit_set_frequency(1000); //1ms per tick
+    pit_set_frequency(100); //10ms per tick
 
     irq_set_handler(0, pit_handler);
 
