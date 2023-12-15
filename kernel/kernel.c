@@ -44,6 +44,8 @@
 #include <sys/timer.h>
 #include <sys/dal/dal.h>
 
+#include <process/sched/sched.h>
+
 #include <consoledemo/kcon.h>
 
 static void halt(void) {
@@ -67,14 +69,16 @@ void _start(void) {
     gdt_init(0); //load the GDT
 
     interrupts_init(); //enables interrupts
-    
-    pit_init(); //initialise the PIT
 
     pmm_init(); //initialise PMM
 
     vmm_init(); //Initialise VMM
 
     kheap_init(); //initialise Kernel Heap
+
+    pit_init(); //initialise the PIT
+
+    sched_init(); //initialise thread scheduler
 
     rtc_init(); //initialise realtime clock
 

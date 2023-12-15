@@ -18,6 +18,7 @@
 #include <kstdio.h>
 
 page_table_t* PML4;
+page_table_t* kernelPML4;
 
 spinlock_t lock; //vmm lock
 
@@ -73,8 +74,19 @@ void vmm_init(){
 		klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, currentEntry.base, currentEntry.base+currentEntry.length, currentEntry.base+bl_get_hhdm_offset(), currentEntry.base+currentEntry.length+bl_get_hhdm_offset());
     }
 
+    kernelPML4 = PML4;
+
+    asm ("mov %0, %%cr3" : : "r" (kernelPML4));
+	klog("VMM: Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, kernelPML4);
+}
+
+void vmm_switch_address_space(page_table_t* pml4){
+    PML4 = pml4;
     asm ("mov %0, %%cr3" : : "r" (PML4));
-	klog("VMM: Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, PML4);
+}
+
+page_table_t* vmm_get_current_address_space(){
+    return PML4;
 }
 
 void vmm_map(uint64_t physAddr, uint64_t virtAddr, uint32_t flags){

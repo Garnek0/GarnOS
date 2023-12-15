@@ -11,6 +11,7 @@
 #include <cpu/interrupts/interrupts.h>
 #include <hw/ports.h>
 #include <cpu/smp/spinlock.h>
+#include <process/sched/sched.h>
 #include <kstdio.h>
 
 spinlock_t PITLock;
@@ -19,6 +20,7 @@ pit_info PITInfo;
 
 void pit_handler(stack_frame_t* regs){
     PITInfo.ticksSinceOSBoot++;
+    sched_preempt(regs);
     return;
 }
 

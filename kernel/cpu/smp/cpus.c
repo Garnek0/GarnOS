@@ -63,7 +63,7 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
     interrupts_init();
 
     //Page tables
-    asm ("mov %0, %%cr3" : : "r" (PML4));
+    asm ("mov %0, %%cr3" : : "r" (vmm_get_current_address_space()));
 
     //APIC
     apic_init(isx2APIC);
