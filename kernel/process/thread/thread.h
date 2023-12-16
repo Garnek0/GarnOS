@@ -11,6 +11,7 @@
 #define THREAD_STATUS_READY 0
 #define THREAD_STATUS_RUNNING 1
 #define THREAD_STATUS_BLOCKED 2
+#define THREAD_STATUS_ZOMBIE 3
 
 #include <types.h>
 #include <cpu/interrupts/interrupts.h>

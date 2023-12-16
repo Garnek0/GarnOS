@@ -52,19 +52,19 @@ void vmm_init(){
 	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, bl_get_kernel_phys_base(), ALIGN_UP((bl_get_kernel_phys_base()+bl_get_kernel_file_size()), PAGE_SIZE), bl_get_kernel_virt_base(), ALIGN_UP((bl_get_kernel_virt_base()+bl_get_kernel_file_size()), PAGE_SIZE));
 
     //map first 4 GiB
-    for(uint64_t i = 0x1000; i <= 0xffe00000; i+=PAGE_SIZE){
+    for(uint64_t i = 0x1000; i <= 0xffffffff; i+=PAGE_SIZE){
         vmm_map(i, i, 0x3);
         vmm_map(i, i+bl_get_hhdm_offset(), 0x3);
     }
-	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, 0x1000, 0xffe00000, 0x1000, 0xffe00000);
-	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, 0x1000, 0xffe00000, 0x1000+bl_get_hhdm_offset(), 0xffe00000+bl_get_hhdm_offset());
+	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, 0x1000, 0xffffffff, 0x1000, 0xffffffff);
+	klog("VMM: Mapped 0x%x->0x%x to 0x%x->0x%x\n", KLOG_INFO, 0x1000, 0xffffffff, 0x1000+bl_get_hhdm_offset(), 0xffffffff+bl_get_hhdm_offset());
 
     //map any additional memmap entry
     memmap_entry_t currentEntry;
     for(int i = 0; i < memmap_get_entry_count(); i++){
         currentEntry = memmap_get_entry(i);
 
-        if(currentEntry.base+currentEntry.length <= 0xffe00000) continue;
+        if(currentEntry.base+currentEntry.length <= 0xffffffff) continue;
 
         for(uint64_t j = 0; j < ALIGN_UP(currentEntry.length, PAGE_SIZE); j+=PAGE_SIZE){
             vmm_map(j+currentEntry.base, j+currentEntry.base, 0x3);
@@ -82,6 +82,8 @@ void vmm_init(){
 
 void vmm_switch_address_space(page_table_t* pml4){
     PML4 = pml4;
+    uint64_t hhdm = bl_get_hhdm_offset();
+    if(PML4 > hhdm) PML4 -= hhdm;
     asm ("mov %0, %%cr3" : : "r" (PML4));
 }
 

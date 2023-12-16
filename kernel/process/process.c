@@ -16,11 +16,9 @@
 
 //TODO: add process list;
 
-int genPID;
 static int _process_gen_pid(){
-    int pid = genPID;
-    genPID++;
-    return pid;
+    static int pid = 0;
+    return pid++;
 }
 
 void process_create_kernel(){
