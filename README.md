@@ -1,5 +1,7 @@
 # GarnOS
 
+![](https://tokei.rs/b1/github/Garnek0/GarnOS)
+
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
 ## Notable Features
