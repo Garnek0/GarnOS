@@ -3,6 +3,7 @@ override MAKEFLAGS += -rR
 
 override IMAGE_NAME := garnos
 override MODULES = $(shell find ./modules -name '*.mod')
+override PROGRAMS = $(shell find ./programs -name '*.elf')
 override AUTOREG = ./modules/autoreg.txt
 
 # Convenience macro to reliably declare user overridable variables.
@@ -57,11 +58,17 @@ kernel:
 modules:
 	$(MAKE) -C modules
 
-$(IMAGE_NAME).iso: limine kernel modules
+.PHONY: programs
+programs:
+	$(MAKE) -C programs
+
+$(IMAGE_NAME).iso: limine kernel modules programs
 	rm -rf iso_root
 	mkdir -p iso_root
 	cp -v kernel/kernel.elf \
 		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin $(MODULES) $(AUTOREG) iso_root/
+		mkdir -p iso_root/bin
+		sudo cp -v $(PROGRAMS) iso_root/bin
 	mkdir -p iso_root/EFI/BOOT
 	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
 	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
@@ -73,7 +80,7 @@ $(IMAGE_NAME).iso: limine kernel modules
 	./limine/limine bios-install $(IMAGE_NAME).iso
 	rm -rf iso_root
 
-$(IMAGE_NAME).hdd: limine kernel modules
+$(IMAGE_NAME).hdd: limine kernel modules programs
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	parted -s $(IMAGE_NAME).hdd mklabel gpt
@@ -84,8 +91,10 @@ $(IMAGE_NAME).hdd: limine kernel modules
 	sudo mkfs.fat -F 32 `cat loopback_dev`p1
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
+	sudo mkdir -p img_mount/bin
 	sudo mkdir -p img_mount/EFI/BOOT
 	sudo cp -v kernel/kernel.elf modules/initrd.grd limine.cfg limine/limine-bios.sys $(MODULES) $(AUTOREG) img_mount/
+	sudo cp -v $(PROGRAMS) img_mount/bin
 	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
 	sudo cp -v limine/BOOTIA32.EFI img_mount/EFI/BOOT/
 	sync
@@ -98,6 +107,7 @@ clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
 	$(MAKE) -C kernel clean
 	$(MAKE) -C modules clean
+	$(MAKE) -C programs clean
 
 .PHONY: distclean
 distclean: clean

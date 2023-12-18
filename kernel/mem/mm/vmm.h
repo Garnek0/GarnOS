@@ -39,7 +39,6 @@ typedef struct {
 typedef struct {
     page_table_entry_t entries[512];
 }__attribute__((packed)) __attribute__((aligned(0x1000))) page_table_t;
-//extern page_table_t* PML4;
 
 void vmm_init();
 void vmm_map(uint64_t physAddr, uint64_t virtAddr, uint32_t flags);

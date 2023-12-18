@@ -9,7 +9,6 @@
 
 #include "process.h"
 #include <mem/mm/kheap.h>
-#include <mem/mm/vmm.h>
 #include <mem/memutil/memutil.h>
 #include <process/thread/thread.h>
 #include <process/sched/sched.h>
@@ -21,7 +20,7 @@ static int _process_gen_pid(){
     return pid++;
 }
 
-void process_create_kernel(){
+void process_init(){
     process_t* kernelProcess = kmalloc(sizeof(process_t));
     memset(kernelProcess, 0, sizeof(kernelProcess));
     kernelProcess->pid = _process_gen_pid();
@@ -33,4 +32,14 @@ void process_create_kernel(){
     kernelThread->status = THREAD_STATUS_READY;
 
     sched_add_thread(kernelThread);
+
+    process_create_init();
+}
+
+void process_create_init(){
+    process_t* initProcess = kmalloc(sizeof(process_t));
+    memset(initProcess, 0, sizeof(initProcess));
+    initProcess->pid = _process_gen_pid();
+
+    //TODO: Continue this
 }

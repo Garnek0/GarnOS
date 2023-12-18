@@ -76,15 +76,15 @@ void vmm_init(){
 
     kernelPML4 = PML4;
 
-    asm ("mov %0, %%cr3" : : "r" (kernelPML4));
+    vmm_switch_address_space(kernelPML4);
 	klog("VMM: Initialised Virtual Memory Manager (CR3: 0x%x).\n", KLOG_OK, kernelPML4);
 }
 
 void vmm_switch_address_space(page_table_t* pml4){
     PML4 = pml4;
     uint64_t hhdm = bl_get_hhdm_offset();
-    if(PML4 > hhdm) PML4 -= hhdm;
-    asm ("mov %0, %%cr3" : : "r" (PML4));
+    if(PML4 > hhdm) PML4 = (page_table_t*)((uint64_t)PML4 - hhdm);
+    asm volatile("mov %0, %%cr3" : : "r" (PML4));
 }
 
 page_table_t* vmm_get_current_address_space(){

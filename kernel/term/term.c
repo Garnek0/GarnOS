@@ -61,7 +61,7 @@ void term_init(){
 }
 
 void term_clear(){
-    fb_clear(0x00000000);
+    fb_clear(tc.backgroundColour);
     cursor_set(&tc.cursor, 0, 0);
 }
 
@@ -103,7 +103,10 @@ void term_scroll(uint16_t pix){
         memcpy((void*)cpyDest, (void*)cpySrc, cpySize);
 
         //zero out the last row of (framebuffer_info.pitch*pix) pixels
-        memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0, framebuffer_info.pitch*pix);
+        memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0xffffffff, framebuffer_info.pitch*pix);
+        for(int i = 0; i < framebuffer_info.width*pix; i++){
+            ((uint32_t*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress))[i] = tc.backgroundColour;
+        }
 
         //copy the read buffer to the actual framebuffer
         memcpy((void*)framebuffer_info.address, (void*)framebuffer_info.readAddress, framebuffer_info.size);
