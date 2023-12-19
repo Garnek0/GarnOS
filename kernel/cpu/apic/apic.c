@@ -11,7 +11,7 @@
 #include <kstdio.h>
 #include <module/module.h>
 #include <sys/bootloader.h>
-#include <mem/mm/vmm.h>
+#include <mem/mm/vmm/vmm.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/cpus.h>
 #include <hw/ports.h>
@@ -40,8 +40,7 @@ void apic_eoi(){
 }
 
 void apic_init(bool isx2APIC){
-
-    vmm_map(MADT->LAPICAddress, MADT->LAPICAddress + bl_get_hhdm_offset(), 0x13);
+    vmm_map(vmm_get_kernel_pml4(), MADT->LAPICAddress, MADT->LAPICAddress + bl_get_hhdm_offset(), 0x13);
     LAPICAddress = (uint64_t*)(MADT->LAPICAddress + bl_get_hhdm_offset());
 
     uint32_t lapicID = apic_read_register(APIC_ID);

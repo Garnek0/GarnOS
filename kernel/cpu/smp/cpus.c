@@ -18,7 +18,7 @@
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>
-#include <mem/mm/vmm.h>
+#include <mem/mm/vmm/vmm.h>
 #include <mem/mm/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <cpuid.h>
@@ -62,8 +62,8 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
     //IDT and Interrupts
     interrupts_init();
 
-    //Page tables
-    asm ("mov %0, %%cr3" : : "r" (vmm_get_current_address_space()));
+    //Load Kernel Address Space
+    vaspace_switch(vmm_get_kernel_pml4());
 
     //APIC
     apic_init(isx2APIC);

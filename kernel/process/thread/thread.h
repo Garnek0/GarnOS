@@ -22,7 +22,7 @@ typedef struct _thread {
 
     stack_frame_t regs;
 
-    process_t* process;
+    struct _process* process;
 } thread_t;
 
 #endif //THREAD_H

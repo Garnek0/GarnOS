@@ -12,7 +12,7 @@
 #include <hw/ports.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/cpus.h>
-#include <mem/mm/vmm.h>
+#include <mem/mm/vmm/vmm.h>
 #include <sys/bootloader.h>
 
 uint8_t ioapicCount;
@@ -106,7 +106,7 @@ void ioapic_init(){
         ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
         ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
         ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->ioapicAddress + bl_get_hhdm_offset());
-        vmm_map(ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), 0x13);
+        vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), 0x13);
         ioapicCount++;
     }
 

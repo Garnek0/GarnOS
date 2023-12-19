@@ -9,12 +9,12 @@
 #define PROCESS_H
 
 #include <types.h>
-#include <mem/mm/vmm.h>
+#include <mem/mm/vmm/vmm.h>
 
 typedef struct _process {
     int pid;
 
-    page_table_t* pml4;
+    struct _page_table* pml4;
 
     struct _process* parent;
 } process_t;

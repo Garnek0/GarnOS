@@ -70,10 +70,10 @@ void panic(char* str, ...){
                 "CR0=0x%x CR2=0x%x CR3=0x%x CR4=0x%x\n", rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, rip, rip-bl_get_kernel_virt_base() , rflags, cs, ds, es, fs, gs, ss, cr0, cr2, cr3, cr4);
 
         va_end(args);
-        
-        asm("cli");
-        while(true){
-            asm("hlt");
-        }
     });
+
+    asm("cli");
+    while(true){
+        asm("hlt");
+    }
 }

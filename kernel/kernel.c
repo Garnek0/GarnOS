@@ -18,7 +18,7 @@
 
 #include <mem/memmap/memmap.h>
 #include <mem/mm/pmm.h>
-#include <mem/mm/vmm.h>
+#include <mem/mm/vmm/vmm.h>
 #include <mem/mm/kheap.h>
 
 #include <exec/elf.h>

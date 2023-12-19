@@ -52,7 +52,7 @@ static void _sched_store_context(stack_frame_t* regs){
 static void _sched_switch_context(stack_frame_t* regs){
     *regs = currentThread->regs;
 
-    vmm_switch_address_space(currentThread->process->pml4);
+    vaspace_switch(currentThread->process->pml4);
 }
 
 void sched_preempt(stack_frame_t* regs){

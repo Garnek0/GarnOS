@@ -14,6 +14,7 @@
 #include <mem/memmap/memmap.h>
 #include <mem/memutil/memutil.h>
 #include <hw/serial/serial.h>
+#include <sys/bootloader.h>
 #include <kerrno.h>
 
 static uint8_t* bitmap;
@@ -104,7 +105,7 @@ void pmm_init(){
         if(current_entry.type != MEMMAP_USABLE) continue;
         if(current_entry.length < bitmapSize) continue;
 
-        bitmap = (uint8_t*)current_entry.base;
+        bitmap = (uint8_t*)(current_entry.base + bl_get_hhdm_offset());
         goto success;
     }
 
@@ -125,7 +126,9 @@ success:
         }
     }
 
-    for(uint64_t i = (uint64_t)bitmap; i <= ((uint64_t)bitmap + bitmapSize); i+=PAGE_SIZE){
+    uint64_t bitmapNoHHDM = (uint64_t)bitmap - bl_get_hhdm_offset();
+
+    for(uint64_t i = bitmapNoHHDM; i <= bitmapNoHHDM + bitmapSize; i+=PAGE_SIZE){
         pmm_bitmap_set(i/PAGE_SIZE);
         pmm_info.usablePages--;
     }

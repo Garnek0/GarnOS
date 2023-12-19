@@ -38,7 +38,7 @@ static void kheap_extend(size_t size){
     end->next = newh;
     end = newh;
 
-    if(newh->prev && (newh->prev->flags & KHEAP_FLAGS_FREE)){
+    if(newh->prev && (newh->prev->flags & KHEAP_FLAGS_FREE) && ((void*)((uint64_t)newh->prev+(uint64_t)newh->prev->size+sizeof(kheap_block_header_t)) == newh)){
         kheap_block_header_t* prev = newh->prev;
         prev->size += newh->size;
         if(newh->next){

@@ -36,7 +36,7 @@ run-uefi: ovmf $(IMAGE_NAME).iso
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -m 2G -hda $(IMAGE_NAME).hdd -d int -M q35
+	qemu-system-x86_64 -m 2G -hda $(IMAGE_NAME).hdd -d int -M q35 -M smm=off
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
@@ -47,7 +47,7 @@ ovmf:
 	cd ovmf && curl -Lo OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 
 limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v5.x-branch-binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v6.x-branch-binary --depth=1
 	$(MAKE) -C limine CC="$(HOST_CC)"
 	
 .PHONY: kernel

@@ -11,6 +11,7 @@
 #include <limine.h>
 #include <sys/panic.h>
 #include <mem/memutil/memutil.h>
+#include <sys/bootloader.h>
 #include <kstdio.h>
 
 //TODO: move to sys/bootloader.c
@@ -61,13 +62,17 @@ static uint64_t acpi_tables_find(const char* sig){
     //which for ACPI 1.0's RSDT is not a problem, but since ACPI 2.0's XSDT uses 64-bit pointers,
     //we need to increment the index by two each time)
     for(int i = 0; i < entries; i++){
-        acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)XSDT->tableArea[i*ACPIVer];
+        acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)((XSDT->tableArea)[i*ACPIVer] + bl_get_hhdm_offset());
         if(!strncmp(h->signature, sig, 4)) return (uint64_t)h;
     }
     return 0;
 }
 
 void acpi_tables_parse(){
+
+    //Store HHDM offset
+
+    uint64_t hhdm = bl_get_hhdm_offset();
 
     //Mandatory Tables
 
@@ -80,10 +85,10 @@ void acpi_tables_parse(){
     }
 
     if(RSDP->revision == 0){
-        XSDT = (acpi_xsdt_t*)RSDP->RSDTAddress; //use the RSDT instead
+        XSDT = (acpi_xsdt_t*)(RSDP->RSDTAddress + hhdm); //use the RSDT instead
         ACPIVer = 1;
     } else if(RSDP->revision == 2){
-        XSDT = (acpi_xsdt_t*)RSDP->XSDTAddress;
+        XSDT = (acpi_xsdt_t*)(RSDP->XSDTAddress + hhdm);
         ACPIVer = 2;
     } else {
         klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
@@ -118,9 +123,9 @@ void acpi_tables_parse(){
 
     //DSDT, probably this won't be very useful for long while. Same goes for some other tables.
     if(FADT->DSDT != 0){
-        DSDT = (acpi_dsdt_t*)FADT->DSDT;
+        DSDT = (acpi_dsdt_t*)(FADT->DSDT + hhdm);
     } else {
-        DSDT = (acpi_dsdt_t*)FADT->X_DSDT;
+        DSDT = (acpi_dsdt_t*)(FADT->X_DSDT + hhdm);
     }
     if(DSDT == NULL || !acpi_tables_validate_checksum((uint64_t)DSDT, DSDT->header.length)){
         kprintf("\n");

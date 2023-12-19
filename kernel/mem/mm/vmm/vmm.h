@@ -10,8 +10,13 @@
 #ifndef VMM_H
 #define VMM_H
 
+#define VMM_INIT_PROCESS_STACK_SIZE 0x4000 // 4KiB TODO: Increase the size of this
+#define VMM_USER_END 0x800000000000 //End of user area
+
 #include <types.h>
 #include <cpu/smp/spinlock.h>
+#include <process/thread/thread.h>
+#include <process/process.h>
 
 #define VMM_PRESENT 1
 #define VMM_RW (1 << 1)
@@ -40,12 +45,20 @@ typedef struct {
     page_table_entry_t entries[512];
 }__attribute__((packed)) __attribute__((aligned(0x1000))) page_table_t;
 
-void vmm_init();
-void vmm_map(uint64_t physAddr, uint64_t virtAddr, uint32_t flags);
-void vmm_unmap(uint64_t virtAddr);
-void vmm_set_flags(uint64_t virtAddr, uint32_t flags);
+//vmm
 
-void vmm_switch_address_space(page_table_t* pml4);
-page_table_t* vmm_get_current_address_space();
+void vmm_init();
+void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t flags);
+void vmm_unmap(page_table_t* pml4, uint64_t virtAddr);
+void vmm_set_flags(page_table_t* pml4, uint64_t virtAddr, uint32_t flags);
+
+page_table_t* vmm_get_kernel_pml4();
+
+//vaspace
+
+void vaspace_new(struct _process* process);
+void vaspace_switch(page_table_t* pml4);
+void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags);
+void vaspace_create_thread_stack(struct _thread* thread);
 
 #endif //VMM_H
