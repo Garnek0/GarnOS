@@ -10,7 +10,7 @@
 #include "module.h"
 #include <exec/elf.h>
 #include <mem/memutil/memutil.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <hw/ports.h>
 #include <sys/fal/initrd/initrd.h>
 #include <sys/fal/fal.h>

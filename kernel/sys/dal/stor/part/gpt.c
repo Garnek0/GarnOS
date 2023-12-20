@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "gpt.h"
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <cpu/smp/spinlock.h>
 #include <sys/bootloader.h>

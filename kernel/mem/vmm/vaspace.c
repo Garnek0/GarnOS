@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "vmm.h"
-#include <mem/mm/pmm.h>
+#include <mem/pmm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <sys/bootloader.h>
 

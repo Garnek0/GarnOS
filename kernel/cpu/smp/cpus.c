@@ -18,8 +18,8 @@
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>
-#include <mem/mm/vmm/vmm.h>
-#include <mem/mm/kheap.h>
+#include <mem/vmm/vmm.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <cpuid.h>
 #include <kerrno.h>

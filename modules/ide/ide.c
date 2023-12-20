@@ -15,7 +15,7 @@
 #include <hw/pci/pci.h>
 #include <kstdio.h>
 #include <sys/fal/fal.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <hw/ports.h>
 #include <mem/memutil/memutil.h>
 #include <sys/timer.h>

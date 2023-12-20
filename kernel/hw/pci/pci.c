@@ -11,7 +11,7 @@
 #include <hw/ports.h>
 #include <kstdio.h>
 #include <exec/elf.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <sys/dal/dal.h>
 

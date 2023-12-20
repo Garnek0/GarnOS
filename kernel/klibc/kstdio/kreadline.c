@@ -9,7 +9,7 @@
 
 #include <kstdio.h>
 #include <term/term.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <sys/input.h>
 #include <kerrno.h>
 

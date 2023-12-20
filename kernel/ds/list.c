@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "list.h"
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <cpu/smp/spinlock.h>
 #include <kstdio.h>
 

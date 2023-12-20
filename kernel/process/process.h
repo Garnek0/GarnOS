@@ -9,7 +9,7 @@
 #define PROCESS_H
 
 #include <types.h>
-#include <mem/mm/vmm/vmm.h>
+#include <mem/vmm/vmm.h>
 
 typedef struct _process {
     int pid;

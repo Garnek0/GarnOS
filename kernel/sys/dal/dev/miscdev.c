@@ -10,7 +10,7 @@
 #include "miscdev.h"
 #include <sys/dal/dal.h>
 #include <acpi/tables/tables.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 
 void miscdev_init(){
     //Detect PS/2 Devices

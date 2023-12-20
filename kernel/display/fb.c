@@ -9,7 +9,7 @@
 
 #include "fb.h"
 #include <limine.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <term/term.h>
 #include <cpu/smp/spinlock.h>

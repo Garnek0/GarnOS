@@ -17,9 +17,9 @@
 #include <cpu/smp/cpus.h>
 
 #include <mem/memmap/memmap.h>
-#include <mem/mm/pmm.h>
-#include <mem/mm/vmm/vmm.h>
-#include <mem/mm/kheap.h>
+#include <mem/pmm/pmm.h>
+#include <mem/vmm/vmm.h>
+#include <mem/kheap/kheap.h>
 
 #include <exec/elf.h>
 

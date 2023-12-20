@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "fat.h"
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <kerrno.h>
 

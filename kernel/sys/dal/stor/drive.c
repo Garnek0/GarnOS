@@ -9,7 +9,7 @@
 
 #include "drive.h"
 #include <mem/memutil/memutil.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <sys/panic.h>
 #include <cpu/smp/spinlock.h>
 #include <sys/fal/fal.h>

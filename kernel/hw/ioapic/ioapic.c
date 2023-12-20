@@ -12,7 +12,7 @@
 #include <hw/ports.h>
 #include <acpi/tables/tables.h>
 #include <cpu/smp/cpus.h>
-#include <mem/mm/vmm/vmm.h>
+#include <mem/vmm/vmm.h>
 #include <sys/bootloader.h>
 
 uint8_t ioapicCount;

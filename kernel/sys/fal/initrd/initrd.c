@@ -13,8 +13,7 @@
 #include <sys/panic.h>
 #include <sys/bootloader.h>
 #include <mem/memutil/memutil.h>
-#include <mem/mm/kheap.h>
-#include <mem/mm/pmm.h>
+#include <mem/kheap/kheap.h>
 #include <limine.h>
 #include <kerrno.h>
 

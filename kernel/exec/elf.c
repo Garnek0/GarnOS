@@ -11,7 +11,7 @@
 #include <sys/fal/fal.h>
 #include <sys/panic.h>
 #include <sys/ksym.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>

@@ -9,8 +9,8 @@
 
 #include "kcon.h"
 #include <kstdio.h>
-#include <mem/mm/pmm.h>
-#include <mem/mm/kheap.h>
+#include <mem/pmm/pmm.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <kernel.h>
 #include <hw/rtc/rtc.h>

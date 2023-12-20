@@ -9,7 +9,7 @@
 
 #include "filesys.h"
 #include <cpu/smp/spinlock.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 
 filesys_t filesystems[MAX_FILESYSTEMS];

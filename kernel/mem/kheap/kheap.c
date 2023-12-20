@@ -11,7 +11,7 @@
 //Reasonable choice is to rewrite the entire thing from scratch.
 
 #include "kheap.h"
-#include <mem/mm/pmm.h>
+#include <mem/pmm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <kstdio.h>
 #include <sys/panic.h>

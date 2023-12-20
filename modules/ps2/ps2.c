@@ -12,7 +12,7 @@
 #include "ps2.h"
 #include <module/module.h>
 #include <cpu/interrupts/interrupts.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <sys/input.h>
 
 #define LEFT_SHIFT 0x2A

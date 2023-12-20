@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "driver.h"
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <hw/pci/pci.h>
 #include <cpu/smp/spinlock.h>

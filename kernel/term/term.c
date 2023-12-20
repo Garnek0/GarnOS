@@ -11,7 +11,7 @@
 #include "kernel.h"
 
 #include <display/fb.h>
-#include <mem/mm/kheap.h>
+#include <mem/kheap/kheap.h>
 
 #include <mem/memutil/memutil.h>
 
