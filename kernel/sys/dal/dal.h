@@ -39,7 +39,7 @@ static inline void dal_init(){
     pcidev_init(); //detect pci devices
     miscdev_init(); //detect misc devices
 
-    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!");
+    //if(!checksysfs_check()) panic("System FS Not found or Inaccessible!");
 }
 
 #endif //DAL_H

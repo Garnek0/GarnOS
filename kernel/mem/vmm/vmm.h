@@ -10,7 +10,7 @@
 #ifndef VMM_H
 #define VMM_H
 
-#define VMM_INIT_PROCESS_STACK_SIZE 0x4000 // 4KiB TODO: Increase the size of this
+#define VMM_INIT_PROCESS_STACK_SIZE 0x1000000 // 4MiB
 #define VMM_USER_END 0x800000000000 //End of user area
 
 #include <types.h>
@@ -59,6 +59,6 @@ page_table_t* vmm_get_kernel_pml4();
 void vaspace_new(struct _process* process);
 void vaspace_switch(page_table_t* pml4);
 void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags);
-void vaspace_create_thread_stack(struct _thread* thread);
+void vaspace_create_thread_user_stack(struct _thread* thread);
 
 #endif //VMM_H

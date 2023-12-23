@@ -18,10 +18,10 @@ exception_common:
     push rcx
     push rdx
     push rbx
-    push rsp
     push rbp
     push rsi
     push rdi
+    ;TODO: add rX registers
 
     mov ax, ds
     push rax
@@ -46,7 +46,6 @@ exception_common:
     pop rdi
     pop rsi
     pop rbp
-    pop rsp
     pop rbx
     pop rdx
     pop rcx
@@ -61,10 +60,10 @@ irq_common:
     push rcx
     push rdx
     push rbx
-    push rsp
     push rbp
     push rsi
     push rdi
+    ;TODO: add rX registers
 
     mov ax, ds
     push rax
@@ -87,7 +86,6 @@ irq_common:
     pop rdi
     pop rsi
     pop rbp
-    pop rsp
     pop rbx
     pop rdx
     pop rcx

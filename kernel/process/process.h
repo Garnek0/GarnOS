@@ -9,6 +9,7 @@
 #define PROCESS_H
 
 #include <types.h>
+#include <process/thread/thread.h>
 #include <mem/vmm/vmm.h>
 
 typedef struct _process {
@@ -16,6 +17,7 @@ typedef struct _process {
 
     struct _page_table* pml4;
 
+    struct _thread* mainThread;
     struct _process* parent;
 } process_t;
 

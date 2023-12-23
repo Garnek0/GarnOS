@@ -3,12 +3,14 @@
 *
 *   Author: Garnek
 *   
-*   Description: Kernel header file. For now, this just holds the kernel version.
+*   Description: Kernel header file.
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
 #ifndef KERNEL_H
 #define KERNEL_H
+
+extern uint64_t kernelStack;
 
 #define KERNEL_VER "v0.5.7-0"
 

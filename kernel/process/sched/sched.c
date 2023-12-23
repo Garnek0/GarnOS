@@ -10,6 +10,7 @@
 #include "sched.h"
 #include <process/process.h>
 #include <ds/list.h>
+#include <kstdio.h>
 
 bool schedInitialised = false;
 list_t* threadList;
@@ -35,12 +36,13 @@ void sched_add_thread(thread_t* thread){
 static void _sched_get_next_thread(){
     if(threadList->head->next == NULL) return; // There is only one thread
 
+    currentThread->status = THREAD_STATUS_READY;
+
 checkready:
-    if(currentThreadNode->next == NULL) currentThreadNode = threadList->head;
+    if(currentThreadNode == NULL) currentThreadNode = threadList->head;
 
-    currentThread = (thread_t*)currentThreadNode->next->value;
+    currentThread = (thread_t*)currentThreadNode->value;
     currentThreadNode = currentThreadNode->next;
-
 
     if(currentThread->status != THREAD_STATUS_READY) goto checkready;
 }
@@ -52,11 +54,15 @@ static void _sched_store_context(stack_frame_t* regs){
 static void _sched_switch_context(stack_frame_t* regs){
     *regs = currentThread->regs;
 
-    vaspace_switch(currentThread->process->pml4);
+    vaspace_switch((uint64_t)currentThread->process->pml4);
 }
 
 void sched_preempt(stack_frame_t* regs){
     if(!schedInitialised) return;
+
+    static int i = 0;
+    if(i == 3) return;
+    i++;
 
     _sched_store_context(regs);
 

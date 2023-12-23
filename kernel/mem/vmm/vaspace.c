@@ -11,10 +11,13 @@
 #include <mem/pmm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <sys/bootloader.h>
+#include <kstdio.h>
 
 void vaspace_switch(page_table_t* pml4){
     uint64_t hhdm = bl_get_hhdm_offset();
-    if(pml4 > hhdm) pml4 = (page_table_t*)((uint64_t)pml4 - hhdm);
+    uint64_t kernelVirtBase = bl_get_kernel_virt_base();
+    if(pml4 > kernelVirtBase) pml4 = (page_table_t*)((uint64_t)pml4 - kernelVirtBase);
+    else if(pml4 > hhdm) pml4 = (page_table_t*)((uint64_t)pml4 - hhdm);
     asm volatile("mov %0, %%cr3" : : "r" (pml4));
 }
 
@@ -24,12 +27,13 @@ void vaspace_new(process_t* process){
     memset(process->pml4, 0, (sizeof(page_table_t)/2));
 }
 
-void vaspace_create_thread_stack(thread_t* thread){
+void vaspace_create_thread_user_stack(thread_t* thread){
     //FIXME:
     //FIXME:
     //FIXME: VERY IMPORTANT! This will blow up when creating more than 1 thread/process.
-    thread->regs.rsp = vaspace_create_area(thread->process->pml4, (VMM_USER_END - VMM_INIT_PROCESS_STACK_SIZE),
-                                        VMM_INIT_PROCESS_STACK_SIZE, (VMM_PRESENT | VMM_RW | VMM_USER)) + VMM_INIT_PROCESS_STACK_SIZE - 1;
+    // Also its not a good idea to put the stack right at the end of userspace
+    thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pml4, (VMM_USER_END - VMM_INIT_PROCESS_STACK_SIZE),
+                                        VMM_INIT_PROCESS_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER) + (VMM_INIT_PROCESS_STACK_SIZE - 1);
 }
 
 void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags){

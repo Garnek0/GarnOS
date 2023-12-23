@@ -22,6 +22,8 @@ typedef struct _thread {
 
     stack_frame_t regs;
 
+    void* kernelStack;
+
     struct _process* process;
 } thread_t;
 

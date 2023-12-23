@@ -15,6 +15,7 @@
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
 #include <cpu/smp/spinlock.h>
+#include <mem/pmm/pmm.h>
 #include <kstdio.h>
 #include <kerrno.h>
 
@@ -76,10 +77,6 @@ bool elf_validate(void* elf, Elf64_Half etype){
 		return -1;
 	}
 }
-
-//FIXME: File closes with modData and other stuff still pointing to the file address
-// in memory instead of having a copy and pointing to that instead. Doesn't always cause UB
-// but when it does... its ugly.
 
 int elf_load_module(char* modulePath){
 
@@ -425,4 +422,48 @@ unload:
 	kmfree((void*)elf_module);
 	kfclose(file);
 	return -1;
+}
+
+int elf_exec_load(process_t* process, char* path){
+	kerrno = 0;
+
+	file_t* file = kfopen(path, FILE_ACCESS_RW);
+	
+	if(!file){
+		kerrno = ENOENT;
+		return -1;
+	}
+
+	//TODO: handle ET_DYN
+	if(!elf_validate(file->address, ET_EXEC)){
+		klog("exec: Could not load executable %s! Executable is corrupt!\n", KLOG_FAILED, path);
+		return -1;
+	}
+
+	Elf64_Ehdr* h = (Elf64_Ehdr*)file->address;
+	Elf64_Phdr* phdr;
+
+	for(int i = 0; i < h->e_phnum; ++i) {
+		phdr = (Elf64_Phdr*)((uint64_t)h + h->e_phoff + h->e_phentsize * i);
+		if(phdr->p_type == PT_LOAD) {
+			vaspace_create_area(process->pml4, phdr->p_vaddr, phdr->p_memsz, VMM_PRESENT | VMM_USER | VMM_RW);
+
+			//TODO: this is not very efficient since it requires flushing the tlb. Make a 
+			//vaspace_memcpy() or sth that can memcpy into another address space
+			vaspace_switch(process->pml4);
+
+			kfseek(file, phdr->p_offset, FILE_SEEK_SET);
+			kfread(file, phdr->p_filesz, (void*)phdr->p_vaddr);
+
+			for(size_t i = phdr->p_filesz; i < phdr->p_memsz; i++) {
+				*(uint8_t*)(phdr->p_vaddr + i) = 0;
+			}
+
+			vaspace_switch(vmm_get_kernel_pml4());
+		}
+	}
+
+	process->mainThread->regs.rip = (uint64_t)h->e_entry;
+
+	return 0;
 }

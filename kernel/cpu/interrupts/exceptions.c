@@ -14,83 +14,84 @@
 #include <hw/serial/serial.h>
 
 #include <sys/panic.h>
+#include <kstdio.h>
 
 void exception_handler(stack_frame_t* regs){
     switch (regs->intn){
     case 0:
-        panic("Exception: Divide Error!");
+        panic_with_stack_frame("Exception: Divide Error!", regs);
         break;
     case 1:
-        klog("Exception: Debug!\n", KLOG_INFO);
+        panic_with_stack_frame("Exception: Debug!\n", regs);
         break;
     case 2:
-        panic("NMI Triggered!");
+        panic_with_stack_frame("NMI Triggered!", regs);
         break;
     case 3:
-        klog("Exception: Breakpoint!\n", KLOG_INFO);
+        panic_with_stack_frame("Exception: Breakpoint!\n", regs);
         break;
     case 4:
-        panic("Exception: Overflow!");
+        panic_with_stack_frame("Exception: Overflow!", regs);
         break;
     case 5:
-        panic("Exception: Bound Range Exceeded!");
+        panic_with_stack_frame("Exception: Bound Range Exceeded!", regs);
         break;
     case 6:
-        panic("Exception: Invalid Opcode!");
+        panic_with_stack_frame("Exception: Invalid Opcode!", regs);
         break;
     case 7:
-        panic("Exception: Device Not Available!");
+        panic_with_stack_frame("Exception: Device Not Available!", regs);
         break;
     case 8:
-        panic("Exception: Double Fault!");
+        panic_with_stack_frame("Exception: Double Fault!", regs);
         break;
     case 9:
-        panic("Exception: Coprocessor Segment Overrun!");
+        panic_with_stack_frame("Exception: Coprocessor Segment Overrun!", regs);
         break;
     case 10:
-        panic("Exception: Invalid TSS!");
+        panic_with_stack_frame("Exception: Invalid TSS!", regs);
         break;
     case 11:
-        panic("Exception: Segment Not Present!");
+        panic_with_stack_frame("Exception: Segment Not Present!", regs);
         break;
     case 12:
-        panic("Exception: Stack Segment Fault!");
+        panic_with_stack_frame("Exception: Stack Segment Fault!", regs);
         break;
     case 13:
-        panic("Exception: General Protection Fault!");
+        panic_with_stack_frame("Exception: General Protection Fault!", regs);
         break;
     case 14:
-        panic("Exception: Page Fault!");
+        panic_with_stack_frame("Exception: Page Fault!", regs);
         break;
     case 16:
-        panic("Exception: x87 Floating-Point Fault!");
+        panic_with_stack_frame("Exception: x87 Floating-Point Fault!", regs);
         break;
     case 17:
-        panic("Exception: Alignment Check!");
+        panic_with_stack_frame("Exception: Alignment Check!", regs);
         break;
     case 18:
-        panic("Exception: Machine Check!");
+        panic_with_stack_frame("Exception: Machine Check!", regs);
         break;
     case 19:
-        panic("Exception: SIMD Floating-Point Fault!");
+        panic_with_stack_frame("Exception: SIMD Floating-Point Fault!", regs);
         break;
     case 20:
-        panic("Exception: Virtualisation Fault!");
+        panic_with_stack_frame("Exception: Virtualisation Fault!", regs);
         break;
     case 21:
-        panic("Exception: Control Protection Fault!");
+        panic_with_stack_frame("Exception: Control Protection Fault!", regs);
         break;
     case 28:
-        panic("Exception: Hypervisor Injection!");
+        panic_with_stack_frame("Exception: Hypervisor Injection!", regs);
         break;
     case 29:
-        panic("Exception: VMM Communication!");
+        panic_with_stack_frame("Exception: VMM Communication!", regs);
         break;
     case 30:
-        panic("Exception: Security Fault!");
+        panic_with_stack_frame("Exception: Security Fault!", regs);
         break;
     default:
-        panic("Exception: (Reserved)");
+        panic_with_stack_frame("Exception: (Reserved)", regs);
         break;
     }
 }

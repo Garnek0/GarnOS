@@ -12,7 +12,11 @@
 #include <mem/memutil/memutil.h>
 #include <process/thread/thread.h>
 #include <process/sched/sched.h>
+#include <cpu/gdt/gdt.h>
+#include <cpu/user.h>
+#include <exec/elf.h>
 #include <kstdio.h>
+#include <kernel.h>
 
 //TODO: add process list;
 
@@ -31,6 +35,9 @@ void process_init(){
     memset(kernelThread, 0, sizeof(kernelThread));
     kernelThread->process = kernelProcess;
     kernelThread->status = THREAD_STATUS_READY;
+    //kernelThread->kernelStack = kernelStack;
+
+    kernelProcess->mainThread = kernelThread;
 
     sched_add_thread(kernelThread);
 
@@ -45,9 +52,21 @@ void process_create_init(){
     
     thread_t* initThread = kmalloc(sizeof(thread_t));
     memset(initThread, 0, sizeof(thread_t));
+    initThread->regs.cs = 0x08;
+    initThread->regs.ds = 0x10;
+    initThread->regs.ss = 0x10;
     initThread->process = initProcess;
-    initThread->status = THREAD_STATUS_RUNNING;
-    vaspace_create_thread_stack(initThread);
+    initThread->status = THREAD_STATUS_READY;
+    //initThread->kernelStack = kmalloc(VMM_INIT_PROCESS_STACK_SIZE);
+    vaspace_create_thread_user_stack(initThread);
+
+    initProcess->mainThread = initThread;
+
+    if(elf_exec_load(initProcess, "0:/bin/test.elf") != 0){
+        panic("Could not load init!");
+    }
+
+    sched_add_thread(initThread);
     
     //TODO: Continue this
 }

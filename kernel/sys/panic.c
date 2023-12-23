@@ -24,28 +24,30 @@ void panic(char* str, ...){
     va_list args;
     va_start(args, str);
 
-    uint64_t rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, rip, rflags;
-    uint64_t cs, ds, es, fs, gs, ss;
+    lock(panicLock, {
+        klog("Kernel Panic!\n\n", KLOG_FATAL);
+        kvprintf(str, args);
+    });
+
+    va_end(args);
+
+    asm("cli");
+    while(true){
+        asm("hlt");
+    }
+}
+
+void panic_with_stack_frame(char* str, stack_frame_t* regs, ...){
+    //TODO: only halts bsp, make panic() halt the other processors too
+
+    asm("cli");
+
+    va_list args;
+    va_start(args, str);
+
     uint64_t cr0, cr2, cr3, cr4;
 
     lock(panicLock, {
-        asm volatile("movq %%rax,%0" : "=r"(rax));
-        asm volatile("movq %%rbx,%0" : "=r"(rbx));
-        asm volatile("movq %%rcx,%0" : "=r"(rcx));
-        asm volatile("movq %%rdx,%0" : "=r"(rdx));
-        asm volatile("movq %%rsi,%0" : "=r"(rsi));
-        asm volatile("movq %%rdi,%0" : "=r"(rdi));
-        asm volatile("movq %%rbp,%0" : "=r"(rbp));
-        asm volatile("movq %%rsp,%0" : "=r"(rsp));
-        asm volatile("lea (%%rip),%0" : "=r"(rip));
-        asm volatile("push %%rax; pushfq; pop %%rax; mov %%rax,%0; pop %%rax" : "=r"(rflags));
-        asm volatile("movq %%cs,%0" : "=r"(cs));
-        asm volatile("movq %%ds,%0" : "=r"(ds));
-        asm volatile("movq %%es,%0" : "=r"(es));
-        asm volatile("movq %%fs,%0" : "=r"(fs));
-        asm volatile("movq %%gs,%0" : "=r"(gs));
-        asm volatile("movq %%ss,%0" : "=r"(ss));
-
         asm volatile(
             "push %%rax\n"
             "mov %%cr0, %%rax\n"
@@ -66,13 +68,14 @@ void panic(char* str, ...){
                 "RDX=0x%x RSI=0x%x RDI=0x%x\n"
                 "RBP=0x%x RSP=0x%x RIP=0x%x (no KOFF 0x%x)\n"
                 "RFLAGS=0x%x\n"
-                "CS=0x%x DS=0x%x ES=0x%x FS=0x%x GS=0x%x SS=0x%x\n"
-                "CR0=0x%x CR2=0x%x CR3=0x%x CR4=0x%x\n", rax, rbx, rcx, rdx, rsi, rdi, rbp, rsp, rip, rip-bl_get_kernel_virt_base() , rflags, cs, ds, es, fs, gs, ss, cr0, cr2, cr3, cr4);
-
-        va_end(args);
+                "CS=0x%x DS=0x%x SS=0x%x\n"
+                "CR0=0x%x CR2=0x%x CR3=0x%x CR4=0x%x\n"
+                "V=0x%x ERRCODE=0x%x\n", regs->rax, regs->rbx, regs->rcx, regs->rdx, regs->rsi, regs->rdi, regs->rbp, regs->rsp, regs->rip,
+                (regs->rip > bl_get_kernel_virt_base() ? regs->rip-bl_get_kernel_virt_base() : regs->rip), regs->rflags, regs->cs, regs->ds, regs->ss, cr0, cr2, cr3, cr4, regs->intn, regs->errCode);
     });
 
-    asm("cli");
+    va_end(args);
+
     while(true){
         asm("hlt");
     }

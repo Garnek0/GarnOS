@@ -64,7 +64,7 @@ extern void irq15();
 
 typedef struct {
    uint64_t ds;
-   uint64_t rdi, rsi, rbp, prev_rsp, rbx, rdx, rcx, rax;
+   uint64_t rdi, rsi, rbp, rbx, rdx, rcx, rax;
    uint64_t intn, errCode;
    uint64_t rip, cs, rflags, rsp, ss;
 } stack_frame_t;

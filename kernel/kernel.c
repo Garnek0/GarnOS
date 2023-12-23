@@ -48,6 +48,8 @@
 
 #include <consoledemo/kcon.h>
 
+uint64_t kernelStack;
+
 static void halt(void) {
     for (;;) {
         asm ("hlt");
@@ -57,6 +59,9 @@ static void halt(void) {
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void) {
+
+    //get the kernel stack
+    asm volatile("mov %%rsp, %0" : "=r" (kernelStack));
     
     fb_init(); //initialise framebuffer
 
@@ -68,6 +73,9 @@ void _start(void) {
 
     gdt_init(0); //load the GDT
 
+    //Set the tss kernel stack; TODO: this needs to be changed when implementing multiprocessing
+    tss_set_rsp(0, kernelStack);
+
     interrupts_init(); //enables interrupts
 
     pmm_init(); //initialise PMM
@@ -76,21 +84,21 @@ void _start(void) {
 
     kheap_init(); //initialise Kernel Heap
 
-    pit_init(); //initialise the PIT
-
-    sched_init(); //initialise thread scheduler
-
-    rtc_init(); //initialise realtime clock
-
     fb_read_init(); //initialise a read buffer
 
     acpi_tables_parse(); //Parse ACPI Tables
 
     ksym_init(); //initialise kernel symbol table
 
+    rtc_init(); //initialise realtime clock //Move to DAL
+
+    pit_init(); //initialise the PIT //Move to DAL
+
     dal_init(); //initialise Device Abstraction Layer
 
-    init_kcon(); //initialise demo console
+    sched_init(); //initialise thread scheduler
+
+    //init_kcon(); //initialise demo console
 
     halt(); //halt
 }
