@@ -21,6 +21,7 @@
 #include <sys/fal/fal.h>
 
 list_t* commandList;
+bool exit = false;
 
 static void console_help(){
     kprintf("commands:\n"
@@ -34,6 +35,7 @@ static void console_help(){
             "cpu        - show all detected processors\n"
             "fs         - list mounted filesystems\n"
             "drives     - list all drives\n"
+            "user       - enter userspace\n"
             "halt       - halt the system\n");
 }
 
@@ -112,6 +114,17 @@ static void console_drives(){
     }
 }
 
+static void console_user(){
+    fb_clear(0x00000000);
+    cursor_set(&tc.cursor, 0, 0);
+    kprintf("Welcome to Userspace!\n\n\n"
+            "If your computer is still running, then you have\n"
+            "just entered ring 3!\n\n"
+            "A process called \"init\" is now running\n"
+            "In an infinite loop while cpl=3!");
+    exit = true;
+}
+
 static void console_halt(){
     kprintf("Halted."); //only halts bsp
     asm volatile("cli");
@@ -144,6 +157,7 @@ void init_kcon(){
     kcon_add_command("cpu", console_cpu);
     kcon_add_command("fs", console_fs);
     kcon_add_command("drives", console_drives);
+    kcon_add_command("user", console_user);
     kcon_add_command("halt", console_halt);
 
     kprintf("GarnOS Kernel Console Demo\n");
@@ -152,6 +166,7 @@ void init_kcon(){
     kcon_command_t* command;
 
     while(true){
+        if(exit) break;
         cmd = kreadline(">");
         if(cmd[0] == 0) continue;
 

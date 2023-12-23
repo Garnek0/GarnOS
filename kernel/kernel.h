@@ -10,8 +10,6 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-extern uint64_t kernelStack;
-
-#define KERNEL_VER "v0.5.7-0"
+#define KERNEL_VER "v0.6.0-0"
 
 #endif //KERNEL_H

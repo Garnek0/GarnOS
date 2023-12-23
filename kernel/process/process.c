@@ -26,21 +26,6 @@ static int _process_gen_pid(){
 }
 
 void process_init(){
-    process_t* kernelProcess = kmalloc(sizeof(process_t));
-    memset(kernelProcess, 0, sizeof(kernelProcess));
-    kernelProcess->pid = _process_gen_pid();
-    kernelProcess->pml4 = vmm_get_kernel_pml4();
-
-    thread_t* kernelThread = kmalloc(sizeof(thread_t));
-    memset(kernelThread, 0, sizeof(kernelThread));
-    kernelThread->process = kernelProcess;
-    kernelThread->status = THREAD_STATUS_READY;
-    //kernelThread->kernelStack = kernelStack;
-
-    kernelProcess->mainThread = kernelThread;
-
-    sched_add_thread(kernelThread);
-
     process_create_init();
 }
 
@@ -55,18 +40,23 @@ void process_create_init(){
     initThread->regs.cs = 0x08;
     initThread->regs.ds = 0x10;
     initThread->regs.ss = 0x10;
+    initThread->regs.rflags = ((1 << 1) | (1 << 9) | (1 << 21));
     initThread->process = initProcess;
     initThread->status = THREAD_STATUS_READY;
-    //initThread->kernelStack = kmalloc(VMM_INIT_PROCESS_STACK_SIZE);
+    initThread->kernelStack = kmalloc(VMM_INIT_PROCESS_STACK_SIZE) + VMM_INIT_PROCESS_STACK_SIZE - 1;
     vaspace_create_thread_user_stack(initThread);
 
     initProcess->mainThread = initThread;
 
-    if(elf_exec_load(initProcess, "0:/bin/test.elf") != 0){
+    if(elf_exec_load(initProcess, "0:/bin/init.elf") != 0){
         panic("Could not load init!");
     }
 
     sched_add_thread(initThread);
+
+    vaspace_switch(initProcess->pml4);
+    tss_set_rsp(0, initThread->kernelStack);
+    user_jump(initThread->regs.rip, initThread->regs.rsp);
     
     //TODO: Continue this
 }

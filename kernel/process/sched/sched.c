@@ -10,9 +10,10 @@
 #include "sched.h"
 #include <process/process.h>
 #include <ds/list.h>
+#include <cpu/gdt/gdt.h>
+#include <cpu/user.h>
 #include <kstdio.h>
 
-bool schedInitialised = false;
 list_t* threadList;
 list_node_t* currentThreadNode;
 thread_t* currentThread;
@@ -21,8 +22,6 @@ void sched_init(){
     threadList = list_create("schedThreadList");
 
     process_init();
-
-    schedInitialised = true;
 }
 
 void sched_add_thread(thread_t* thread){
@@ -54,19 +53,19 @@ static void _sched_store_context(stack_frame_t* regs){
 static void _sched_switch_context(stack_frame_t* regs){
     *regs = currentThread->regs;
 
-    vaspace_switch((uint64_t)currentThread->process->pml4);
+    vaspace_switch(currentThread->process->pml4);
 }
 
 void sched_preempt(stack_frame_t* regs){
-    if(!schedInitialised) return;
+    if(!threadList || threadList->head == NULL) return;
 
-    static int i = 0;
-    if(i == 3) return;
-    i++;
+    asm volatile("cli");
 
     _sched_store_context(regs);
 
     _sched_get_next_thread();
+
+    tss_set_rsp(0, currentThread->kernelStack);
 
     _sched_switch_context(regs);
 }

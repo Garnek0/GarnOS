@@ -57,7 +57,7 @@ autoreg:
 initrd:
 	touch $(INITRD_AUTOREG)
 	echo "${INITRD_MODS}" | sed 's/ /\n/g' > $(INITRD_AUTOREG)
-	tar -cvf $(INITRD_FILENAME) $(INITRD_MODS) $(INITRD_AUTOREG) bin/test.elf
+	tar -cvf $(INITRD_FILENAME) $(INITRD_MODS) $(INITRD_AUTOREG)
 
 .PHONY: clean
 clean:

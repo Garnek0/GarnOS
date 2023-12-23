@@ -87,6 +87,7 @@ void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t 
             currentEntry.addr = (uint64_t)((uint64_t)PDP - bl_get_hhdm_offset()) >> 12;
             currentEntry.present = true;
             currentEntry.readWrite = true;
+            currentEntry.userSupervisor = (flags & VMM_USER);
             pml4->entries[PDPi] = currentEntry;
         } else {
             PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
@@ -100,6 +101,7 @@ void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t 
             currentEntry.addr = (uint64_t)((uint64_t)PD - bl_get_hhdm_offset()) >> 12;
             currentEntry.present = true;
             currentEntry.readWrite = true;
+            currentEntry.userSupervisor = (flags & VMM_USER);
             PDP->entries[PDi] = currentEntry;
         } else {
             PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
@@ -113,6 +115,7 @@ void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t 
             currentEntry.addr = (uint64_t)((uint64_t)PT - bl_get_hhdm_offset()) >> 12;
             currentEntry.present = true;
             currentEntry.readWrite = true;
+            currentEntry.userSupervisor = (flags & VMM_USER);
             PD->entries[PTi] = currentEntry;
         } else {
             PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());

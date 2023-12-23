@@ -59,10 +59,6 @@ static void halt(void) {
 // If renaming _start() to something else, make sure to change the
 // linker script accordingly.
 void _start(void) {
-
-    //get the kernel stack
-    asm volatile("mov %%rsp, %0" : "=r" (kernelStack));
-    
     fb_init(); //initialise framebuffer
 
     term_init(); //initialise terminal emulator
@@ -72,9 +68,6 @@ void _start(void) {
     serial_init(); //Initialise serial for debugging
 
     gdt_init(0); //load the GDT
-
-    //Set the tss kernel stack; TODO: this needs to be changed when implementing multiprocessing
-    tss_set_rsp(0, kernelStack);
 
     interrupts_init(); //enables interrupts
 
@@ -96,9 +89,9 @@ void _start(void) {
 
     dal_init(); //initialise Device Abstraction Layer
 
-    sched_init(); //initialise thread scheduler
+    init_kcon(); //initialise demo console
 
-    //init_kcon(); //initialise demo console
+    sched_init(); //initialise thread scheduler
 
     halt(); //halt
 }
