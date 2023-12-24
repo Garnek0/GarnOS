@@ -1,4 +1,5 @@
 /.vscode
+/ovmf
 /limine
 /kernel/limine.h
 *.elf
