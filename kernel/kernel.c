@@ -17,6 +17,7 @@
 #include <cpu/smp/cpus.h>
 
 #include <mem/memmap/memmap.h>
+#include <mem/memutil/memutil.h>
 #include <mem/pmm/pmm.h>
 #include <mem/vmm/vmm.h>
 #include <mem/kheap/kheap.h>

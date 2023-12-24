@@ -31,9 +31,8 @@ void vaspace_create_thread_user_stack(thread_t* thread){
     //FIXME:
     //FIXME:
     //FIXME: VERY IMPORTANT! This will blow up when creating more than 1 thread/process.
-    // Also its not a good idea to put the stack right at the end of userspace
-    thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pml4, (VMM_USER_END - VMM_INIT_PROCESS_STACK_SIZE),
-                                        VMM_INIT_PROCESS_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER) + (VMM_INIT_PROCESS_STACK_SIZE - 1);
+    thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pml4, (VMM_USER_END - VMM_INIT_USER_STACK_SIZE),
+                                        VMM_INIT_USER_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER) + ((VMM_INIT_USER_STACK_SIZE - 1) - 15);
 }
 
 void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags){

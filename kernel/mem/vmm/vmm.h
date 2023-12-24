@@ -10,8 +10,11 @@
 #ifndef VMM_H
 #define VMM_H
 
-#define VMM_INIT_PROCESS_STACK_SIZE 0x1000000 // 4MiB
 #define VMM_USER_END 0x800000000000 //End of user area
+#define VMM_USER_STACK_END 0x7ffffffffff0 //End of user stack area
+
+#define VMM_INIT_USER_STACK_SIZE 0x1000000 // 1MiB
+#define VMM_INIT_KERNEL_STACK_SIZE 0x4000 // 4KiB
 
 #include <types.h>
 #include <cpu/smp/spinlock.h>

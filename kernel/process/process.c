@@ -37,15 +37,12 @@ void process_create_init(){
     
     thread_t* initThread = kmalloc(sizeof(thread_t));
     memset(initThread, 0, sizeof(thread_t));
-    initThread->regs.cs = 0x08;
-    initThread->regs.ds = 0x10;
-    initThread->regs.ss = 0x10;
-    initThread->regs.rflags = ((1 << 1) | (1 << 9) | (1 << 21));
     initThread->process = initProcess;
     initThread->status = THREAD_STATUS_READY;
-    initThread->kernelStack = kmalloc(VMM_INIT_PROCESS_STACK_SIZE) + VMM_INIT_PROCESS_STACK_SIZE - 1;
+    //no alignment is needed since addresses
+    //returned by kmalloc() are already 16-byte aligned
+    initThread->kernelStack = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1) + VMM_INIT_KERNEL_STACK_SIZE;
     vaspace_create_thread_user_stack(initThread);
-
     initProcess->mainThread = initThread;
 
     if(elf_exec_load(initProcess, "0:/bin/init.elf") != 0){
@@ -57,6 +54,4 @@ void process_create_init(){
     vaspace_switch(initProcess->pml4);
     tss_set_rsp(0, initThread->kernelStack);
     user_jump(initThread->regs.rip, initThread->regs.rsp);
-    
-    //TODO: Continue this
 }
