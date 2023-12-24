@@ -7,5 +7,5 @@
 *.iso
 *.o
 *.d
-*.mod
+*.sys
 *.grd

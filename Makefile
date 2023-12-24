@@ -2,7 +2,7 @@
 override MAKEFLAGS += -rR
 
 override IMAGE_NAME := garnos
-override MODULES = $(shell find ./modules -name '*.mod')
+override MODULES = $(shell find ./modules -name '*.sys')
 override PROGRAMS = $(shell find ./programs -name '*.elf')
 override AUTOREG = ./modules/autoreg.txt
 

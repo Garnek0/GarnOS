@@ -31,10 +31,10 @@ override CPPFLAGS := \
 override CC = gcc
 
 override CFILES := $(shell find -L . -type f -name '*.c')
-override MOD_OBJ := $(CFILES:.c=.mod)
-override MODULES = $(shell find -L . -type f -name '*.mod' | sed 's!.*/!!')
+override MOD_OBJ := $(CFILES:.c=.sys)
+override MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-override INITRD_MODS := ide.mod ahci.mod
+override INITRD_MODS := ide.sys ahci.sys
 override INITRD_AUTOREG := initreg.txt
 override AUTOREG := autoreg.txt
 
@@ -43,7 +43,7 @@ override HEADER_DEPS := $(CFILES:.c=.d)
 .PHONY: all
 all: $(MOD_OBJ) initrd autoreg
 
-%.mod: %.c
+%.sys: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
 	cp $@ .
 	rm $@
@@ -64,4 +64,4 @@ clean:
 	rm -rf $(HEADER_DEPS)
 	rm -rf $(INITRD_AUTOREG) $(AUTOREG)
 	rm -rf $(INITRD_FILENAME)
-	rm -rf *.mod
+	rm -rf *.sys
