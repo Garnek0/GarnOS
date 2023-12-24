@@ -8,7 +8,7 @@ GarnOS is A Simple, Open-Source, Hobby Operating System.
 
 - Terminal Emulator
 - Module Loader
-- Limine™
+- Userspace
 
 # Building & Running
 
@@ -49,17 +49,20 @@ See LICENSE.md for details.
 - [x] RTC
 - [x] SMP
 - [x] APIC, I/O APIC
-- [x] Timer (PIT or APIC Timer)
+- [x] Timer
 - [x] PCI Driver
 - [ ] AHCI driver
 - [x] IDE driver
 - [x] FAT Driver
-- [ ] Syscalls, userland and ELF executables
+- [ ] Ext2 Driver
+- [x] Userland
+- [x] Scheduler
+- [x] Processes and Threads
+- [ ] Syscalls
 - [ ] Driver interface (Custom or UDI)
 - [ ] GUI
-- [ ] Scheduler, multiprocessing
 - [ ] USB Driver
-- [ ] SB16 Driver
+- [ ] Sound
 - [ ] Networking
 
 ## Known Bugs
