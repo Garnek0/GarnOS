@@ -58,7 +58,7 @@ See LICENSE.md for details.
 - [x] Userland
 - [x] Scheduler
 - [x] Processes and Threads
-- [ ] Syscalls
+- [x] Syscalls
 - [ ] Driver interface (Custom or UDI)
 - [ ] GUI
 - [ ] USB Driver

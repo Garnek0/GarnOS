@@ -22,14 +22,19 @@
 typedef struct _file {
     char* filename;
     void* address;
+    uint8_t mode;
     size_t size;
-    uint8_t access;
     size_t seek;
     struct _filesys* fs;
 } file_t;
 
+typedef struct _fd {
+    file_t* file;
+    uint8_t permissions;
+} fd_t;
+
 //open file
-file_t* kfopen(char* path, uint8_t access);
+file_t* kfopen(char* path, uint8_t mode);
 
 //modify current seek position
 int kfseek(file_t* file, int seekPos, int whence);

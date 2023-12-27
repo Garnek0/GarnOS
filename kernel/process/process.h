@@ -10,6 +10,7 @@
 
 #include <types.h>
 #include <process/thread/thread.h>
+#include <sys/fal/fal.h>
 #include <mem/vmm/vmm.h>
 
 typedef struct _process {

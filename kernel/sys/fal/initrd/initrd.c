@@ -54,7 +54,7 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
             file_t* file = kmalloc(sizeof(file_t));
-            file->access = FILE_ACCESS_R;
+            file->mode = FILE_ACCESS_R;
             //the file is already in memory
             file->address = kmalloc(size);
             memcpy(file->address, (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512)), size);
@@ -111,12 +111,12 @@ void initrd_init(){
 
     filesys_set_name(&initrdFS, "init");
     initrdFS.type = FILESYS_TYPE_INIT_USTAR;
-    initrdFS.open = initrd_open;
-    initrdFS.close = initrd_close;
-    initrdFS.read = initrd_read;
-    initrdFS.write = initrd_write;
-    initrdFS.mkdir = initrd_mkdir;
-    initrdFS.rmdir = initrd_rmdir;
+    initrdFS.fsOperations.open = initrd_open;
+    initrdFS.fsOperations.close = initrd_close;
+    initrdFS.fsOperations.read = initrd_read;
+    initrdFS.fsOperations.write = initrd_write;
+    initrdFS.fsOperations.mkdir = initrd_mkdir;
+    initrdFS.fsOperations.rmdir = initrd_rmdir;
 
     //fetch module address from limine
     initrd = (initrd_tar_header_t*)(module_request.response->modules[0]->address);

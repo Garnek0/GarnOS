@@ -19,6 +19,7 @@
 #include <sys/dal/dal.h>
 #include <ds/list.h>
 #include <sys/fal/fal.h>
+#include <sys/power.h>
 
 list_t* commandList;
 bool exit = false;
@@ -36,7 +37,7 @@ static void console_help(){
             "fs         - list mounted filesystems\n"
             "drives     - list all drives\n"
             "user       - enter userspace\n"
-            "halt       - halt the system\n");
+            "shutdown   - shutdown the system (non-ACPI)\n");
 }
 
 static void console_clear(){
@@ -121,16 +122,12 @@ static void console_user(){
             "If your computer is still running, then you have\n"
             "just entered ring 3!\n\n"
             "A process called \"init\" is now running\n"
-            "In an infinite loop while cpl=3!");
+            "In an infinite loop while cpl=3!\n");
     exit = true;
 }
 
-static void console_halt(){
-    kprintf("Halted."); //only halts bsp
-    asm volatile("cli");
-    for(;;){
-        asm volatile("hlt");
-    }
+static void console_shutdown(){
+    power_shutdown();
 }
 
 void kcon_add_command(char* cmd, void* function){
@@ -158,7 +155,7 @@ void init_kcon(){
     kcon_add_command("fs", console_fs);
     kcon_add_command("drives", console_drives);
     kcon_add_command("user", console_user);
-    kcon_add_command("halt", console_halt);
+    kcon_add_command("shutdown", console_shutdown);
 
     kprintf("GarnOS Kernel Console Demo\n");
     char* cmd;

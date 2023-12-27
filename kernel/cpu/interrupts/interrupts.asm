@@ -9,6 +9,7 @@
 
 extern exception_handler
 extern irq_handler
+extern syscall_handler
 
 bits 64
 
@@ -94,6 +95,45 @@ irq_common:
     add rsp, 16
     iretq
 
+syscall_common:
+    push rax
+    push rcx
+    push rdx
+    push rbx
+    push rbp
+    push rsi
+    push rdi
+    ;TODO: add rX registers
+
+    mov ax, ds
+    push rax
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov rdi, rsp
+    cld
+
+    call syscall_handler
+
+    pop rax
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    pop rdi
+    pop rsi
+    pop rbp
+    pop rbx
+    pop rdx
+    pop rcx
+    pop rax
+
+    add rsp, 16
+    iretq
+
 global isr0
 global isr1
 global isr2
@@ -126,6 +166,8 @@ global isr28
 global isr29
 global isr30
 global isr31
+
+global isr128
 
 global irq0
 global irq1
@@ -329,6 +371,12 @@ isr31:
     push byte 0
     push byte 31
     jmp exception_common
+
+; Syscall interrupt
+isr128:
+    push byte 0
+    push byte 0
+    jmp syscall_common
 
 irq0:
     push byte 0

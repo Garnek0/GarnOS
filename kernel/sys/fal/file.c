@@ -15,7 +15,7 @@
 spinlock_t fileLock;
 
 //open file
-file_t* kfopen(char* path, uint8_t access){
+file_t* kfopen(char* path, uint8_t mode){
     kerrno = 0;
 
     char chr = path[0];
@@ -44,12 +44,12 @@ file_t* kfopen(char* path, uint8_t access){
         path++;
         //make sure the filesystem exists
         filesys_t* fs = filesys_get(fsNumber);
-        if(fs->open == NULL){
+        if(fs->fsOperations.open == NULL){
             goto invalidfsindex;
         }
         //open the file
         file_t* file;
-        file = fs->open(fs, path, access);
+        file = fs->fsOperations.open(fs, path, mode);
         if(file == NULL){
             //kerrno should have already been set by the fs driver
             releaseLock(&fileLock);
@@ -90,7 +90,7 @@ int kfclose(file_t* file){
     kerrno = 0;
 
     lock(fileLock, {
-        int res = file->fs->close(file->fs, file);
+        int res = file->fs->fsOperations.close(file->fs, file);
         releaseLock(&fileLock);
         return res;
     });
@@ -101,13 +101,13 @@ int kfread(file_t* file, size_t size, void* buf){
     kerrno = 0;
 
     lock(fileLock, {
-        if(file->access != FILE_ACCESS_R && file->access != FILE_ACCESS_RW){
+        if(file->mode != FILE_ACCESS_R && file->mode != FILE_ACCESS_RW){
             kerrno = EACCES;
             releaseLock(&fileLock);
             return -1;
         }
 
-        int res = file->fs->read(file->fs, file, size, buf);
+        int res = file->fs->fsOperations.read(file->fs, file, size, buf);
         releaseLock(&fileLock);
         return res;
     });
@@ -118,13 +118,13 @@ int kfwrite(file_t* file, size_t size, void* buf){
     kerrno = 0;
 
     lock(fileLock, {
-        if(file->access != FILE_ACCESS_W && file->access != FILE_ACCESS_RW){
+        if(file->mode != FILE_ACCESS_W && file->mode != FILE_ACCESS_RW){
             kerrno = EACCES;
             releaseLock(&fileLock);
             return -1;
         }
 
-        int res = file->fs->write(file->fs, file, size, buf);
+        int res = file->fs->fsOperations.write(file->fs, file, size, buf);
         releaseLock(&fileLock);
         return res;
     });

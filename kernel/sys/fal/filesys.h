@@ -14,28 +14,33 @@
 #include <sys/dal/dal.h>
 #include "file.h"
 
-#define FILESYS_TYPE_INIT_USTAR 0
-#define FILESYS_TYPE_FAT12 1
-#define FILESYS_TYPE_FAT16 2
-#define FILESYS_TYPE_FAT32 3
-#define FILESYS_TYPE_EXFAT 4
-#define FILESYS_TYPE_EXT 5
-#define FILESYS_TYPE_EXT2 6
-#define FILESYS_TYPE_EXT3 7
-#define FILESYS_TYPE_EXT4 8
-#define FILESYS_TYPE_ISO9660 9
+#define FILESYS_TYPE_UNDEFINED 0
+#define FILESYS_TYPE_INIT_USTAR 1
+#define FILESYS_TYPE_FAT12 2
+#define FILESYS_TYPE_FAT16 3
+#define FILESYS_TYPE_FAT32 4
+#define FILESYS_TYPE_EXFAT 5
+#define FILESYS_TYPE_EXT 6
+#define FILESYS_TYPE_EXT2 7
+#define FILESYS_TYPE_EXT3 8
+#define FILESYS_TYPE_EXT4 9
+#define FILESYS_TYPE_ISO9660 10
+
+typedef struct _filesys_operations {
+    struct _file* (*open)(struct _filesys* self, char* path, uint8_t mode);
+    int (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf);
+    int (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf);
+    int (*close)(struct _filesys* self, struct _file* file);
+    int (*mkdir)(struct _filesys* self, char* path);
+    int (*rmdir)(struct _filesys* self, char* path);
+} filesys_operations_t;
 
 typedef struct _filesys {
     char name[32];
     uint8_t type;
     size_t size;
 
-    struct _file* (*open)(struct _filesys* self, char* path, uint8_t access);
-    int (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf);
-    int (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf);
-    int (*close)(struct _filesys* self, struct _file* file);
-    int (*mkdir)(struct _filesys* self, char* path);
-    int (*rmdir)(struct _filesys* self, char* path);
+    filesys_operations_t fsOperations;
 
     //should not be touched by drivers
     bool _valid;

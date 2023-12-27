@@ -227,7 +227,7 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
                 }
                 file_t* file = kmalloc(sizeof(file_t));
                 file->size = currentDir->size;
-                file->access = access;
+                file->mode = access;
                 file->fs = self;
                 file->filename = kmalloc(strlen(pathTmp));
                 memcpy(file->filename, pathTmp, strlen(pathTmp));
@@ -252,8 +252,6 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
             strptr = 0;
         }
     }
-
-    //while(1);
     return NULL;
 }
 
@@ -330,12 +328,12 @@ bool fat_attach(drive_t* drive, size_t partition){
     filesys_t filesys;
     filesys.drive = drive;
     filesys.partition = partition;
-    filesys.open = fat_open;
-    filesys.close = fat_close;
-    filesys.write = fat_write;
-    filesys.read = fat_read;
-    filesys.mkdir = fat_mkdir;
-    filesys.rmdir = fat_rmdir;
+    filesys.fsOperations.open = fat_open;
+    filesys.fsOperations.close = fat_close;
+    filesys.fsOperations.write = fat_write;
+    filesys.fsOperations.read = fat_read;
+    filesys.fsOperations.mkdir = fat_mkdir;
+    filesys.fsOperations.rmdir = fat_rmdir;
 
     if(bpb->bytesPerSector != 512){
         klog("FAT: Filesystem on drive \"%s\" partition %d has an unsupported sector size of %d Bytes per secotr!\n", KLOG_WARNING, drive->name, partition, bpb->bytesPerSector);

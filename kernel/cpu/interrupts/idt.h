@@ -13,6 +13,7 @@
 #include <types.h>
 
 #define INT_GATE 0x8E
+#define INT_USER_GATE 0xEE
 #define TRAP_GATE 0x8F
 
 typedef struct {
