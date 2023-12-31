@@ -8,6 +8,8 @@
 #ifndef SYSCALL_H
 #define SYSCALL_H
 
+#define SYSCALL_MAX 255
+
 #include <types.h>
 
 void syscall_init();
