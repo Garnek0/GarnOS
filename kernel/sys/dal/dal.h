@@ -19,6 +19,7 @@
 #include "dev/driver.h"
 #include "stor/drive.h"
 #include "stor/part/part.h"
+#include "stor/bcache.h"
 #include "checksysfs.h"
 #include <cpu/smp/cpus.h>
 
@@ -30,6 +31,8 @@ static inline void dal_init(){
     device_init(); //initialise device manager
 
     klog("DAL Initialised\n", KLOG_OK);
+
+    bcache_init(); //Initialise buffer cache
 
     cpus_init(); //initialize CPUs
 

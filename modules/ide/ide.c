@@ -111,17 +111,13 @@ uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErr
     return err;
 }
 
-void ide_ata_read(drive_t* drive, size_t startLBA, size_t size, void* buf){
-    size = ALIGN_UP(size, 512);
-
+void ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint8_t lba_mode, dma, cmd;
     uint8_t lba_io[6];
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
     ide_channel_t* channel = ideDrive->channel;
     uint16_t cyl;
     uint8_t head, sect, err;
-
-    size_t seccount = size/512;
 
     if(startLBA >= 0x10000000){
         // LBA48:
@@ -165,12 +161,12 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t size, void* buf){
     else ide_write(channel, ATA_REG_HDDEVSEL, 0xE0 | (ideDrive->masterSlave << 4) | head);
 
     if (lba_mode == 2) {
-        ide_write(channel, ATA_REG_SECCOUNT1, ((seccount & 0xFF00) >> 8));
+        ide_write(channel, ATA_REG_SECCOUNT1, ((blocks & 0xFF00) >> 8));
         ide_write(channel, ATA_REG_LBA3, lba_io[3]);
         ide_write(channel, ATA_REG_LBA4, lba_io[4]);
         ide_write(channel, ATA_REG_LBA5, lba_io[5]);
     }
-    ide_write(channel, ATA_REG_SECCOUNT0, (seccount & 0x00FF));
+    ide_write(channel, ATA_REG_SECCOUNT0, (blocks & 0x00FF));
     ide_write(channel, ATA_REG_LBA0, lba_io[0]);
     ide_write(channel, ATA_REG_LBA1, lba_io[1]);
     ide_write(channel, ATA_REG_LBA2, lba_io[2]);
@@ -187,7 +183,7 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t size, void* buf){
         //TODO: DMA
     } else {
         uint16_t* tmp = buf;
-        for(int i = 0; i < seccount; i++) {
+        for(int i = 0; i < blocks; i++) {
             if(err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true)) return;
             for(int j = 0; j < 256; j++){
                 tmp[j] = inw(channel->iobase + ATA_REG_DATA);
@@ -196,17 +192,13 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t size, void* buf){
     }
 }
 
-void ide_ata_write(drive_t* drive, size_t startLBA, size_t size, void* buf){
-    size = ALIGN_UP(size, 512);
-
+void ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint8_t lba_mode, dma, cmd;
     uint8_t lba_io[6];
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
     ide_channel_t* channel = ideDrive->channel;
     uint16_t cyl;
     uint8_t head, sect, err;
-
-    size_t seccount = size/512;
 
     if(startLBA >= 0x10000000){
         // LBA48:
@@ -250,12 +242,12 @@ void ide_ata_write(drive_t* drive, size_t startLBA, size_t size, void* buf){
     else ide_write(channel, ATA_REG_HDDEVSEL, 0xE0 | (ideDrive->masterSlave << 4) | head);
 
     if (lba_mode == 2) {
-        ide_write(channel, ATA_REG_SECCOUNT1, ((seccount & 0xFF00) >> 8));
+        ide_write(channel, ATA_REG_SECCOUNT1, ((blocks & 0xFF00) >> 8));
         ide_write(channel, ATA_REG_LBA3, lba_io[3]);
         ide_write(channel, ATA_REG_LBA4, lba_io[4]);
         ide_write(channel, ATA_REG_LBA5, lba_io[5]);
     }
-    ide_write(channel, ATA_REG_SECCOUNT0, (seccount & 0x00FF));
+    ide_write(channel, ATA_REG_SECCOUNT0, (blocks & 0x00FF));
     ide_write(channel, ATA_REG_LBA0, lba_io[0]);
     ide_write(channel, ATA_REG_LBA1, lba_io[1]);
     ide_write(channel, ATA_REG_LBA2, lba_io[2]);
@@ -272,7 +264,7 @@ void ide_ata_write(drive_t* drive, size_t startLBA, size_t size, void* buf){
         //TODO: DMA
     } else {
         uint16_t* tmp = buf;
-        for (int i = 0; i < seccount; i++) {
+        for (int i = 0; i < blocks; i++) {
             ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
             for(int j = 0; j < 256; j++){
                 outw(channel->iobase + ATA_REG_DATA, tmp[j]);
@@ -285,11 +277,11 @@ void ide_ata_write(drive_t* drive, size_t startLBA, size_t size, void* buf){
 
 //TODO: ATAPI
 
-void ide_atapi_read(drive_t* drive, size_t startLBA, size_t size, void* buf){
+void ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     ;
 }
 
-void ide_atapi_write(drive_t* drive, size_t startLBA, size_t size, void* buf){
+void ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     ;
 }
 

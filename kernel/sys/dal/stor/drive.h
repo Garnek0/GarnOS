@@ -46,8 +46,8 @@ typedef struct _drive {
     size_t size;
     size_t blockSize;
 
-    void (*read)(struct _drive* self, uint64_t startLBA, size_t size, void* buf);
-    void (*write)(struct _drive* self, uint64_t startLBA, size_t size, void* buf);
+    void (*read)(struct _drive* self, uint64_t startLBA, size_t blocks, void* buf);
+    void (*write)(struct _drive* self, uint64_t startLBA, size_t blocks, void* buf);
 
     //automatically set by the DAL. should not be touched
     //by drivers.

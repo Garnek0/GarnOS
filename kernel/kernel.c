@@ -35,7 +35,7 @@
 
 #include <display/fb.h>
 
-#include <term/term.h>
+#include <sys/term/term.h>
 
 #include <acpi/tables/tables.h>
 

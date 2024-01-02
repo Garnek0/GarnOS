@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <kstdio.h>
-#include <term/term.h>
+#include <sys/term/term.h>
 #include <mem/kheap/kheap.h>
 #include <sys/input.h>
 #include <kerrno.h>

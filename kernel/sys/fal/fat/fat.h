@@ -73,6 +73,8 @@ typedef struct {
     size_t dataSectors;
     size_t clusterCount;
     size_t clusterSize;
+    size_t sectorsPerCluster;
+    size_t bytesPerSector;
 } fat_context_t;
 
 typedef struct {
@@ -100,6 +102,10 @@ typedef struct {
     uint16_t clusterLow;
     uint16_t name3[2];
 }__attribute__((packed)) fat_lfn_t;
+
+typedef struct {
+    size_t startCluster;
+} fat_file_fs_data_t;
 
 bool fat_probe(drive_t* drive, size_t partition);
 bool fat_attach(drive_t* drive, size_t partition);

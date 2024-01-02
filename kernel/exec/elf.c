@@ -54,54 +54,54 @@ void* elf_find_symbol(void* elf, const char* symbol){
 	return NULL;
 }
 
-bool elf_validate(void* elf, Elf64_Half etype){
+bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype){
 	kerrno = 0;
-
-	Elf64_Ehdr* h = (Elf64_Ehdr*)elf;
 
 	if (h->e_ident[0] != ELFMAG0 ||
 	    h->e_ident[1] != ELFMAG1 ||
 	    h->e_ident[2] != ELFMAG2 ||
 	    h->e_ident[3] != ELFMAG3) {
 		kerrno = ENOEXEC;
-		return -1;
+		return false;
 	}
 
     if (h->e_ident[EI_CLASS] != ELFCLASS64) {
 		kerrno = ENOEXEC;
-		return -1;
+		return false;
 	}
 
     if (h->e_type != etype) {
 		kerrno = ENOEXEC;
-		return -1;
+		return false;
 	}
+
+	return true;
 }
 
 int elf_load_module(char* modulePath){
-
 	kerrno = 0;
 	int err;
 
-    Elf64_Ehdr* h;
+    Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
     file_t* file = kfopen(modulePath, FILE_ACCESS_R);
 
 	err = kerrno;
 
 	if(!file){
-		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
+		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
 		return -1;
 	}
 
-    h = (Elf64_Ehdr*)file->address;
+    kfread(file, sizeof(Elf64_Ehdr), h);
 
 	//Validate module
-	if(!elf_validate(file->address, ET_REL)){
-		klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+	if(!elf_validate(h, ET_REL)){
+		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
 		return -1;
 	}
 
-	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
+	void* elf_module = kmalloc(file->size);
+	kfseek(file, 0, FILE_SEEK_SET);
 	kfread(file, file->size, (void*)elf_module);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
@@ -187,7 +187,7 @@ int elf_load_module(char* modulePath){
 					break;
 				default:
 					kerrno = ENOEXEC;
-					klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+					klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
 					goto unload;
 					break;
 			}
@@ -221,7 +221,7 @@ int elf_load_module(char* modulePath){
 				}
 			}
 			kerrno = EEXIST;
-			klog("ML: Could not Load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+			klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}
@@ -251,25 +251,26 @@ int elf_load_driver(driver_node_t* node){
 	kerrno = 0;
 	int err;
 
-    Elf64_Ehdr* h;
+    Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
     file_t* file = kfopen(node->path, FILE_ACCESS_R);
 
 	err = kerrno;
 
 	if(!file){
-		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(err), KLOG_FAILED);
+		klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(err), KLOG_FAILED);
 		return -1;
 	}
 
-    h = (Elf64_Ehdr*)file->address;
+    kfread(file, sizeof(Elf64_Ehdr), h);
 
 	//Validate module
-	if(!elf_validate(file->address, ET_REL)){
-		klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+	if(!elf_validate(h, ET_REL)){
+		klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
 		return -1;
 	}
 
-	uint8_t* elf_module = (uint8_t*)kmalloc(file->size);
+	void* elf_module = kmalloc(file->size);
+	kfseek(file, 0, FILE_SEEK_SET);
 	kfread(file, file->size, (void*)elf_module);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
@@ -360,7 +361,7 @@ int elf_load_driver(driver_node_t* node){
 					break;
 				default:
 					kerrno = ENOEXEC;
-					klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+					klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
 					goto unload;
 					break;
 			}
@@ -394,7 +395,7 @@ int elf_load_driver(driver_node_t* node){
 				}
 			}
 			kerrno = EEXIST;
-			klog("ML: Could not Load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+			klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}
@@ -434,17 +435,25 @@ int elf_exec_load(process_t* process, char* path){
 		return -1;
 	}
 
+	Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
+
+	kfread(file, sizeof(Elf64_Ehdr), h);
+	kfseek(file, 0, FILE_SEEK_SET);
+
 	//TODO: handle ET_DYN
-	if(!elf_validate(file->address, ET_EXEC)){
+	if(!elf_validate(h, ET_EXEC)){
 		klog("exec: Could not load executable %s! Executable is corrupt!\n", KLOG_FAILED, path);
 		return -1;
 	}
 
-	Elf64_Ehdr* h = (Elf64_Ehdr*)file->address;
+	void* elfExec = kmalloc(file->size);
+	kfread(file, file->size, elfExec);
+	kfseek(file, 0, FILE_SEEK_SET);
+
 	Elf64_Phdr* phdr;
 
-	for(int i = 0; i < h->e_phnum; ++i) {
-		phdr = (Elf64_Phdr*)((uint64_t)h + h->e_phoff + h->e_phentsize * i);
+	for(int i = 0; i < h->e_phnum; i++) {
+		phdr = (Elf64_Phdr*)((uint64_t)elfExec + h->e_phoff + h->e_phentsize * i);
 		if(phdr->p_type == PT_LOAD) {
 			vaspace_create_area(process->pml4, phdr->p_vaddr, phdr->p_memsz, VMM_PRESENT | VMM_USER | VMM_RW);
 
@@ -452,8 +461,7 @@ int elf_exec_load(process_t* process, char* path){
 			//vaspace_memcpy() or sth that can memcpy into another address space
 			vaspace_switch(process->pml4);
 
-			kfseek(file, phdr->p_offset, FILE_SEEK_SET);
-			kfread(file, phdr->p_filesz, (void*)phdr->p_vaddr);
+			memcpy((void*)phdr->p_vaddr, (void*)((uint64_t)elfExec + phdr->p_offset), phdr->p_filesz);
 
 			for(size_t i = phdr->p_filesz; i < phdr->p_memsz; i++) {
 				*(uint8_t*)(phdr->p_vaddr + i) = 0;

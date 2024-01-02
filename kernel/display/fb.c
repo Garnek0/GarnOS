@@ -11,7 +11,7 @@
 #include <limine.h>
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
-#include <term/term.h>
+#include <sys/term/term.h>
 #include <cpu/smp/spinlock.h>
 
 framebuffer_info_t framebuffer_info;

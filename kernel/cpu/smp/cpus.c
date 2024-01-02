@@ -14,7 +14,7 @@
 #include <cpu/apic/apic.h>
 #include <hw/ioapic/ioapic.h>
 
-#include <term/term.h>
+#include <sys/term/term.h>
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>

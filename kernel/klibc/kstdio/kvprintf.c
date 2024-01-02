@@ -9,7 +9,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <kstdio.h>
-#include <term/term.h>
+#include <sys/term/term.h>
 #include <mem/memutil/memutil.h>
 
 spinlock_t kvprintfLock;

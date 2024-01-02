@@ -6,8 +6,10 @@
 *   Description: File Abstraction
 */
 // SPDX-License-Identifier: BSD-2-Clause
+
 #include "file.h"
 #include <mem/kheap/kheap.h>
+#include <mem/memutil/memutil.h>
 #include <kstdio.h>
 #include <kerrno.h>
 #include <cpu/smp/spinlock.h>
@@ -17,6 +19,8 @@ spinlock_t fileLock;
 //open file
 file_t* kfopen(char* path, uint8_t mode){
     kerrno = 0;
+
+    //TODO: remove "chr". just use path[0]
 
     char chr = path[0];
     uint8_t fsNumber = 0;
@@ -128,4 +132,20 @@ int kfwrite(file_t* file, size_t size, void* buf){
         releaseLock(&fileLock);
         return res;
     });
+}
+
+fd_t* file_alloc_fd_table(size_t size){
+    fd_t* fd = (fd_t*)kmalloc(sizeof(fd_t)*size); 
+    memset(fd, 0, sizeof(fd_t)*size);
+
+    return fd;
+}
+
+fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
+    if(prevSize >= newSize) return;
+
+    fd_t* newfd = (fd_t*)kmalloc(sizeof(fd_t)*newSize);
+    memcpy(newfd, fd, sizeof(fd_t)*prevSize);
+
+    return newfd;
 }

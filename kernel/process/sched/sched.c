@@ -17,6 +17,7 @@
 list_t* threadList;
 list_node_t* currentThreadNode;
 thread_t* currentThread;
+process_t* currentProcess;
 
 void sched_init(){
     threadList = list_create("schedThreadList");
@@ -42,6 +43,8 @@ checkready:
 
     currentThread = (thread_t*)currentThreadNode->value;
     currentThreadNode = currentThreadNode->next;
+
+    currentProcess = currentThread->process;
 
     if(currentThread->status != THREAD_STATUS_READY) goto checkready;
 }

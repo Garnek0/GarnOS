@@ -54,13 +54,15 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
             file_t* file = kmalloc(sizeof(file_t));
+            initrd_file_fs_data_t* fsData = kmalloc(sizeof(initrd_file_fs_data_t));
             file->mode = FILE_ACCESS_R;
-            //the file is already in memory
-            file->address = kmalloc(size);
-            memcpy(file->address, (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512)), size);
+            file->fsData = (void*)fsData;
             file->fs = fs;
             file->seek = 0;
             file->size = size;
+
+            //the file is already in memory
+            fsData->startOffset = (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
 
             return file;
         }
@@ -76,15 +78,17 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
 }
 
 int initrd_close(filesys_t* fs, file_t* file){
-    kmfree((void*)file->address);
+    kmfree((void*)file->fsData);
     kmfree((void*)file);
     return 0;
 }
 
 int initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf){
+    initrd_file_fs_data_t* fsData = (initrd_file_fs_data_t*)file->fsData;
+
     for(size_t i = 0; i < size; i++){
         if(file->seek >= file->size) {file->seek--; return i;}
-        ((uint8_t*)buf)[i] = ((uint8_t*)file->address)[file->seek];
+        ((uint8_t*)buf)[i] = ((uint8_t*)fsData->startOffset)[file->seek];
         file->seek++;
     }
     return size;

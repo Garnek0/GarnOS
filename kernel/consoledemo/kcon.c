@@ -15,7 +15,7 @@
 #include <kernel.h>
 #include <hw/rtc/rtc.h>
 #include <display/fb.h>
-#include <term/term.h>
+#include <sys/term/term.h>
 #include <sys/dal/dal.h>
 #include <ds/list.h>
 #include <sys/fal/fal.h>

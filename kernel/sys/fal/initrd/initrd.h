@@ -23,6 +23,10 @@ typedef struct {
     char typeFlag[1];
 }__attribute__((packed)) initrd_tar_header_t;
 
+typedef struct {
+    size_t startOffset;
+} initrd_file_fs_data_t;
+
 void initrd_init();
 
 #endif //INITRD_H

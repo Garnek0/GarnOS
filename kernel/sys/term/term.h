@@ -12,8 +12,8 @@
 
 #include <types.h>
 
-#include <term/font/font.h>
-#include <term/cursor/cursor.h>
+#include <sys/term/font/font.h>
+#include <sys/term/cursor/cursor.h>
 #include <cpu/smp/spinlock.h>
 
 #define GLYPH_X 8

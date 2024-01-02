@@ -8,6 +8,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
+#define PROCESS_MAX_FD 128
+
 #include <types.h>
 #include <process/thread/thread.h>
 #include <sys/fal/fal.h>
@@ -17,6 +19,9 @@ typedef struct _process {
     int pid;
 
     struct _page_table* pml4;
+
+    fd_t* fdTable;
+    size_t fdMax;
 
     struct _thread* mainThread;
     struct _process* parent;

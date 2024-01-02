@@ -9,7 +9,7 @@
 
 #include "cursor.h"
 
-#include <term/term.h>
+#include <sys/term/term.h>
 #include <display/fb.h>
 
 void cursor_advance(cursor_t* cursor){

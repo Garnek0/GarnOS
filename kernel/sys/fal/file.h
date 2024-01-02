@@ -21,11 +21,11 @@
 
 typedef struct _file {
     char* filename;
-    void* address;
     uint8_t mode;
     size_t size;
     size_t seek;
     struct _filesys* fs;
+    void* fsData;
 } file_t;
 
 typedef struct _fd {
@@ -47,5 +47,11 @@ int kfread(file_t* file, size_t size, void* buf);
 
 //write to file
 int kfwrite(file_t* file, size_t size, void* buf);
+
+//new fd table
+fd_t* file_alloc_fd_table(size_t size);
+
+//reallocate existing fd table
+fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize);
 
 #endif //FILE_H

@@ -38,28 +38,38 @@ const char* probeOEMIDs[PROBE_OEMID_COUNT] = {
 
 //TODO: Support sector sizes != 512 Bytes ???????
 
-uint8_t* clusterCalcBuf[512];
-
 static size_t fat12_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
     //TODO: Do this
 }
 
 static size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
-    uint16_t* buf = (uint16_t*)clusterCalcBuf;
     size_t sectorOffset = cluster/256;
 
-    filesys->drive->read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset, 1, buf);
-    if(buf[cluster%256] >= 0xFFF6) return 0;
-    return buf[cluster%256];
+    bcache_buf_t* buf = bcache_read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+
+    uint16_t* fatBuf = (uint16_t*)buf->data;
+
+    if(fatBuf[cluster%256] >= 0xFFF6){
+        bcache_release(buf);
+        return 0;
+    }
+    bcache_release(buf);
+    return fatBuf[cluster%256];
 }
 
 static size_t fat32_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
-    uint32_t* buf = (uint32_t*)clusterCalcBuf;
     size_t sectorOffset = cluster/128;
 
-    filesys->drive->read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset, 1, buf);
-    if(buf[cluster%128] >= 0x0FFFFF6) return 0;
-    return buf[cluster%128];
+    bcache_buf_t* buf = bcache_read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+
+    uint32_t* fatBuf = (uint32_t*)buf->data;
+
+    if(fatBuf[cluster%128] >= 0x0FFFFF6){
+        bcache_release(buf);
+        return 0;
+    }
+    bcache_release(buf);
+    return fatBuf[cluster%128];
 }
 
 static bool fat_parse_and_compare_sfn(fat_directory_t* sd1, char* s2){
@@ -128,7 +138,7 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
     fat_context_t* context = (fat_context_t*)self->context;
     fat_directory_t* currentDir;
     fat_lfn_t* currentLFN;
-    void* buf = kmalloc(512);
+    bcache_buf_t* buf;
     char* pathTmp = path;
 
     if(self->type == FILESYS_TYPE_FAT12){
@@ -181,10 +191,10 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
             isLFNDirectory = false;
             foundByLFN = false;
             for(;;){
-                for(int i = 0; i < fat32ebpb->bpb.sectsPerCluster; i++){
-                    self->drive->read(self->drive, currentSector, 1, buf);
-                    for(int j = 0; j < fat32ebpb->bpb.bytesPerSector; j+=sizeof(fat_directory_t)){
-                        currentDir = (fat_directory_t*)((uint64_t)buf + j);
+                for(int i = 0; i < context->sectorsPerCluster; i++){
+                    buf = bcache_read(self->drive, currentSector);
+                    for(int j = 0; j <context->bytesPerSector; j+=sizeof(fat_directory_t)){
+                        currentDir = (fat_directory_t*)((uint64_t)buf->data + j);
                         if(currentDir->name[0] == 0) continue;
                         if(currentDir->attr == FAT_ATTR_LFN) {
                             currentLFN = (fat_lfn_t*)currentDir;
@@ -199,21 +209,22 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
                         } else if(foundByLFN){
                             found = true;
                             currentCluster = currentDir->clusterLow + (currentDir->clusterHigh << 16);
-                            currentSector = partitionOffset + context->firstDataSector + fat32ebpb->bpb.sectsPerCluster * (currentCluster - 2);
+                            currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
                             break;
                         } else if(!isLFNDirectory && fat_parse_and_compare_sfn(currentDir, dir)){
                             found = true;
                             currentCluster = currentDir->clusterLow + (currentDir->clusterHigh << 16);
-                            currentSector = partitionOffset + context->firstDataSector + fat32ebpb->bpb.sectsPerCluster * (currentCluster - 2);
+                            currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
                             break;
                         }
                     }
                     if(!found) currentSector++;
+                    bcache_release(buf);
                 }
                 if(found) break;
                 if(fat32_next_cluster(self, context, currentCluster)){
                     currentCluster = fat32_next_cluster(self, context, currentCluster);
-                    currentSector = partitionOffset + context->firstDataSector + fat32ebpb->bpb.sectsPerCluster * (currentCluster - 2);
+                    currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
                 } else {
                     //FILE NOT FOUND/BAD PATH
                     kerrno = ENOENT;
@@ -226,25 +237,16 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
                     kerrno = EISDIR;
                 }
                 file_t* file = kmalloc(sizeof(file_t));
+                fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
                 file->size = currentDir->size;
                 file->mode = access;
                 file->fs = self;
                 file->filename = kmalloc(strlen(pathTmp));
                 memcpy(file->filename, pathTmp, strlen(pathTmp));
                 file->seek = 0;
-                file->address = kmalloc(ALIGN_UP(file->size, (fat32ebpb->bpb.bytesPerSector*fat32ebpb->bpb.sectsPerCluster)));
+                file->fsData = (void*)fsData;
 
-                int j = 0;
-
-                do {
-                    for(int i = 0; i < fat32ebpb->bpb.sectsPerCluster; i++){
-                        self->drive->read(self->drive, currentSector+i, 1, buf);
-                        memcpy(file->address+j, buf, fat32ebpb->bpb.bytesPerSector);
-                        j += fat32ebpb->bpb.bytesPerSector;
-                    }
-                    currentCluster = fat32_next_cluster(self, context, currentCluster);
-                    currentSector = partitionOffset + context->firstDataSector + fat32ebpb->bpb.sectsPerCluster * (currentCluster - 2);
-                } while(currentCluster);
+                fsData->startCluster = currentCluster;
 
                 return file;
             }
@@ -256,11 +258,39 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
 }
 
 int fat_read(filesys_t* self, file_t* file, size_t size, void* buf){
-    for(size_t i = 0; i < size; i++){
-        if(file->seek >= file->size) {file->seek--; return i;}
-        ((uint8_t*)buf)[i] = ((uint8_t*)file->address)[file->seek];
-        file->seek++;
+    fat_file_fs_data_t* fsData = (fat_file_fs_data_t*)file->fsData;
+    fat_context_t* context = self->context;
+
+    const size_t partitionOffset = self->drive->partitions[self->partition].startLBA; //must be added to read from the correct partition
+    size_t currentCluster = fsData->startCluster;
+    size_t currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
+
+    int j = 0, p = 0;
+
+    //TODO: Use page cache instead of buffer cache
+
+    uint8_t* sectBuf = kmalloc(512);
+
+    while(p != size && currentSector){
+        for(int i = 0; i < context->sectorsPerCluster; i++){
+            self->drive->read(self->drive, currentSector+i, 1, sectBuf);
+            for(int k = 0; k < context->bytesPerSector; k++){
+                if(j < file->seek){
+                    j++;
+                    continue;
+                }
+                ((uint8_t*)buf)[p] = sectBuf[k];
+                file->seek++;
+                p++; j++;
+                if(p == size) break;
+            }
+        }
+        currentCluster = fat32_next_cluster(self, context, currentCluster);
+        currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
     }
+
+    kmfree(sectBuf);
+    
     return size;
 }
 
@@ -269,7 +299,7 @@ int fat_write(filesys_t* self, file_t* file, size_t size, void* buf){
 }
 
 int fat_close(filesys_t* self, file_t* file){
-    kmfree(file->address);
+    kmfree(file->fsData);
     kmfree(file);
 }
 
@@ -283,30 +313,27 @@ int fat_rmdir(filesys_t* self, char* path){
 
 
 bool fat_probe(drive_t* drive, size_t partition){
-    void* buf = kmalloc(512);
     fat_bpb_t* probeBPB;
 
-    drive->read(drive, drive->partitions[partition].startLBA, 1, buf);
-    probeBPB = (fat_bpb_t*)buf;
+    bcache_buf_t* buf = bcache_read(drive, drive->partitions[partition].startLBA);
 
-    if(probeBPB->jump[0] != 0xEB && probeBPB->jump[2] != 0x90)  goto probefail;
+    probeBPB = (fat_bpb_t*)buf->data;
+
+    if(probeBPB->jump[0] != 0xEB && probeBPB->jump[2] != 0x90) {
+        bcache_release(buf);
+        return false;
+    }
 
     for(int i = 0; i < PROBE_OEMID_COUNT; i++){
         if(!strncmp((const char*)probeBPB->OEMID, probeOEMIDs[i], 8)){
             //This is surely a FAT filesystem
-            goto probesuccess;
+            bcache_release(buf);
+            return true;
         }
     }
 
-    goto probesuccess;
-
-probefail:
-    kmfree(buf);
+    bcache_release(buf);
     return false;
-
-probesuccess:
-    kmfree(buf);
-    return true;
 }
 
 bool fat_attach(drive_t* drive, size_t partition){
@@ -314,16 +341,19 @@ bool fat_attach(drive_t* drive, size_t partition){
 
     //TODO: Move to module
 
-    void* buf = kmalloc(512);
+    bcache_buf_t* buf;
     fat_context_t* context = kmalloc(sizeof(fat_context_t));
     fat_bpb_t* bpb;
     fat12_16_ebpb_t* fat12_16ebpb;
     fat32_ebpb_t* fat32ebpb;
 
-    drive->read(drive, drive->partitions[partition].startLBA, 1, buf);
-    bpb = (fat_bpb_t*)buf;
-    fat12_16ebpb = (fat12_16_ebpb_t*)buf;
-    fat32ebpb = (fat32_ebpb_t*)buf;
+    buf = bcache_read(drive, drive->partitions[partition].startLBA);
+    bpb = kmalloc(sizeof(fat_bpb_t));
+    fat12_16ebpb = kmalloc(sizeof(fat12_16_ebpb_t));
+    fat32ebpb = kmalloc(sizeof(fat32_ebpb_t));
+    memcpy(bpb, (void*)buf->data, sizeof(fat_bpb_t));
+    memcpy(fat12_16ebpb, (void*)buf->data, sizeof(fat12_16_ebpb_t));
+    memcpy(fat32ebpb, (void*)buf->data, sizeof(fat32_ebpb_t));
 
     filesys_t filesys;
     filesys.drive = drive;
@@ -352,6 +382,8 @@ bool fat_attach(drive_t* drive, size_t partition){
     context->dataSectors = context->totalSectors - (bpb->reservedSectors + (bpb->FATCount * context->FATSize) + context->rootDirSectors);
     context->clusterCount = (filesys.size - (bpb->reservedSectors + context->FATSize + context->rootDirSectors))/bpb->sectsPerCluster;
     context->clusterSize = bpb->sectsPerCluster * bpb->bytesPerSector;
+    context->sectorsPerCluster = bpb->sectsPerCluster;
+    context->bytesPerSector = bpb->bytesPerSector;
 
     //correct size
     filesys.size = context->dataSectors*512;
@@ -360,6 +392,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.type = FILESYS_TYPE_FAT12;
         context->ebpb = (void*)fat12_16ebpb;
         filesys.context = (void*)context;
+        kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
             filesys_set_name(&filesys, "No Label");
 
@@ -385,6 +418,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.type = FILESYS_TYPE_FAT16;
         context->ebpb = (void*)fat12_16ebpb;
         filesys.context = (void*)context;
+        kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
             filesys_set_name(&filesys, "No Label");
 
@@ -410,6 +444,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.type = FILESYS_TYPE_FAT32;
         context->ebpb = (void*)fat32ebpb;
         filesys.context = (void*)context;
+        kmfree(fat12_16ebpb);
         if(fat32ebpb->fatVer != 0){
             klog("FAT: Filesystem on drive \"%s\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, drive->name, partition);
             goto fail;
@@ -438,12 +473,11 @@ bool fat_attach(drive_t* drive, size_t partition){
     }
 
 fail:
-    kmfree(buf);
+    bcache_release(buf);
     return false;
 
 success:
-
+    bcache_release(buf);
     filesys_mount(filesys);
-
     return true;
 }
