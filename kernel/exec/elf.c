@@ -83,8 +83,7 @@ int elf_load_module(char* modulePath){
 	int err;
 
     Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
-    file_t* file = kfopen(modulePath, FILE_ACCESS_R);
-
+    file_t* file = file_open(modulePath, O_RDONLY, 0);
 	err = kerrno;
 
 	if(!file){
@@ -92,7 +91,7 @@ int elf_load_module(char* modulePath){
 		return -1;
 	}
 
-    kfread(file, sizeof(Elf64_Ehdr), h);
+    file_read(file, sizeof(Elf64_Ehdr), h, 0);
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
@@ -101,8 +100,7 @@ int elf_load_module(char* modulePath){
 	}
 
 	void* elf_module = kmalloc(file->size);
-	kfseek(file, 0, FILE_SEEK_SET);
-	kfread(file, file->size, (void*)elf_module);
+	file_read(file, file->size, (void*)elf_module, 0);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
 	//the correct load addresses for each section
@@ -231,7 +229,7 @@ int elf_load_module(char* modulePath){
 
 	//cleanup
 
-	kfclose(file);
+	file_close(file);
 
 	klog("ML: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
 
@@ -241,7 +239,7 @@ int elf_load_module(char* modulePath){
 
 unload:
 	kmfree((void*)elf_module);
-	kfclose(file);
+	file_close(file);
 	return -1;
 }
 
@@ -252,7 +250,7 @@ int elf_load_driver(driver_node_t* node){
 	int err;
 
     Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
-    file_t* file = kfopen(node->path, FILE_ACCESS_R);
+    file_t* file = file_open(node->path, O_RDONLY, 0);
 
 	err = kerrno;
 
@@ -261,7 +259,7 @@ int elf_load_driver(driver_node_t* node){
 		return -1;
 	}
 
-    kfread(file, sizeof(Elf64_Ehdr), h);
+    file_read(file, sizeof(Elf64_Ehdr), h, 0);
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
@@ -270,8 +268,7 @@ int elf_load_driver(driver_node_t* node){
 	}
 
 	void* elf_module = kmalloc(file->size);
-	kfseek(file, 0, FILE_SEEK_SET);
-	kfread(file, file->size, (void*)elf_module);
+	file_read(file, file->size, (void*)elf_module, 0);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
 	//the correct load addresses for each section
@@ -411,7 +408,7 @@ int elf_load_driver(driver_node_t* node){
 
 	//cleanup
 
-	kfclose(file);
+	file_close(file);
 
 	klog("ML: Loaded Driver \'%s\'\n", KLOG_OK, node->path);
 
@@ -421,34 +418,32 @@ int elf_load_driver(driver_node_t* node){
 
 unload:
 	kmfree((void*)elf_module);
-	kfclose(file);
+	file_close(file);
 	return -1;
 }
 
 int elf_exec_load(process_t* process, char* path){
 	kerrno = 0;
 
-	file_t* file = kfopen(path, FILE_ACCESS_RW);
-	
+	file_t* file = file_open(path, O_RDWR, 0);
+
 	if(!file){
 		kerrno = ENOENT;
-		return -1;
+		return -ENOENT;
 	}
 
 	Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
 
-	kfread(file, sizeof(Elf64_Ehdr), h);
-	kfseek(file, 0, FILE_SEEK_SET);
+	file_read(file, sizeof(Elf64_Ehdr), h, 0);
 
 	//TODO: handle ET_DYN
 	if(!elf_validate(h, ET_EXEC)){
 		klog("exec: Could not load executable %s! Executable is corrupt!\n", KLOG_FAILED, path);
 		return -1;
 	}
-
+	
 	void* elfExec = kmalloc(file->size);
-	kfread(file, file->size, elfExec);
-	kfseek(file, 0, FILE_SEEK_SET);
+	file_read(file, file->size, elfExec, 0);
 
 	Elf64_Phdr* phdr;
 
@@ -472,6 +467,9 @@ int elf_exec_load(process_t* process, char* path){
 	}
 
 	process->mainThread->regs.rip = (uint64_t)h->e_entry;
+
+	kmfree(elfExec);
+	kmfree(h);
 
 	return 0;
 }

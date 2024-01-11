@@ -60,6 +60,9 @@ page_table_t* vmm_get_kernel_pml4();
 //vaspace
 
 void vaspace_new(struct _process* process);
+page_table_t* vaspace_new_raw();
+void vaspace_destroy(struct _process* process);
+page_table_t* vaspace_clone(page_table_t* toClone);
 void vaspace_switch(page_table_t* pml4);
 void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags);
 void vaspace_create_thread_user_stack(struct _thread* thread);

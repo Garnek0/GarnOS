@@ -17,6 +17,7 @@
 
 typedef struct _bcache_buf {
     bool valid; //is this buffer actually loaded with the block?
+    bool dirty; //has this buffer been modified?
     uint32_t refCount;
     uint8_t data[BCACHE_BLOCK_SIZE]; //the actual buffer
     size_t block;
@@ -38,7 +39,9 @@ typedef struct {
 void bcache_init();
 bcache_buf_t* bcache_get(struct _drive* drive, size_t block);
 bcache_buf_t* bcache_read(struct _drive* drive, size_t block);
-inline void bcache_write(bcache_buf_t* buf);
+void bcache_write(bcache_buf_t* buf);
 void bcache_release(bcache_buf_t* buf);
+
+int sys_sync();
 
 #endif //BCAHCE_H

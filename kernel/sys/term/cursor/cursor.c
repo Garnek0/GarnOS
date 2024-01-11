@@ -34,13 +34,13 @@ void cursor_set(cursor_t* cursor, uint32_t x, uint32_t y){
 void cursor_backspace(cursor_t* cursor){
     if((int32_t)cursor->posX - GLYPH_X >= 0){
         cursor->posX -= GLYPH_X;
-        term_putchar(0);
+        term_putchar(' ');
         cursor->posX -= GLYPH_X;
     } else {
         cursor->posX = framebuffer_info.width;
         cursor->posY -= GLYPH_Y;
         cursor->posX -= GLYPH_X;
-        term_putchar(0);
+        term_putchar(' ');
         cursor->posX -= GLYPH_X;
         cursor->posX = framebuffer_info.width;
         cursor->posY -= GLYPH_Y;

@@ -43,14 +43,16 @@ int device_driver_register(const char* path){
         }
     }
 
-    file_t* file = kfopen(path, FILE_ACCESS_R);
-    void* elf = kmalloc(file->size);
-    kfread(file, file->size, elf);
+    file_t* file = file_open(path, O_RDONLY, 0);
 
     if(!file){
         klog("DAL: Failed to register driver \'%s\': %s!\n", KLOG_FAILED, path, kstrerror(kerrno));
         return -1;
     }
+
+    void* elf = kmalloc(file->size);
+    file_read(file, file->size, elf, 0);
+
     device_driver_t* driver = elf_find_symbol(elf, "driver_metadata");
     if(!driver){
         klog("DAL: Failed to register driver \'%s\': Could not find \"driver_metadata\" structure!\n", KLOG_FAILED, path);
@@ -85,7 +87,7 @@ int device_driver_register(const char* path){
 
     klog("DAL: Registered Driver \'%s\'.\n", KLOG_OK, path);
     kmfree(elf);
-    kfclose(file);
+    file_close(file);
 
     device_attach_to_driver(driverNode);
 
@@ -93,7 +95,7 @@ int device_driver_register(const char* path){
 
 fail:
     kmfree(elf);
-    kfclose(file);
+    file_close(file);
     return -1;
 }
 
@@ -184,7 +186,8 @@ bool device_driver_attach(device_t* device){
 }
 
 int device_driver_autoreg(const char* path){
-    file_t* file = kfopen(path, FILE_ACCESS_R);
+    file_t* file = file_open(path, O_RDONLY, 0);
+    
     if(!file){
         klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, path);
         return -1;
@@ -197,7 +200,7 @@ int device_driver_autoreg(const char* path){
     size_t tempPtr = 0;
 
     for(size_t i = 0; i < file->size; i++){
-        kfread(file, 1, &str[ptr]);
+        file_read(file, 1, &str[ptr], i);
         if(str[ptr] == '\n'){
             if(ptr <= 0) continue;
             str[ptr] = 0;
@@ -222,7 +225,7 @@ int device_driver_autoreg(const char* path){
         ptr++;
         if(ptr >= 128) ptr = 0;
     }
-    kfclose(file);
+    file_close(file);
     return 0;
 }
 

@@ -134,12 +134,13 @@ static bool fat_parse_and_compare_lfn(fat_lfn_t* lfn, char* s2){
     }
 }
 
-file_t* fat_open(filesys_t* self, char* path, uint8_t access){
+file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     fat_context_t* context = (fat_context_t*)self->context;
     fat_directory_t* currentDir;
     fat_lfn_t* currentLFN;
     bcache_buf_t* buf;
-    char* pathTmp = path;
+    char* pathTmp = kmalloc(strlen(path)+1);
+    memcpy(pathTmp, path, strlen(path)+1);
 
     if(self->type == FILESYS_TYPE_FAT12){
         //TODO: This      
@@ -232,18 +233,21 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
                 }
             }
             if(found && isTargetObject){
-                if(currentDir->attr & FAT_ATTR_DIRECTORY){
+                if(((currentDir->attr & FAT_ATTR_DIRECTORY) && !(flags & O_DIRECTORY)) ||
+                  ((currentDir->attr & FAT_ATTR_DIRECTORY) && ((flags & O_WRONLY) || (flags & O_RDWR)))){
                     //TARGET IS A DIRECTORY
                     kerrno = EISDIR;
+                    return NULL;
                 }
                 file_t* file = kmalloc(sizeof(file_t));
+                memset(file, 0, sizeof(file_t));
                 fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
                 file->size = currentDir->size;
-                file->mode = access;
+                file->mode = mode;
+                file->flags = flags;
                 file->fs = self;
-                file->filename = kmalloc(strlen(pathTmp));
-                memcpy(file->filename, pathTmp, strlen(pathTmp));
-                file->seek = 0;
+                file->filename = kmalloc(strlen(pathTmp)+1);
+                memcpy(file->filename, pathTmp, strlen(pathTmp)+1);
                 file->fsData = (void*)fsData;
 
                 fsData->startCluster = currentCluster;
@@ -257,7 +261,7 @@ file_t* fat_open(filesys_t* self, char* path, uint8_t access){
     return NULL;
 }
 
-int fat_read(filesys_t* self, file_t* file, size_t size, void* buf){
+ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
     fat_file_fs_data_t* fsData = (fat_file_fs_data_t*)file->fsData;
     fat_context_t* context = self->context;
 
@@ -275,12 +279,12 @@ int fat_read(filesys_t* self, file_t* file, size_t size, void* buf){
         for(int i = 0; i < context->sectorsPerCluster; i++){
             self->drive->read(self->drive, currentSector+i, 1, sectBuf);
             for(int k = 0; k < context->bytesPerSector; k++){
-                if(j < file->seek){
+                if(j < offset){
                     j++;
                     continue;
                 }
                 ((uint8_t*)buf)[p] = sectBuf[k];
-                file->seek++;
+                offset++;
                 p++; j++;
                 if(p == size) break;
             }
@@ -291,10 +295,10 @@ int fat_read(filesys_t* self, file_t* file, size_t size, void* buf){
 
     kmfree(sectBuf);
     
-    return size;
+    return j;
 }
 
-int fat_write(filesys_t* self, file_t* file, size_t size, void* buf){
+ssize_t fat_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
     ;
 }
 

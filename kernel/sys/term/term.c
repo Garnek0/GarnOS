@@ -177,6 +177,8 @@ static void term_handle_esc(char chr){
 
 char term_putchar(char chr){
 
+    if(chr == 0) return 0;
+
     if(!tc.enabled) return;
 
     lock(tc.lock, {

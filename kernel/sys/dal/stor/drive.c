@@ -11,14 +11,11 @@
 #include <mem/memutil/memutil.h>
 #include <mem/kheap/kheap.h>
 #include <sys/panic.h>
-#include <cpu/smp/spinlock.h>
 #include <sys/fal/fal.h>
 
 drive_t drives[MAX_DRIVES];
 size_t driveCount;
 size_t nextAvailDriveIndex;
-
-spinlock_t driveLock;
 
 static size_t _drive_get_next_avail_index(){
     for(size_t i = 0; i < MAX_DRIVES; i++){
@@ -34,12 +31,12 @@ drive_t* drive_add(drive_t drive){
 
     drive_t* drvAddr;
 
-    lock(driveLock, {
-        drive.isSystemDrive = false; //assume this is not a system drive
+    drive.isSystemDrive = false; //assume this is not a system drive
 
-        drives[nextAvailDriveIndex] = drive;
-        drvAddr = &drives[nextAvailDriveIndex];
+    drives[nextAvailDriveIndex] = drive;
+    drvAddr = &drives[nextAvailDriveIndex];
 
+    lock(drvAddr->lock, {
         nextAvailDriveIndex = _drive_get_next_avail_index();
 
         klog("DAL: Found Drive \"%s\".\n", KLOG_OK, drvAddr->name);
@@ -68,14 +65,13 @@ drive_t* drive_add(drive_t drive){
                 fat_attach(drvAddr, i);
             }
         }
-        
     });
 
     return drvAddr;
 }
 
 void drive_remove(drive_t* drive){
-    lock(driveLock, {
+    lock(drive->lock, {
         drive->_valid = false;
         nextAvailDriveIndex = _drive_get_next_avail_index();
     });

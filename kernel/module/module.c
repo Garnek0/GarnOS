@@ -72,7 +72,6 @@ void module_list_add(loaded_mod_list_entry_t entry){
         newModListEntry->address = entry.address;
         newModListEntry->metadata = entry.metadata;
         newModListEntry->size = entry.size;
-        newModListEntry->next = NULL;
 
         list_insert(moduleList, (void*)newModListEntry);
     });

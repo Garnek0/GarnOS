@@ -22,7 +22,7 @@ kheap_block_header_t* end;
 
 size_t kheapSize;
 
-kheap_info_t kheap_info;
+spinlock_t kheapLock;
 
 static void kheap_extend(size_t size){
     size = ALIGN_UP((size+sizeof(kheap_block_header_t)), PAGE_SIZE);
@@ -33,74 +33,67 @@ static void kheap_extend(size_t size){
     newh->prev = end;
     newh->next = NULL;
 
-    kheap_info.kheapSize += size;
+    kheapSize += size;
     
     end->next = newh;
     end = newh;
 
     if(newh->prev && (newh->prev->flags & KHEAP_FLAGS_FREE) && ((void*)((uint64_t)newh->prev+(uint64_t)newh->prev->size+sizeof(kheap_block_header_t)) == newh)){
         kheap_block_header_t* prev = newh->prev;
-        prev->size += newh->size;
-        if(newh->next){
-            newh->next->prev = prev;
-        }
-        prev->next = newh->next;
-        
+        prev->size += newh->size + sizeof(kheap_block_header_t);
+        prev->next = NULL;
+        end = prev;
     }
 }
 
 static void kheap_create_block(kheap_block_header_t* h, size_t size){
-    kheap_block_header_t* newh = (kheap_block_header_t*)((uint64_t)h + size + sizeof(kheap_block_header_t));
+    kheap_block_header_t* newh = (kheap_block_header_t*)((uint64_t)h + sizeof(kheap_block_header_t) + size);
+    memset(newh, 0, sizeof(kheap_block_header_t));
 
     newh->size = h->size - (size + sizeof(kheap_block_header_t));
     h->size = size;
     newh->next = h->next;
     h->next = newh;
     newh->prev = h;
-    newh->flags = h->flags;
-    h->flags = KHEAP_FLAGS_FREE;
+    newh->flags = KHEAP_FLAGS_FREE;
     if(newh->next){
         newh->next->prev = newh;
     }
 
-    //calculate new end
-    for(kheap_block_header_t* nend = start; nend; nend = nend->next){
-        end = nend;
-    }
+    if(newh->next == NULL) end = newh;
 }
 
 void kheap_init(){
-    start = end = (kheap_block_header_t*)((uint64_t)pmm_allocate(KHEAP_INIT_PAGES) + bl_get_hhdm_offset()); //Initial kernel heap size is 16KiB
+    start = end = (kheap_block_header_t*)((uint64_t)pmm_allocate(KHEAP_INIT_PAGES) + bl_get_hhdm_offset()); //Initial kernel heap size is 64KiB
     memset(start, 0, sizeof(kheap_block_header_t));
-    start->size = KHEAP_INIT_PAGES * PAGE_SIZE - sizeof(kheap_block_header_t);
+    start->size = (KHEAP_INIT_PAGES * PAGE_SIZE) - sizeof(kheap_block_header_t);
     start->prev = NULL;
     start->next = NULL;
     start->flags = KHEAP_FLAGS_FREE;
 
-    kheap_info.kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
+    kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
 
     klog("kheap: Kernel Heap Initialised Successfully (kheap size: %uKiB)\n", KLOG_OK, (PAGE_SIZE*KHEAP_INIT_PAGES)/1024);
 }
 
 void* kmalloc(size_t size){
-    size = ALIGN_UP(size, 0x10);
+    if(size%0x10 != 0) size = ALIGN_UP(size, 0x10);
     kheap_block_header_t* h;
 
-    lock(kheap_info.lock, {
+    lock(kheapLock, {
         for(h = start; h; h = h->next){
-            if(!(h->flags & KHEAP_FLAGS_FREE)) continue;
+            if(!(h->flags & KHEAP_FLAGS_FREE) || h->size < size) continue;
             if(h->size == size){
                 h->flags &= ~(KHEAP_FLAGS_FREE);
-                releaseLock(&kheap_info.lock);
+                releaseLock(&kheapLock);
                 return (void*)((uint64_t)h + sizeof(kheap_block_header_t));
-            } else if (h->size > size + sizeof(kheap_block_header_t)){
+            } else if (h->size > (size + sizeof(kheap_block_header_t))){
                 kheap_create_block(h, size);
                 h->flags &= ~(KHEAP_FLAGS_FREE);
-                releaseLock(&kheap_info.lock);
+                releaseLock(&kheapLock);
                 return (void*)((uint64_t)h + sizeof(kheap_block_header_t));
             }
         }
-        
         kheap_extend(size);
     });
 
@@ -114,8 +107,7 @@ void kmfree(void* ptr){
     if(h->flags & KHEAP_FLAGS_FREE)
         klog("kheap: Invalid kheap free operation", KLOG_WARNING);
 
-    lock(kheap_info.lock, {
-
+    lock(kheapLock, {
         h->flags |= KHEAP_FLAGS_FREE;
 
         if(h->next && (h->next->flags & KHEAP_FLAGS_FREE) && ((void*)((uint64_t)h+(uint64_t)h->size+sizeof(kheap_block_header_t)) == h->next)){
@@ -137,4 +129,8 @@ void kmfree(void* ptr){
             
         }
     });
+}
+
+inline size_t kheap_get_size(){
+    return kheapSize;
 }

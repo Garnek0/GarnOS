@@ -45,6 +45,7 @@
 #include <sys/timer.h>
 #include <sys/power.h>
 #include <sys/dal/dal.h>
+#include <sys/input.h>
 
 #include <process/sched/sched.h>
 
@@ -79,6 +80,8 @@ void _start(void) {
 
     kheap_init(); //initialise Kernel Heap
 
+    tty_init(); //initialise tty stdout and stderr
+
     fb_read_init(); //initialise a read buffer
 
     power_init(); //initialise system power management
@@ -90,6 +93,8 @@ void _start(void) {
     rtc_init(); //initialise realtime clock //Move to DAL
 
     pit_init(); //initialise the PIT //Move to DAL
+
+    input_init(); //initialise keyboard ringbuffer
 
     dal_init(); //initialise Device Abstraction Layer
 

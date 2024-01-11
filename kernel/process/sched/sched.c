@@ -30,7 +30,23 @@ void sched_add_thread(thread_t* thread){
     list_insert(threadList, (void*)thread);
 
     if(!currentThread) currentThread = thread;
+    if(!currentProcess) currentProcess = thread->process;
     if(!currentThreadNode) currentThreadNode = threadList->head;
+}
+
+
+//TODO: move to thread.c
+void sched_remove_thread(thread_t* thread){
+    kmfree(thread->kernelStack);
+    list_remove(threadList, thread);
+}
+
+inline process_t* sched_get_current_process(){
+    return currentProcess;
+}
+
+inline thread_t* sched_get_current_thread(){
+    return currentThread;
 }
 
 static void _sched_get_next_thread(){
@@ -59,10 +75,12 @@ static void _sched_switch_context(stack_frame_t* regs){
     vaspace_switch(currentThread->process->pml4);
 }
 
+inline void sched_store_context_to_thread(thread_t* thread, stack_frame_t* regs){
+    thread->regs = *regs;
+}
+
 void sched_preempt(stack_frame_t* regs){
     if(!threadList || threadList->head == NULL) return;
-
-    asm volatile("cli");
 
     _sched_store_context(regs);
 

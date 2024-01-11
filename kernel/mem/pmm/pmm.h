@@ -11,8 +11,6 @@
 #include <types.h>
 #include <cpu/smp/spinlock.h>
 
-#define PAGE_SIZE 4096
-
 typedef struct {
     size_t freePages;
     size_t usedPages;

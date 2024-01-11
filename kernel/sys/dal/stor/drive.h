@@ -25,6 +25,7 @@
 
 #include <types.h>
 #include <sys/dal/dal.h>
+#include <cpu/smp/spinlock.h>
 
 typedef struct _partition {
     uint64_t startLBA;
@@ -54,6 +55,8 @@ typedef struct _drive {
     bool _valid;
     size_t partitionCount;
     partition_t partitions[MAX_PARTITIONS];
+
+    spinlock_t lock;
 
     void* context;
 } drive_t;

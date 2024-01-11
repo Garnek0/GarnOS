@@ -9,10 +9,7 @@
 
 #include "list.h"
 #include <mem/kheap/kheap.h>
-#include <cpu/smp/spinlock.h>
 #include <kstdio.h>
-
-spinlock_t listLock;
 
 list_t* list_create(char* name){
     list_t* list = kmalloc(sizeof(list_t));
@@ -20,22 +17,25 @@ list_t* list_create(char* name){
     list->tail = NULL;
     list->nodeCount = 0;
     list->name = name;
+    list->lock = 0;
     
     return list;
 }
 
 void list_destroy(list_t* list){
-    foreach(node, list){
-        kmfree((void*)node);
-    }
-    kmfree(list);
+    lock(list->lock, {
+        foreach(node, list){
+            kmfree((void*)node);
+        }
+        kmfree(list);
+    });
 }
 
 void list_insert(list_t* list, void* value){
     list_node_t* node = kmalloc(sizeof(list_node_t));
     node->value = value;
 
-    lock(listLock, {
+    lock(list->lock, {
         if(list->nodeCount == 0){
             list->head = list->tail = node;
         } else {
@@ -49,10 +49,10 @@ void list_insert(list_t* list, void* value){
 
 int list_index_of(list_t* list, void* value){
     int i = 0;
-    lock(listLock, {
+    lock(list->lock, {
         foreach(node, list){
             if(node->value == value){
-                releaseLock(&listLock);
+                releaseLock(&list->lock);
                 return i;
             }
             i++;
@@ -64,10 +64,10 @@ int list_index_of(list_t* list, void* value){
 void* list_index(list_t* list, size_t index){
     int i = 0;
 
-    lock(listLock, {
+    lock(list->lock, {
         foreach(node, list){
             if(i == index){
-                releaseLock(&listLock);
+                releaseLock(&list->lock);
                 return node->value;
             }
             i++;
@@ -78,7 +78,7 @@ void* list_index(list_t* list, size_t index){
 
 int list_remove(list_t* list, void* value){
     list_node_t* prev = NULL;
-    lock(listLock, {
+    lock(list->lock, {
         foreach(node, list){
             if(node->value == value){
                 if(list->head == node){
@@ -92,7 +92,7 @@ int list_remove(list_t* list, void* value){
                 }
                 list->nodeCount--;
                 kmfree(node);
-                releaseLock(&listLock);
+                releaseLock(&list->lock);
                 return 0;
             }
             prev = node;
@@ -104,7 +104,7 @@ int list_remove(list_t* list, void* value){
 int list_remove_index(list_t* list, size_t index){
     list_node_t* prev = NULL;
     int i = 0;
-    lock(listLock, {
+    lock(list->lock, {
         foreach(node, list){
             if(i == index){
                 if(list->head == node){
@@ -118,7 +118,7 @@ int list_remove_index(list_t* list, size_t index){
                 }
                 list->nodeCount--;
                 kmfree(node);
-                releaseLock(&listLock);
+                releaseLock(&list->lock);
                 return 0;
             }
             prev = node;

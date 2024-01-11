@@ -16,7 +16,15 @@
 #define INPUT_RIGHT_CTRL 0x05
 #define INPUT_CAPSLOCK 0x06
 
+#define INPUT_RB_SIZE 32
+
 #include <types.h>
+#include <sys/fal/fal.h>
+
+typedef struct _input_kb_rb_entry {
+    char chr;
+    struct _input_kb_rb_entry* next;
+} input_kb_rb_entry_t;
 
 typedef struct {
     bool lShift;
@@ -37,6 +45,9 @@ typedef struct {
 
 extern char keyBuffer;
 
+extern file_t* kbd;
+
 void input_send_key(kb_input_t input);
+void input_init();
 
 #endif //INPUT_H

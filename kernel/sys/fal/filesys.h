@@ -12,6 +12,7 @@
 
 #include <types.h>
 #include <sys/dal/dal.h>
+#include <cpu/smp/spinlock.h>
 #include "file.h"
 
 #define FILESYS_TYPE_UNDEFINED 0
@@ -27,9 +28,9 @@
 #define FILESYS_TYPE_ISO9660 10
 
 typedef struct _filesys_operations {
-    struct _file* (*open)(struct _filesys* self, char* path, uint8_t mode);
-    int (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf);
-    int (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf);
+    struct _file* (*open)(struct _filesys* self, char* path, int flags, int mode);
+    ssize_t (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf, size_t offset);
+    ssize_t (*write)(struct _filesys* self, struct _file* file, size_t size, void* buf, size_t offset);
     int (*close)(struct _filesys* self, struct _file* file);
     int (*mkdir)(struct _filesys* self, char* path);
     int (*rmdir)(struct _filesys* self, char* path);
@@ -48,6 +49,8 @@ typedef struct _filesys {
 
     struct _drive* drive;
     size_t partition; //partition index in the drive
+
+    spinlock_t lock;
 
     void* context;
 } filesys_t;

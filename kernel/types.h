@@ -14,4 +14,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef signed long ssize_t;
+
 #endif //TYPES_H

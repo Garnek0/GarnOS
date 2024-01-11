@@ -11,6 +11,7 @@
 #define DS_LIST_H
 
 #include <types.h>
+#include <cpu/smp/spinlock.h>
 
 typedef struct _list_node {
     struct _list_node* next;
@@ -23,7 +24,9 @@ typedef struct {
     list_node_t* head;
     list_node_t* tail;
     size_t nodeCount;
-    char* name; 
+    char* name;
+
+    spinlock_t lock; 
 } list_t;
 
 list_t* list_create(char* name);

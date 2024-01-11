@@ -36,7 +36,7 @@ static uint64_t initrd_tar_conv_number(char* str, size_t size){
     return n;
 }
 
-file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
+file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
 
     initrd_tar_header_t* h = initrd;
     uint64_t haddr = (uint64_t)h;
@@ -54,11 +54,14 @@ file_t* initrd_open(filesys_t* fs, char* path, uint8_t access){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
             file_t* file = kmalloc(sizeof(file_t));
+            memset(file, 0, sizeof(file_t));
             initrd_file_fs_data_t* fsData = kmalloc(sizeof(initrd_file_fs_data_t));
-            file->mode = FILE_ACCESS_R;
+            file->filename = kmalloc(strlen(path)+1);
+            memcpy(file->filename, path, strlen(path)+1);
+            file->mode = mode;
+            file->flags = flags;
             file->fsData = (void*)fsData;
             file->fs = fs;
-            file->seek = 0;
             file->size = size;
 
             //the file is already in memory
@@ -83,29 +86,29 @@ int initrd_close(filesys_t* fs, file_t* file){
     return 0;
 }
 
-int initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf){
+ssize_t initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf, size_t offset){
     initrd_file_fs_data_t* fsData = (initrd_file_fs_data_t*)file->fsData;
 
     for(size_t i = 0; i < size; i++){
-        if(file->seek >= file->size) {file->seek--; return i;}
-        ((uint8_t*)buf)[i] = ((uint8_t*)fsData->startOffset)[file->seek];
-        file->seek++;
+        if(offset >= file->size) return i;
+        ((uint8_t*)buf)[i] = ((uint8_t*)fsData->startOffset)[offset];
+        offset++;
     }
     return size;
 }
 
-int initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf){
-    kerrno = EACCES;
-    return -1; //no need to write to the initrd
+ssize_t initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf, size_t offset){
+    kerrno = EINVAL;
+    return -EINVAL; //no need to write to the initrd
 }
 
 int initrd_rmdir(filesys_t* fs, char* path){
-    kerrno = EACCES;
+    kerrno = EINVAL;
     return -1; //no need to remove directories from the initrd
 }
 
 int initrd_mkdir(filesys_t* fs, char* path){
-    kerrno = EACCES;
+    kerrno = EINVAL;
     return -1; //no need to make directories inside the initrd
 }
 

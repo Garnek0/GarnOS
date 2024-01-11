@@ -22,8 +22,6 @@ typedef struct _loaded_mod_list_entry {
 	size_t size;
 	void* address;
 	module_t* metadata;
-
-	struct _loaded_mod_list_entry* next;
 } loaded_mod_list_entry_t;
 
 void module_init();

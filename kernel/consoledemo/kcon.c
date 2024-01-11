@@ -47,7 +47,7 @@ static void console_clear(){
 static void console_mm(){
     kprintf("available pages: %d (%uKiB free memory)\n"
             "used pages: %d (%uKiB used memory)\n"
-            "kheap size: %uKiB\n", pmm_info.usablePages, (pmm_info.usablePages*PAGE_SIZE/1024), pmm_info.usedPages, (pmm_info.usedPages*PAGE_SIZE/1024), (kheap_info.kheapSize/1024));
+            "kheap size: %uKiB\n", pmm_info.usablePages, (pmm_info.usablePages*PAGE_SIZE/1024), pmm_info.usedPages, (pmm_info.usedPages*PAGE_SIZE/1024), (kheap_get_size()/1024));
 }
 
 static void console_ver(){
@@ -118,11 +118,7 @@ static void console_drives(){
 static void console_user(){
     fb_clear(0x00000000);
     cursor_set(&tc.cursor, 0, 0);
-    kprintf("Welcome to Userspace!\n\n\n"
-            "If your computer is still running, then you have\n"
-            "just entered ring 3!\n\n"
-            "A process called \"init\" is now running\n"
-            "In an infinite loop while cpl=3!\n");
+    kprintf("Welcome to Userspace!\n\n");
     exit = true;
 }
 

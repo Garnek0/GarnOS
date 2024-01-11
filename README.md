@@ -67,7 +67,16 @@ See LICENSE.md for details.
 
 ## Known Bugs
 
-- APIC Doesn't work properly on some systems
+- APIC implementation doesn't work properly on some systems.
+- Painfully slow file access due to lack of proper file caching. (File data is read directly from the disk each time a file operation (read, write) is made)
+- Weird behaviour with kheap allocation blocks.
+
+## Hardware Support
+
+**General**: PCI
+**Input**: PS/2 Keyboards
+**Storage**: IDE
+**Graphics**: none
 
 # Acknowledgments
 

@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "memutil.h"
+#include <mem/kheap/kheap.h>
 
 // GCC and Clang reserve the right to generate calls to the following
 // 4 functions even if they are not directly called.
@@ -91,4 +92,10 @@ uint32_t strlen(const char *s){
         s++;
     }
     return count;
+}
+
+char* strdup(const char* str1){
+    char* str2 = kmalloc(strlen(str1)+1);
+    memcpy(str2, str1, strlen(str1)+1);
+    return str2;
 }

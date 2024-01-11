@@ -44,6 +44,7 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
                 i->block = block;
                 i->drive = drive;
                 i->valid = false;
+                i->dirty = false;
                 releaseLock(&bcache.spinlock);
                 return i;
             }
@@ -62,8 +63,11 @@ bcache_buf_t* bcache_read(drive_t* drive, size_t block){
     return buf;
 }
 
-inline void bcache_write(bcache_buf_t* buf){
-    buf->drive->write(buf->drive, buf->block, 1, buf->data);
+void bcache_write(bcache_buf_t* buf){
+    if(buf->dirty){
+        buf->drive->write(buf->drive, buf->block, 1, buf->data);
+        buf->dirty = false;
+    }
 }
 
 void bcache_release(bcache_buf_t* buf){
@@ -79,4 +83,11 @@ void bcache_release(bcache_buf_t* buf){
             bcache.tail = buf;
         }
     });
+}
+
+int sys_sync(){
+    for(bcache_buf_t* i = bcache.head; i != NULL; i = i->next){
+        if(i->dirty) bcache_write(i);
+    }
+    return 0;
 }

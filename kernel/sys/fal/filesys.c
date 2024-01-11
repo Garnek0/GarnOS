@@ -15,8 +15,6 @@
 filesys_t filesystems[MAX_FILESYSTEMS];
 size_t nextAvailFSIndex;
 
-spinlock_t filesysLock;
-
 static size_t _filesys_get_next_avail_index(){
     for(size_t i = 0; i < MAX_FILESYSTEMS; i++){
         if(!filesystems[i]._valid) return i;
@@ -30,34 +28,31 @@ filesys_t* filesys_mount(filesys_t filesys){
     
     filesys_t* fsAddr;
 
-    lock(filesysLock, {
-        if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
-            filesystems[0] = filesys;
-            filesystems[0].mountNumber = 0;
-            fsAddr = &filesystems[0];
+    if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
+        filesystems[0] = filesys;
+        filesystems[0].mountNumber = 0;
+        fsAddr = &filesystems[0];
 
-            klog("FAL: Mounted system partition.\n", KLOG_OK);
+        klog("FAL: Mounted system partition.\n", KLOG_OK);
 
-            if(device_driver_autoreg("0:/autoreg.txt") != 0){
-                panic("autoreg.txt not found on system fs!");
-            }
-
-            releaseLock(&filesysLock);
-            return fsAddr;
+        if(device_driver_autoreg("0:/autoreg.txt") != 0){
+            panic("autoreg.txt not found on system fs!");
         }
 
-        filesystems[nextAvailFSIndex] = filesys;
-        filesystems[nextAvailFSIndex].mountNumber = nextAvailFSIndex;
-        fsAddr = &filesystems[nextAvailFSIndex];
+        return fsAddr;
+    }
 
-        nextAvailFSIndex = _filesys_get_next_avail_index();
-    });
+    filesystems[nextAvailFSIndex] = filesys;
+    filesystems[nextAvailFSIndex].mountNumber = nextAvailFSIndex;
+    fsAddr = &filesystems[nextAvailFSIndex];
+
+    nextAvailFSIndex = _filesys_get_next_avail_index();
 
     return fsAddr;
 }
 
 void filesys_unmount(filesys_t* filesys){
-    lock(filesysLock, {
+    lock(filesys->lock, {
         filesys->_valid = false;
         nextAvailFSIndex = _filesys_get_next_avail_index();
     });

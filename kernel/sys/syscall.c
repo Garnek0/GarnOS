@@ -8,6 +8,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "syscall.h"
+
+#include <sys/dal/dal.h>
+#include <sys/fal/fal.h>
+#include <process/process.h>
+#include <process/sched/sched.h>
+
 #include <cpu/interrupts/interrupts.h>
 #include <cpu/interrupts/idt.h>
 #include <kstdio.h>
@@ -30,12 +36,21 @@ int sys_test(uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_
 }
 
 void syscall_init(){
-    syscall_register(0, sys_test);
+    syscall_register(0, sys_read);
+    syscall_register(1, sys_write);
+    syscall_register(2, sys_open);
+    syscall_register(3, sys_close);
+    syscall_register(4, sys_test);
+    syscall_register(57, sys_fork);
+    syscall_register(60, sys_exit);
+    syscall_register(162, sys_sync);
 
     idt_set_entry(0x80, isr128, INT_USER_GATE);
 }
 
 void syscall_handler(stack_frame_t* regs){
+    sched_store_context_to_thread(sched_get_current_thread(), regs);
+
     int (*syscall)(uint64_t arg1, 
     uint64_t arg2, 
     uint64_t arg3, 
