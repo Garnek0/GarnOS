@@ -27,6 +27,8 @@
 #define FILESYS_TYPE_EXT4 9
 #define FILESYS_TYPE_ISO9660 10
 
+#define PATH_MAX 4096
+
 typedef struct _filesys_operations {
     struct _file* (*open)(struct _filesys* self, char* path, int flags, int mode);
     ssize_t (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf, size_t offset);

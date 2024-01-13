@@ -30,6 +30,27 @@ ssize_t read(int fd, const void* buf, size_t count){
                  "int $0x80" : : "r"(fd), "r"(buf), "r"(count) : "%rax", "%rdi", "%rsi", "%rdx");
 }
 
+int open(char* pathname, int flags, int mode){
+    asm volatile("movq $2, %%rax\n"
+                 "movq %0, %%rdi\n"
+                 "movl %1, %%esi\n"
+                 "movl %2, %%edx\n"
+                 "int $0x80" : : "r"(pathname), "r"(flags), "r"(mode) : "%rax", "%rdi", "%esi", "%edx");
+}
+
+char* getcwd(const char* buf, size_t size){
+    asm volatile("movq $79, %%rax\n"
+                 "movq %0, %%rdi\n"
+                 "movq %1, %%rsi\n"
+                 "int $0x80" : : "r"(buf), "r"(size) : "%rax", "%rdi", "%rsi");
+}
+
+int chdir(const char* path){
+    asm volatile("movq $80, %%rax\n"
+                 "movq %0, %%rdi\n"
+                 "int $0x80" : : "r"(path) : "%rax", "%rdi");
+}
+
 int fork(){
     asm volatile("movq $57, %%rax\n"
                  "int $0x80" : : : "%rax");
@@ -59,6 +80,7 @@ void _start(){
     //flush stdin
     while(read(0, &key, 1));
     key = 0;
+
     
     for(;;){
         read(0, &key, 1);

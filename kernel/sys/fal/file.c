@@ -67,6 +67,12 @@ file_t* file_open(char* path, int flags, int mode){
     lock(fs->lock, {
         for(file_t* i = openFiles; i != NULL; i = i->next){
             if(i->fs == fs && !strcmp(i->filename, path)){
+                if(((i->flags & O_DIRECTORY) && !(flags & O_DIRECTORY) ||
+                !(i->flags & O_DIRECTORY) && (flags & O_DIRECTORY))){
+                    kerrno = EISDIR;
+                    return NULL;
+                }
+
                 i->refCount++;
                 releaseLock(&fs->lock);
                 return i;
@@ -168,10 +174,14 @@ int sys_open(char* pathname, int flags, int mode){
 
     process_t* currentProcess = sched_get_current_process();
 
+    char absPath[PATH_MAX+1];
+
 findfd:
 
     for(size_t i = 0; i < currentProcess->fdMax; i++){
         if(!currentProcess->fdTable[i].file){
+            memcpy(&absPath[0], currentProcess->cwd, strlen(currentProcess->cwd));
+            memcpy(&absPath[strlen(currentProcess->cwd)], pathname, strlen(pathname)+1);
             currentProcess->fdTable[i].file = file_open(pathname, flags, mode);
             if(currentProcess->fdTable[i].file == NULL) return -kerrno;
             if(flags & O_APPEND) currentProcess->fdTable[i].offset = currentProcess->fdTable[i].file->size;
@@ -199,7 +209,7 @@ ssize_t sys_read(int fd, void* buf, size_t count){
     if(!(currentfd->flags & O_RDONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
 
     size_t res = file_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
-    currentProcess->fdTable[fd].offset += res;
+    if(res >= 0) currentProcess->fdTable[fd].offset += res;
 
     return res;
 }
@@ -214,7 +224,7 @@ ssize_t sys_write(int fd, void* buf, size_t count){
     if(!(currentfd->flags & O_WRONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
 
     size_t res = file_write(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
-    currentProcess->fdTable[fd].offset += res;
+    if(res >= 0) currentProcess->fdTable[fd].offset += res;
 
     return res;
 }
@@ -228,5 +238,50 @@ int sys_close(int fd){
 
     currentfd->file = NULL;
 
+    return 0;
+}
+
+uint64_t sys_getcwd(const char* buf, size_t size){
+    process_t* currentProcess = sched_get_current_process();
+    if(size < strlen(currentProcess->cwd)+1) return -ERANGE;
+
+    memcpy(buf, currentProcess->cwd, strlen(currentProcess->cwd)+1);
+    return (uint64_t)buf;
+}
+
+int sys_chdir(const char* path){
+    if(strlen(path) > PATH_MAX) return -ENAMETOOLONG;
+
+    process_t* currentProcess = sched_get_current_process();
+
+    char buf[PATH_MAX+1];
+
+    //Check if path is absolute
+    bool absolute = false;
+    char* pathTmp = path;
+    while(pathTmp[0] != 0){
+        if(pathTmp[0] == ':'){
+            absolute = true;
+            break;
+        } else if(pathTmp[0] == '/') break;
+        pathTmp++;
+    } 
+    if(absolute){
+        file_t* fdir = file_open(path, (O_RDONLY | O_DIRECTORY), 0);
+        if(!fdir) return -kerrno;
+
+        kmfree(currentProcess->cwd);
+        currentProcess->cwd = strdup(path);
+    } else {
+        if(strlen(currentProcess->cwd) + strlen(path) > PATH_MAX) return -ENAMETOOLONG;
+        memcpy(&buf[0], currentProcess->cwd, strlen(currentProcess->cwd));
+        memcpy(&buf[strlen(currentProcess->cwd)], path, strlen(path)+1);
+
+        file_t* fdir = file_open(buf, (O_RDONLY | O_DIRECTORY), 0);
+        if(!fdir) return -kerrno;
+
+        kmfree(currentProcess->cwd);
+        currentProcess->cwd = strdup(buf);
+    }
     return 0;
 }

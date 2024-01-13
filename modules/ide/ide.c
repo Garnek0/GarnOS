@@ -82,7 +82,7 @@ void ide_write(ide_channel_t* channel, unsigned char reg, unsigned char data){
 uint8_t ide_error(uint8_t error){
     if(error == 0) return 0;
 
-    kprintf("IDE: ");
+    klog("IDE: ", KLOG_FAILED);
 
     if(error & ATA_ER_AMNF) kprintf("Address Mark Not Found!\n");
     if(error & ATA_ER_TK0NF) kprintf("Track 0 Not Found!\n");
@@ -98,8 +98,6 @@ uint8_t ide_error(uint8_t error){
 }
 
 uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErrors){
-    ksleep(1);
-
     while(ide_read(channel, reg) & bit);
 
     uint8_t err = ide_error(ide_read(channel, ATA_REG_ERROR));
@@ -154,7 +152,6 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
 
     //TODO: Add DMA Support
     dma = 0;
-
     while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
 
     if(lba_mode == 0) ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (ideDrive->masterSlave << 4) | head);

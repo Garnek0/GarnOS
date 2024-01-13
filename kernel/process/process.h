@@ -25,6 +25,8 @@ typedef struct _process {
     fd_t* fdTable;
     size_t fdMax;
 
+    char* cwd;
+
     struct _thread* mainThread;
     struct _process* parent;
 

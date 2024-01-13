@@ -81,5 +81,7 @@ int sys_open(char* pathname, int flags, int mode);
 ssize_t sys_read(int fd, void* buf, size_t count);
 ssize_t sys_write(int fd, void* buf, size_t count);
 int sys_close(int fd);
+uint64_t sys_getcwd(const char* buf, size_t size);
+int sys_chdir(const char* path);
 
 #endif //FILE_H

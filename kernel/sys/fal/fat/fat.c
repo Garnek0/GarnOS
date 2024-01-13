@@ -163,6 +163,9 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
         bool isLFNDirectory;
         bool foundByLFN;
 
+        //If this is a dir, then remove the '/' from the end
+        if(path[strlen(path)-1] == '/') path[strlen(path)-1] = 0;
+
         while(strlen(path)){
 
             //read next object
@@ -237,6 +240,11 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                   ((currentDir->attr & FAT_ATTR_DIRECTORY) && ((flags & O_WRONLY) || (flags & O_RDWR)))){
                     //TARGET IS A DIRECTORY
                     kerrno = EISDIR;
+                    return NULL;
+                }
+                if(!(currentDir->attr & FAT_ATTR_DIRECTORY) && (flags & O_DIRECTORY)){
+                    //TARGET IS A FILE
+                    kerrno = ENOENT;
                     return NULL;
                 }
                 file_t* file = kmalloc(sizeof(file_t));

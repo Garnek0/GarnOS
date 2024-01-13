@@ -43,6 +43,8 @@ void syscall_init(){
     syscall_register(4, sys_test);
     syscall_register(57, sys_fork);
     syscall_register(60, sys_exit);
+    syscall_register(79, sys_getcwd);
+    syscall_register(80, sys_chdir);
     syscall_register(162, sys_sync);
 
     idt_set_entry(0x80, isr128, INT_USER_GATE);
