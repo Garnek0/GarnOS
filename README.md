@@ -73,9 +73,9 @@ See LICENSE.md for details.
 
 ## Hardware Support
 
-**General**: PCI
-**Input**: PS/2 Keyboards
-**Storage**: IDE
+**General**: PCI \
+**Input**: PS/2 Keyboards \
+**Storage**: IDE \
 **Graphics**: none
 
 # Acknowledgments
