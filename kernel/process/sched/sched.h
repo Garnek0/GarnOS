@@ -17,7 +17,6 @@ void sched_add_thread(thread_t* thread);
 void sched_remove_thread(thread_t* thread);
 process_t* sched_get_current_process();
 thread_t* sched_get_current_thread();
-void sched_store_context_to_thread(thread_t* thread, stack_frame_t* regs);
 void sched_init();
 
 #endif //SCHED_H

@@ -88,6 +88,7 @@ void* pmm_allocate(int npages){
 void pmm_free(void* base, int npages){
     lock(pmm_info.lock, {
         for(uint64_t i = ((uint64_t)base >> 12); i < ((uint64_t)base >> 12)+npages; i++){
+            memset((void*)((uint64_t)base+((npages-1)*PAGE_SIZE)+bl_get_hhdm_offset()), 0xff, PAGE_SIZE);
             pmm_bitmap_clear(i);
         }
     });

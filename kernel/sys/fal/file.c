@@ -169,7 +169,7 @@ fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
 
 //TODO: sys_stat() syscalls;
 
-int sys_open(char* pathname, int flags, int mode){
+int sys_open(stack_frame_t* regs, char* pathname, int flags, int mode){
     //TODO: finish this (flags, mode)
 
     process_t* currentProcess = sched_get_current_process();
@@ -199,7 +199,7 @@ findfd:
     goto findfd;
 }
 
-ssize_t sys_read(int fd, void* buf, size_t count){
+ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
     process_t* currentProcess = sched_get_current_process();
 
     if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
@@ -214,7 +214,7 @@ ssize_t sys_read(int fd, void* buf, size_t count){
     return res;
 }
 
-ssize_t sys_write(int fd, void* buf, size_t count){
+ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count){
     process_t* currentProcess = sched_get_current_process();
 
     if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
@@ -229,7 +229,7 @@ ssize_t sys_write(int fd, void* buf, size_t count){
     return res;
 }
 
-int sys_close(int fd){
+int sys_close(stack_frame_t* regs, int fd){
     process_t* currentProcess = sched_get_current_process();
 
     if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
@@ -241,7 +241,7 @@ int sys_close(int fd){
     return 0;
 }
 
-uint64_t sys_getcwd(const char* buf, size_t size){
+uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size){
     process_t* currentProcess = sched_get_current_process();
     if(size < strlen(currentProcess->cwd)+1) return -ERANGE;
 
@@ -249,7 +249,7 @@ uint64_t sys_getcwd(const char* buf, size_t size){
     return (uint64_t)buf;
 }
 
-int sys_chdir(const char* path){
+int sys_chdir(stack_frame_t* regs, const char* path){
     if(strlen(path) > PATH_MAX) return -ENAMETOOLONG;
 
     process_t* currentProcess = sched_get_current_process();

@@ -38,6 +38,22 @@ int open(char* pathname, int flags, int mode){
                  "int $0x80" : : "r"(pathname), "r"(flags), "r"(mode) : "%rax", "%rdi", "%esi", "%edx");
 }
 
+int waitpid(int64_t pid, int* status, int options){
+    asm volatile("movq $7, %%rax\n"
+                 "movq %0, %%rdi\n"
+                 "movq %1, %%rsi\n"
+                 "movl %2, %%edx\n"
+                 "int $0x80" : : "r"(pid), "r"(status), "r"(options) : "%rax", "%rdi", "%rsi", "%edx");
+}
+
+int execve(const char* path, const char* argv[], const char* envp[]){
+    asm volatile("movq $59, %%rax\n"
+                 "movq %0, %%rdi\n"
+                 "movq %1, %%rsi\n"
+                 "movq %2, %%rdx\n"
+                 "int $0x80" : : "r"(path), "r"(argv), "r"(envp) : "%rax", "%rdi", "%rsi", "%rdx");
+}
+
 char* getcwd(const char* buf, size_t size){
     asm volatile("movq $79, %%rax\n"
                  "movq %0, %%rdi\n"
@@ -63,28 +79,23 @@ void exit(int status){
 }
 
 void _start(){
-    char* bufWelcome = "\ninit: init process is running! You can type stuff!\n";
+    char* bufWelcome = "\ninit: init process is running!\n";
     char* bufChildSuccess = "\nSuccessfully forked off child!\n";
-    char* exitFail = "If you're seeing this then exit() failed :(\n";
-    char key;
+    int status;
 
     write(1, bufWelcome, strlen(bufWelcome));
 
     if(fork() == 0){
         write(1, bufChildSuccess, strlen(bufChildSuccess));
+
+        char* argv[] = {"./bin/test.elf", NULL};
+        char* envp[] = {NULL};
+
+        execve("0:/bin/test.elf",argv,envp);
         exit(0);
-        write(1, exitFail, strlen(bufChildSuccess));
-        while(1);
     }
 
-    //flush stdin
-    while(read(0, &key, 1));
-    key = 0;
-
-    
     for(;;){
-        read(0, &key, 1);
-        write(1, &key, 1);
-        key = 0;
+        waitpid(-1, &status, 0);
     }
 }

@@ -37,8 +37,9 @@ void sched_add_thread(thread_t* thread){
 
 //TODO: move to thread.c
 void sched_remove_thread(thread_t* thread){
-    kmfree(thread->kernelStack);
-    list_remove(threadList, thread);
+    kmfree(thread->kernelStackDeallocAddress);
+
+    thread->status = THREAD_STATUS_DESTROYED;
 }
 
 inline process_t* sched_get_current_process(){
@@ -75,16 +76,21 @@ static void _sched_switch_context(stack_frame_t* regs){
     vaspace_switch(currentThread->process->pml4);
 }
 
-inline void sched_store_context_to_thread(thread_t* thread, stack_frame_t* regs){
-    thread->regs = *regs;
-}
-
 void sched_preempt(stack_frame_t* regs){
     if(!threadList || threadList->head == NULL) return;
 
+    asm volatile("cli");
+
     _sched_store_context(regs);
 
+schedretry:
+
     _sched_get_next_thread();
+
+    if(currentThread->status == THREAD_STATUS_DESTROYED){
+        list_remove(threadList, currentThread);
+        goto schedretry;
+    }
 
     tss_set_rsp(0, currentThread->kernelStack);
 

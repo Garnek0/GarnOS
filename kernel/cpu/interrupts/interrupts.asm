@@ -31,7 +31,7 @@ exception_common:
     push r14
     push r15
 
-    mov ax, ds
+    mov rax, ds
     push rax
     mov ax, 0x10
     mov ds, ax
@@ -88,7 +88,7 @@ irq_common:
     push r14
     push r15
 
-    mov ax, ds
+    mov rax, ds
     push rax
     mov ax, 0x10
     mov ds, ax
@@ -142,7 +142,7 @@ syscall_common:
     push r14
     push r15
 
-    mov ax, ds
+    mov rax, ds
     push rax
     mov ax, 0x10
     mov ds, ax

@@ -85,7 +85,7 @@ void bcache_release(bcache_buf_t* buf){
     });
 }
 
-int sys_sync(){
+int sys_sync(stack_frame_t* regs){
     for(bcache_buf_t* i = bcache.head; i != NULL; i = i->next){
         if(i->dirty) bcache_write(i);
     }

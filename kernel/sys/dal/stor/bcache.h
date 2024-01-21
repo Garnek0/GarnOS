@@ -13,6 +13,7 @@
 
 #include <types.h>
 #include <cpu/smp/spinlock.h>
+#include <cpu/interrupts/interrupts.h>
 #include <sys/dal/dal.h>
 
 typedef struct _bcache_buf {
@@ -42,6 +43,6 @@ bcache_buf_t* bcache_read(struct _drive* drive, size_t block);
 void bcache_write(bcache_buf_t* buf);
 void bcache_release(bcache_buf_t* buf);
 
-int sys_sync();
+int sys_sync(stack_frame_t* regs);
 
 #endif //BCAHCE_H

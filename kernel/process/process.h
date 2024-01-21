@@ -16,9 +16,14 @@
 #include <sys/fal/fal.h>
 #include <mem/vmm/vmm.h>
 
+#define PROCESS_STATUS_RUNNING 0
+#define PROCESS_STATUS_ZOMBIE 1
+
 typedef struct _process {
     char* name;
     int pid;
+    int exitStatus;
+    uint8_t status;
 
     struct _page_table* pml4;
 
@@ -35,8 +40,11 @@ typedef struct _process {
 
 void process_init();
 void process_terminate(process_t* process);
+void process_free(process_t* process);
 
-int sys_fork();
-void sys_exit(int status);
+int sys_fork(stack_frame_t* regs);
+void sys_exit(stack_frame_t* regs, int status);
+int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options);
+int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const char* envp[]);
 
 #endif //PROCESS_H

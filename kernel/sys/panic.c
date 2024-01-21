@@ -59,7 +59,7 @@ void panic_with_stack_frame(char* str, stack_frame_t* regs, ...){
             "mov %%cr4, %%rax\n"
             "mov %%rax, %3\n"
             "pop %%rax"
-        : "=r" (cr0), "=r" (cr2), "=r" (cr3), "=r" (cr4));
+        : "=r" (cr0), "=r" (cr2), "=r" (cr3), "=r" (cr4) :: "%rax");
 
         klog("Kernel Panic!\n\n", KLOG_FATAL);
         kvprintf(str, args);
