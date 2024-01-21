@@ -81,6 +81,7 @@ int sys_open(stack_frame_t* regs, char* pathname, int flags, int mode);
 ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count);
 ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count);
 int sys_close(stack_frame_t* regs, int fd);
+char* file_get_absolute_path(char* root, char* relative);
 uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size);
 int sys_chdir(stack_frame_t* regs, const char* path);
 

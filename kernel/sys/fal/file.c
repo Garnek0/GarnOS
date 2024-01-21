@@ -249,39 +249,64 @@ uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size){
     return (uint64_t)buf;
 }
 
+char* file_get_absolute_path(char* root, char* relative){
+
+    //Check if path is absolute
+    bool absolute = false;
+    if(relative[0] == '/') absolute = true;
+    else {
+        char* relativeTmp = relative;
+        while(relativeTmp[0] != 0){
+            if(relativeTmp[0] == ':'){
+                absolute = true;
+                break;
+            } else if(relativeTmp[0] == '/') break;
+            relativeTmp++;
+        }
+    }
+    
+    size_t size = 0;
+    size_t sptr = 0;
+
+    if(absolute && relative[0] != '/') return strdup(relative);
+    else if(absolute && relative[0] == '/'){
+        char* buf = kmalloc(PATH_MAX+1);
+        size = sizeof(relative)+2;
+        if(size > PATH_MAX) return NULL;
+
+        memcpy(&buf[2], relative, strlen(relative)+1);
+        buf[0] = '0';
+        buf[1] = ':';
+        return buf;
+    }
+
+    size = strlen(root)+strlen(relative);
+    if(size > PATH_MAX) return NULL;
+
+    char* buf = kmalloc(PATH_MAX+1);
+    memcpy(buf, root, strlen(root));
+    sptr = strlen(root);
+    if(root[sptr-1]!='/'){
+        size++;
+        if(size > PATH_MAX){
+            kmfree(buf);
+            return NULL;
+        }
+        buf[sptr] = '/';
+        sptr++;
+    }
+    memcpy(&buf[sptr], relative, strlen(relative)+1);
+
+    return buf;
+}
+
 int sys_chdir(stack_frame_t* regs, const char* path){
     if(strlen(path) > PATH_MAX) return -ENAMETOOLONG;
 
     process_t* currentProcess = sched_get_current_process();
 
-    char buf[PATH_MAX+1];
-
-    //Check if path is absolute
-    bool absolute = false;
-    char* pathTmp = path;
-    while(pathTmp[0] != 0){
-        if(pathTmp[0] == ':'){
-            absolute = true;
-            break;
-        } else if(pathTmp[0] == '/') break;
-        pathTmp++;
-    } 
-    if(absolute){
-        file_t* fdir = file_open(path, (O_RDONLY | O_DIRECTORY), 0);
-        if(!fdir) return -kerrno;
-
-        kmfree(currentProcess->cwd);
-        currentProcess->cwd = strdup(path);
-    } else {
-        if(strlen(currentProcess->cwd) + strlen(path) > PATH_MAX) return -ENAMETOOLONG;
-        memcpy(&buf[0], currentProcess->cwd, strlen(currentProcess->cwd));
-        memcpy(&buf[strlen(currentProcess->cwd)], path, strlen(path)+1);
-
-        file_t* fdir = file_open(buf, (O_RDONLY | O_DIRECTORY), 0);
-        if(!fdir) return -kerrno;
-
-        kmfree(currentProcess->cwd);
-        currentProcess->cwd = strdup(buf);
-    }
+    char* str = file_get_absolute_path(currentProcess->cwd, path);
+    kmfree(currentProcess->cwd);
+    currentProcess->cwd = str;
     return 0;
 }

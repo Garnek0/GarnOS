@@ -90,8 +90,7 @@ void _start(){
 
         char* argv[] = {"./bin/test.elf", NULL};
         char* envp[] = {NULL};
-
-        execve("0:/bin/test.elf",argv,envp);
+        execve("bin/test.elf",argv,envp);
         exit(0);
     }
 
