@@ -76,7 +76,7 @@ See LICENSE.md for details.
 **General**: PCI \
 **Input**: PS/2 Keyboards \
 **Storage**: IDE \
-**Graphics**: none
+**Graphics**: Standard Graphics
 
 # Acknowledgments
 
