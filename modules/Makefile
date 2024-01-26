@@ -41,7 +41,7 @@ override AUTOREG := autoreg.txt
 override HEADER_DEPS := $(CFILES:.c=.d)
 
 .PHONY: all
-all: $(MOD_OBJ) initrd autoreg
+all: $(MOD_OBJ) initrd autoreg sysroot_cpy
 
 %.sys: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
@@ -52,12 +52,18 @@ all: $(MOD_OBJ) initrd autoreg
 autoreg:
 	touch $(AUTOREG)
 	echo "${MODULES}" | sed 's/ /\n/g' > $(AUTOREG)
+	cp $(AUTOREG) ../sysroot
 
 .PHONY: initrd
 initrd:
 	touch $(INITRD_AUTOREG)
 	echo "${INITRD_MODS}" | sed 's/ /\n/g' > $(INITRD_AUTOREG)
 	tar -cvf $(INITRD_FILENAME) $(INITRD_MODS) $(INITRD_AUTOREG)
+	cp $(INITRD_FILENAME) ../sysroot/$(INITRD_FILENAME)
+
+.PHONY: sysroot_cpy
+sysroot_cpy:
+	cp $(MODULES) ../sysroot
 
 .PHONY: clean
 clean:

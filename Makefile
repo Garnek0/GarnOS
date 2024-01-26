@@ -49,6 +49,8 @@ ovmf:
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v6.x-branch-binary --depth=1
 	$(MAKE) -C limine CC="$(HOST_CC)"
+	cp -v limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin sysroot
+	cp -v limine/BOOTX64.EFI sysroot/efi/boot/BOOTX64.EFI
 	
 .PHONY: kernel
 kernel:
@@ -62,16 +64,20 @@ modules:
 programs:
 	$(MAKE) -C programs
 
-$(IMAGE_NAME).iso: limine kernel modules programs
+sysroot:
+	rm -rf sysroot
+
+	mkdir sysroot
+	mkdir sysroot/bin
+	# mkdir sysroot/lib
+	# mkdir sysroot/include
+	mkdir sysroot/efi
+	mkdir sysroot/efi/boot
+
+$(IMAGE_NAME).iso: sysroot limine kernel modules programs
 	rm -rf iso_root
 	mkdir -p iso_root
-	cp -v kernel/kernel.elf \
-		limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin $(MODULES) $(AUTOREG) iso_root/
-		mkdir -p iso_root/bin
-		sudo cp -v $(PROGRAMS) iso_root/bin
-	mkdir -p iso_root/EFI/BOOT
-	cp -v limine/BOOTX64.EFI iso_root/EFI/BOOT/
-	cp -v limine/BOOTIA32.EFI iso_root/EFI/BOOT/
+	cp -vr sysroot/* iso_root/
 	xorriso -as mkisofs -b limine-bios-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot limine-uefi-cd.bin \
@@ -80,7 +86,7 @@ $(IMAGE_NAME).iso: limine kernel modules programs
 	./limine/limine bios-install $(IMAGE_NAME).iso
 	rm -rf iso_root
 
-$(IMAGE_NAME).hdd: limine kernel modules programs
+$(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 	rm -f $(IMAGE_NAME).hdd
 	dd if=/dev/zero bs=1M count=0 seek=64 of=$(IMAGE_NAME).hdd
 	parted -s $(IMAGE_NAME).hdd mklabel gpt
@@ -91,12 +97,7 @@ $(IMAGE_NAME).hdd: limine kernel modules programs
 	sudo mkfs.fat -F 32 `cat loopback_dev`p1
 	mkdir -p img_mount
 	sudo mount `cat loopback_dev`p1 img_mount
-	sudo mkdir -p img_mount/bin
-	sudo mkdir -p img_mount/EFI/BOOT
-	sudo cp -v kernel/kernel.elf modules/initrd.grd limine.cfg limine/limine-bios.sys $(MODULES) $(AUTOREG) img_mount/
-	sudo cp -v $(PROGRAMS) img_mount/bin
-	sudo cp -v limine/BOOTX64.EFI img_mount/EFI/BOOT/
-	sudo cp -v limine/BOOTIA32.EFI img_mount/EFI/BOOT/
+	sudo cp -vr sysroot/* img_mount/
 	sync
 	sudo umount img_mount
 	sudo losetup -d `cat loopback_dev`
@@ -111,5 +112,5 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	rm -rf limine ovmf
+	rm -rf limine ovmf sysroot
 	$(MAKE) -C kernel distclean

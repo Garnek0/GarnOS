@@ -7,4 +7,4 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "sched.h"
+#include <process/sched/sched.h>

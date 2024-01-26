@@ -1,6 +1,7 @@
 /.vscode
 /ovmf
 /limine
+/sysroot
 /kernel/limine.h
 *.elf
 *.txt

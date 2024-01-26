@@ -18,13 +18,13 @@ override CFLAGS += \
     -mno-red-zone \
 	-nostdlib \
 	-static \
-	-march=x86-64
+	-march=x86-64 \
+	-I../libc
 
 override LDFLAGS += \
     -m elf_x86_64 \
     -nostdlib \
     -static \
-    -pie \
     --no-dynamic-linker \
     -z text \
     -z max-page-size=0x1000 \
@@ -33,15 +33,16 @@ override CC = gcc
 override LD = ld
 
 override CFILES := $(shell find -L . -type f -name '*.c')
-override OBJ := $(CFILES:.c=.elf)
+override EXEC := $(CFILES:.c=.elf)
 
 override HEADER_DEPS := $(CFILES:.c=.d)
 
-all: $(OBJ)
+all: $(EXEC)
 
 %.elf: %.c
 	$(CC) $(CFLAGS) $< -o $@
+	cp $@ ../sysroot/bin/$@
 
 .PHONY: clean
 clean:
-	rm -f $(OBJ)
+	rm -f $(EXEC)
