@@ -118,7 +118,6 @@ static void console_drives(){
 static void console_user(){
     fb_clear(0x00000000);
     cursor_set(&tc.cursor, 0, 0);
-    kprintf("Welcome to Userspace!\n\n");
     exit = true;
 }
 

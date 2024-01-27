@@ -67,9 +67,14 @@ file_t* file_open(char* path, int flags, int mode){
     lock(fs->lock, {
         for(file_t* i = openFiles; i != NULL; i = i->next){
             if(i->fs == fs && !strcmp(i->filename, path)){
-                if(((i->flags & O_DIRECTORY) && !(flags & O_DIRECTORY) ||
-                !(i->flags & O_DIRECTORY) && (flags & O_DIRECTORY))){
+                if((i->flags & O_DIRECTORY) && !(flags & O_DIRECTORY)){
                     kerrno = EISDIR;
+                    releaseLock(&fs->lock);
+                    return NULL;   
+                }
+                if(!(i->flags & O_DIRECTORY) && (flags & O_DIRECTORY)){
+                    kerrno = ENOTDIR;
+                    releaseLock(&fs->lock);
                     return NULL;
                 }
 
@@ -78,9 +83,9 @@ file_t* file_open(char* path, int flags, int mode){
                 return i;
             }
         }
-
         if(!fs->fsOperations.open){
             kerrno = EINVAL;
+            releaseLock(&fs->lock);
             return NULL;
         }
         //open the file
@@ -250,6 +255,7 @@ uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size){
 }
 
 char* file_get_absolute_path(char* root, char* relative){
+    kerrno = 0;
 
     //Check if path is absolute
     bool absolute = false;
@@ -268,34 +274,81 @@ char* file_get_absolute_path(char* root, char* relative){
     size_t size = 0;
     size_t sptr = 0;
 
-    if(absolute && relative[0] != '/') return strdup(relative);
+    char* buf = kmalloc(PATH_MAX+1);
+
+    if(absolute && relative[0] != '/'){
+        memcpy(buf, relative, strlen(relative)+1);
+        goto checkpath;
+    }
     else if(absolute && relative[0] == '/'){
-        char* buf = kmalloc(PATH_MAX+1);
         size = sizeof(relative)+2;
-        if(size > PATH_MAX) return NULL;
+        if(size > PATH_MAX){
+            kerrno = ENAMETOOLONG;
+            return NULL;
+        }
 
         memcpy(&buf[2], relative, strlen(relative)+1);
         buf[0] = '0';
         buf[1] = ':';
-        return buf;
+        goto checkpath;
     }
 
     size = strlen(root)+strlen(relative);
-    if(size > PATH_MAX) return NULL;
+    if(size > PATH_MAX){
+        kerrno = ENAMETOOLONG;
+        return NULL;
+    }
 
-    char* buf = kmalloc(PATH_MAX+1);
     memcpy(buf, root, strlen(root));
     sptr = strlen(root);
     if(root[sptr-1]!='/'){
         size++;
         if(size > PATH_MAX){
             kmfree(buf);
+            kerrno = ENAMETOOLONG;
             return NULL;
         }
         buf[sptr] = '/';
         sptr++;
     }
     memcpy(&buf[sptr], relative, strlen(relative)+1);
+    strncat(buf, "/", 1);
+
+checkpath:
+
+    int dirindex = 0;
+    for(int i = 0; i < strlen(buf); i++){
+        if(buf[i] == '/') dirindex++;
+        if(!strncmp(&buf[i], "/../", 4)){
+            if(dirindex < 2){
+                memcpy(&buf[i], &buf[i+3], strlen(&buf[i+3])+1);
+                continue;
+            }
+
+            for(int j = i-1; j > 0; j--){
+                if(buf[j] == '/'){
+                    memcpy(&buf[j], &buf[i+3], strlen(&buf[i+3])+1);
+                    break;
+                }
+            }
+        } else if(!strncmp(&buf[i], "/..", 3)){
+            if(dirindex < 2){
+                memcpy(&buf[i], &buf[i+3], strlen(&buf[i+3])+1);
+                continue;
+            }
+
+            for(int j = i-1; j > 0; j--){
+                if(buf[j] == '/'){
+                    memcpy(&buf[j+1], &buf[i+3], strlen(&buf[i+3])+1);
+                    break;
+                }
+            }
+        } else if(!strncmp(&buf[i], "/.", 2)){
+            memcpy(&buf[i], &buf[i+2], strlen(&buf[i+2])+1);
+        } else if(!strncmp(&buf[i], "//", 2)){
+            memcpy(&buf[i], &buf[i+1], strlen(&buf[i+1])+1);
+        }
+    }
 
     return buf;
 }
@@ -306,6 +359,22 @@ int sys_chdir(stack_frame_t* regs, const char* path){
     process_t* currentProcess = sched_get_current_process();
 
     char* str = file_get_absolute_path(currentProcess->cwd, path);
+    if(str == NULL) return -kerrno;
+    if(str[strlen(str)-1]!='/'){
+        char* strOk = kmalloc(strlen(str)+2);
+        memcpy(strOk, str, strlen(str)+1);
+        strncat(strOk, "/", 1);
+        strOk[strlen(strOk)] = 0;
+        kmfree(str);
+        str = strOk;
+    }
+
+    file_t* file = file_open(str, O_DIRECTORY | O_RDONLY, 0);
+    if(!file){
+        kmfree(str);
+        return -kerrno;
+    }
+
     kmfree(currentProcess->cwd);
     currentProcess->cwd = str;
     return 0;

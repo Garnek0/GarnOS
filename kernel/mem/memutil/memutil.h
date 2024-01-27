@@ -22,5 +22,6 @@ int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, size_t n);
 uint32_t strlen(const char *s);
 char* strdup(const char* str1);
+char *strncat(char *s1, const char *s2, size_t n);
 
 #endif //MEMUTIL_H

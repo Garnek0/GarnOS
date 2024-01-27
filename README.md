@@ -42,7 +42,7 @@ You can also run GarnOS in an EFI environment by appending `-uefi` to the comman
 NOTE: At the time of writing this, the OVMF Nightly precompiled binary is broken and will not work. If that is the case, you will have to run GarnOS normally. (in BIOS mode)
 
 # License
-See LICENSE.md for details.
+See LICENSE for details.
 
 # Milestones
 

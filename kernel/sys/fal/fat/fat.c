@@ -139,6 +139,7 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     fat_directory_t* currentDir;
     fat_lfn_t* currentLFN;
     bcache_buf_t* buf;
+    bool hasEndSlash = false;
     char* pathTmp = kmalloc(strlen(path)+1);
     memcpy(pathTmp, path, strlen(path)+1);
 
@@ -163,8 +164,33 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
         bool isLFNDirectory;
         bool foundByLFN;
 
+        //This is a path to the root dir
+        if(strlen(path) == 0){
+            if(!(flags &O_DIRECTORY) || ((flags & O_WRONLY) || ((flags & O_RDWR)))){
+                kerrno = ENOENT;
+                goto fail;
+            }
+            file_t* file = kmalloc(sizeof(file_t));
+            memset(file, 0, sizeof(file_t));
+            fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
+            file->size = context->rootDirSectors * context->bytesPerSector;
+            file->mode = mode;
+            file->flags = flags;
+            file->fs = self;
+            file->filename = kmalloc(strlen(pathTmp)+1);
+            memcpy(file->filename, pathTmp, strlen(pathTmp)+1);
+            file->fsData = (void*)fsData;
+            fsData->startCluster = currentCluster;
+
+            if(hasEndSlash) path[strlen(path)] = '/';
+            return file;
+        }
+
         //If this is a dir, then remove the '/' from the end
-        if(path[strlen(path)-1] == '/') path[strlen(path)-1] = 0;
+        if(path[strlen(path)-1] == '/'){
+            path[strlen(path)-1] = 0;
+            hasEndSlash = true;
+        }
 
         while(strlen(path)){
 
@@ -232,7 +258,7 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                 } else {
                     //FILE NOT FOUND/BAD PATH
                     kerrno = ENOENT;
-                    return NULL;
+                    goto fail;
                 }
             }
             if(found && isTargetObject){
@@ -240,12 +266,12 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                   ((currentDir->attr & FAT_ATTR_DIRECTORY) && ((flags & O_WRONLY) || (flags & O_RDWR)))){
                     //TARGET IS A DIRECTORY
                     kerrno = EISDIR;
-                    return NULL;
+                    goto fail;
                 }
                 if(!(currentDir->attr & FAT_ATTR_DIRECTORY) && (flags & O_DIRECTORY)){
                     //TARGET IS A FILE
-                    kerrno = ENOENT;
-                    return NULL;
+                    kerrno = ENOTDIR;
+                    goto fail;
                 }
                 file_t* file = kmalloc(sizeof(file_t));
                 memset(file, 0, sizeof(file_t));
@@ -260,12 +286,16 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
 
                 fsData->startCluster = currentCluster;
 
+                if(hasEndSlash) path[strlen(path)] = '/';
                 return file;
             }
             
             strptr = 0;
         }
     }
+
+fail:
+    if(hasEndSlash) path[strlen(path)] = '/';
     return NULL;
 }
 
@@ -311,7 +341,7 @@ ssize_t fat_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t 
 }
 
 int fat_close(filesys_t* self, file_t* file){
-    kmfree(file->fsData);
+    if(file->fsData) kmfree(file->fsData);
     kmfree(file);
 }
 

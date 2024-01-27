@@ -99,3 +99,17 @@ char* strdup(const char* str1){
     memcpy(str2, str1, strlen(str1)+1);
     return str2;
 }
+
+char *strncat(char *s1, const char *s2, size_t n){
+    char *start = s1;
+
+    while(*s1++);
+    s1--;
+
+    while(n--){
+        if(!(*s1++ = *s2++)) return start;
+    }
+    *s1 = 0;
+
+    return start;
+}

@@ -2,18 +2,14 @@
 #include <string.h>
 
 void _start(){
-    char* bufWelcome = "\ninit: init process is running!\n";
-    char* bufChildSuccess = "\nSuccessfully forked off child!\n";
+    char* bufShellFailed = "init: failed to start shell\n";
     int status;
 
-    write(1, bufWelcome, strlen(bufWelcome));
-
     if(fork() == 0){
-        write(1, bufChildSuccess, strlen(bufChildSuccess));
-
-        char* argv[] = {"./bin/test.elf", NULL};
+        char* argv[] = {"./bin/shell.elf", NULL};
         char* envp[] = {NULL};
-        execve("bin/test.elf",argv,envp);
+        execve("bin/shell.elf",argv,envp);
+        write(1, bufShellFailed, strlen(bufShellFailed));
         exit(0);
     }
 

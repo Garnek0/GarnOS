@@ -250,7 +250,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     process_t* currentProcess = sched_get_current_process();
 
     path = file_get_absolute_path(currentProcess->cwd, path);
-    if(!path) return -ENAMETOOLONG;
+    if(!path) return -kerrno;
 
     currentProcess->name = strdup(path);
     currentProcess->status = PROCESS_STATUS_RUNNING;
