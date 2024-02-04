@@ -68,8 +68,6 @@ See LICENSE for details.
 ## Known Bugs
 
 - APIC implementation doesn't work properly on some systems.
-- Painfully slow file access due to lack of proper file caching. (File data is read directly from the disk each time a file operation (read, write) is made)
-- Weird behaviour with kheap allocation blocks.
 
 ## Hardware Support
 

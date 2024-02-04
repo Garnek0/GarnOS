@@ -25,7 +25,8 @@ size_t kheapSize;
 spinlock_t kheapLock;
 
 static void kheap_extend(size_t size){
-    size = ALIGN_UP((size+sizeof(kheap_block_header_t)), PAGE_SIZE);
+    size += sizeof(kheap_block_header_t);
+    if(size%PAGE_SIZE != 0) size = ALIGN_UP(size, PAGE_SIZE);
     kheap_block_header_t* newh = (kheap_block_header_t*)((uint64_t)pmm_allocate(size/PAGE_SIZE) + bl_get_hhdm_offset());
     memset(newh, 0, size);
     newh->size = size - sizeof(kheap_block_header_t);
@@ -60,7 +61,7 @@ static void kheap_create_block(kheap_block_header_t* h, size_t size){
         newh->next->prev = newh;
     }
 
-    if(newh->next == NULL) end = newh;
+    if(h == end) end = newh;
 }
 
 void kheap_init(){
@@ -112,7 +113,8 @@ void kmfree(void* ptr){
 
         if(h->next && (h->next->flags & KHEAP_FLAGS_FREE) && ((void*)((uint64_t)h+(uint64_t)h->size+sizeof(kheap_block_header_t)) == h->next)){
             kheap_block_header_t* next = h->next;
-            h->size += next->size;
+            if(next == end) end = h;
+            h->size += next->size + sizeof(kheap_block_header_t);
             if(next->next){
                 next->next->prev = h;
             }
@@ -121,7 +123,8 @@ void kmfree(void* ptr){
 
         if(h->prev && (h->prev->flags & KHEAP_FLAGS_FREE) && ((void*)((uint64_t)h->prev+(uint64_t)h->prev->size+sizeof(kheap_block_header_t)) == h)){
             kheap_block_header_t* prev = h->prev;
-            prev->size += h->size;
+            if(h == end) end = prev;
+            prev->size += h->size + sizeof(kheap_block_header_t);
             if(h->next){
                 h->next->prev = prev;
             }
