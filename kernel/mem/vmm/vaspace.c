@@ -11,6 +11,8 @@
 #include <mem/pmm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <sys/bootloader.h>
+#include <process/sched/sched.h>
+#include <kerrno.h>
 #include <kstdio.h>
 
 void vaspace_switch(page_table_t* pml4){
@@ -59,7 +61,7 @@ void vaspace_destroy(page_table_t* pml4){
             pmm_free((void*)((uint64_t)PDP - bl_get_hhdm_offset()), 1);
         }
     }
-    kmfree(pml4);
+    pmm_free((void*)((uint64_t)pml4 - bl_get_hhdm_offset()), 1);
 }
 
 void vaspace_clear(page_table_t* pml4){
@@ -169,4 +171,141 @@ void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, ui
     }
 
     return (void*)virtAddr;
+}
+
+void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int flags, int fd, uint64_t offset){
+    if(length == 0) return -EINVAL;
+    if(addr > VMM_USER_END) return -ENOMEM;
+
+    //We dont support shared mappings yet
+    if(flags & MAP_SHARED) return -EINVAL;
+    if(!(flags & MAP_PRIVATE)) return -EINVAL;
+
+    //We also dont support file mappings yet
+    if(!(flags & MAP_ANONYMOUS)) return -EINVAL;
+
+    process_t* currentProcess = sched_get_current_process();
+
+    if(addr != NULL && (uint64_t)addr%PAGE_SIZE != 0) ALIGN_UP(addr, PAGE_SIZE);
+    if(addr == NULL) addr = 0x1000;
+
+    if(length%PAGE_SIZE != 0) ALIGN_UP(length, PAGE_SIZE);
+    length /= PAGE_SIZE;
+
+    int Pi, PTi, PDi, PDPi;
+    page_table_entry_t currentEntry;
+    int npages = 0;
+
+    uint64_t userEnd = VMM_USER_END;
+    if(flags & MAP_32BIT) userEnd = VMM_USER_END_32BIT;
+
+    for(uint64_t i = (uint64_t)addr; i < VMM_USER_END; i+=PAGE_SIZE){
+        vmm_indexer(i, &Pi, &PTi, &PDi, &PDPi);
+
+        currentEntry = currentProcess->pml4->entries[PDPi];
+        page_table_t* PDP;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            goto found_addr;
+        } else {
+            PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PDP->entries[PDi];
+        page_table_t* PD;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            goto found_addr;
+        } else {
+            PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PD->entries[PTi];
+        page_table_t* PT;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            goto found_addr;
+        } else {
+            PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PT->entries[Pi];
+        if(!currentEntry.present && currentEntry.addr == 0){
+            goto found_addr;
+        } else {
+            npages = 0;
+            continue;
+        }
+
+        continue;
+
+found_addr:
+        npages++;
+        if(npages == 1) addr = (void*)i;
+        if(npages == length){
+            uint64_t phys;
+            uint32_t vmmflags = 0;
+
+            vmmflags = (VMM_USER | VMM_PRESENT | VMM_NX);
+
+            if(prot & PROT_READ);
+            if(prot & PROT_WRITE) vmmflags |= VMM_RW;
+            if(prot & PROT_EXEC) vmmflags &= ~(VMM_NX);
+            
+            for(int j = 0; j < length; j++){
+                phys = (uint64_t)pmm_allocate(1);
+                vmm_map(currentProcess->pml4, phys, (uint64_t)addr+(j*PAGE_SIZE), vmmflags);
+            }
+            return addr;
+        } else continue;
+    }
+
+    return -ENOMEM;
+}
+
+int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
+    if(length == 0) return -EINVAL;
+    if(addr > VMM_USER_END || (uint64_t)addr%PAGE_SIZE != 0) return -EINVAL;
+
+    if(length%PAGE_SIZE != 0) ALIGN_UP(length, PAGE_SIZE);
+    length /= PAGE_SIZE;
+
+    process_t* currentProcess = sched_get_current_process();
+
+    int Pi, PTi, PDi, PDPi;
+    page_table_entry_t currentEntry;
+    for(size_t i = 0; i < length; i++){
+        vmm_indexer(addr, &Pi, &PTi, &PDi, &PDPi);
+
+        currentEntry = currentProcess->pml4->entries[PDPi];
+        page_table_t* PDP;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            return -EINVAL;
+        } else {
+            PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PDP->entries[PDi];
+        page_table_t* PD;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            return -EINVAL;
+        } else {
+            PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PD->entries[PTi];
+        page_table_t* PT;
+        if(!currentEntry.present && currentEntry.addr == 0){
+            return -EINVAL;
+        } else {
+            PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
+        }
+
+        currentEntry = PT->entries[Pi];
+        if(!currentEntry.present && currentEntry.addr == 0){
+            return -EINVAL;
+        } else {
+            pmm_free((currentEntry.addr << 12), 1);
+            vmm_unmap(currentProcess->pml4, (uint64_t)addr);
+        }
+
+        addr += PAGE_SIZE;
+    }
 }

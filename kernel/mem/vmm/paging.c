@@ -20,7 +20,7 @@ page_table_t* kernelPML4;
 
 spinlock_t VMMlock; //vmm lock
 
-static void vmm_indexer(uint64_t virtAddr, int* Pi, int* PTi, int* PDi, int* PDPi){
+void vmm_indexer(uint64_t virtAddr, int* Pi, int* PTi, int* PDi, int* PDPi){
     virtAddr >>= 12;
     *Pi = virtAddr & 0x1ff;
     virtAddr >>= 9;
@@ -157,6 +157,7 @@ void vmm_unmap(page_table_t* pml4, uint64_t virtAddr){
 
         currentEntry = PT->entries[Pi];
         currentEntry.present = 0;
+        currentEntry.addr = 0;
         PT->entries[Pi] = currentEntry;
 
         asm("invlpg (%0)" :: "r"(virtAddr) : "memory");

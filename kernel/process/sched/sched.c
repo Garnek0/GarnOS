@@ -34,7 +34,6 @@ void sched_add_thread(thread_t* thread){
     if(!currentThreadNode) currentThreadNode = threadList->head;
 }
 
-
 //TODO: move to thread.c
 void sched_remove_thread(thread_t* thread){
     kmfree(thread->kernelStackDeallocAddress);
@@ -53,9 +52,14 @@ inline thread_t* sched_get_current_thread(){
 static void _sched_get_next_thread(){
     if(threadList->head->next == NULL) return; // There is only one thread
 
-    currentThread->status = THREAD_STATUS_READY;
-
 checkready:
+
+    if(currentThread->status == THREAD_STATUS_DESTROYED){
+        list_remove(threadList, currentThread);
+    } else {
+        currentThread->status = THREAD_STATUS_READY;
+    }
+
     if(currentThreadNode == NULL) currentThreadNode = threadList->head;
 
     currentThread = (thread_t*)currentThreadNode->value;
@@ -83,14 +87,7 @@ void sched_preempt(stack_frame_t* regs){
 
     _sched_store_context(regs);
 
-schedretry:
-
     _sched_get_next_thread();
-
-    if(currentThread->status == THREAD_STATUS_DESTROYED){
-        list_remove(threadList, currentThread);
-        goto schedretry;
-    }
 
     tss_set_rsp(0, currentThread->kernelStack);
 

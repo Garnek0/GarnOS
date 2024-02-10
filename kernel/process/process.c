@@ -56,6 +56,8 @@ void process_terminate(process_t* process){
     for(process_t* proc = processList; proc != NULL; proc=proc->next){
         if(proc == process){
             proc->status = PROCESS_STATUS_ZOMBIE;
+            sched_remove_thread(proc->mainThread); //TODO: remove all associated threads
+            break;
         }
         prev = proc;
     }
@@ -75,14 +77,13 @@ void process_free(process_t* process){
             for(int i = 0; i < proc->fdMax; i++){
                 if(proc->fdTable[i].file) proc->fdTable[i].file->refCount--;
             }
-            if(prev) prev->next = proc->next;
             vaspace_destroy(proc->pml4);
 
             for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
                 if(childProc->parent == proc) childProc->parent = initProc;
             }
-
             kmfree(proc);
+
             return;
         }
         prev = proc;
@@ -207,7 +208,6 @@ __attribute__((noreturn))
 void sys_exit(stack_frame_t* regs, int status){
     process_t* currentProcess = sched_get_current_process();
 
-    sched_remove_thread(currentProcess->mainThread); //TODO: remove all associated threads
     currentProcess->exitStatus = status;
     process_terminate(currentProcess);
 
@@ -226,8 +226,8 @@ int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options){
     for(;;){
         bool done = false;
         for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
-            if(childProc->parent != currentProcess) continue;
             if(childProc == NULL || childProc->status != PROCESS_STATUS_ZOMBIE) continue;
+            if(childProc->parent != currentProcess) continue;
             if(pid > 0 && childProc->pid != pid) continue;
 
             *status = childProc->exitStatus;
@@ -243,7 +243,6 @@ int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options){
 
 int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const char* envp[]){
     //TODO: destroy all threads but the main one.
-    //TODO: make execve use cwd for the path.
 
     if(argv == NULL || envp == NULL) return -EFAULT;
 

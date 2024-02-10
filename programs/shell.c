@@ -1,5 +1,7 @@
 #include <unistd.h>
+#include <sys/mman.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_PATH 4096
 #define MAX_CMD 4096
@@ -39,6 +41,48 @@ void get_command(){
     cmd[--p] = 0;
 }
 
+void run_program(){
+    //TODO: Add support for arguments
+
+    char* argv[] = {0, 0};
+    char* envp[] = {0};
+
+    bool isDir = false;
+
+    char* prog = mmap(NULL, MAX_PATH, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+
+    for(int i = 0; i < strlen(cmd); i++){
+        if(cmd[i] == ' '){
+            cmd[i] = 0;
+            break;
+        } else if(cmd[i] == '/') isDir = true;
+    }
+
+    memcpy(prog, cmd, strlen(cmd)+1);
+
+    if(fork() == 0){
+        if(!isDir){
+            char* progBuf = mmap(NULL, MAX_PATH, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+            memcpy(progBuf, prog, strlen(prog)+1);
+            memcpy(&prog[5], progBuf, strlen(progBuf)+1);
+            munmap(progBuf, MAX_PATH);
+
+            memcpy(prog, "/bin/", 5);
+
+            if(strncmp(&prog[strlen(prog)-4], ".elf", 4)){
+                memcpy(&prog[strlen(prog)], ".elf", 5);
+            }
+        }
+        argv[0] = prog;
+        execve(prog, argv, envp);
+        exit(-1);
+    } else {
+        int status;
+        waitpid(-1, &status, 0);
+    }
+    munmap(prog, MAX_PATH);
+}
+
 void _start(){
     char* welcomeStr = "GarnOS Shell. Welcome to Userspace!\n\n";
     char cwd[MAX_PATH];
@@ -69,9 +113,7 @@ void _start(){
                 }
             }
         } else {
-            write(1, "readback: ", 10);
-            write(1, cmd, strlen(cmd));
-            write(1, "\n", 1);
+            run_program();
         }
     }
     char key;

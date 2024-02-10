@@ -11,6 +11,7 @@
 
 #include <sys/dal/dal.h>
 #include <sys/fal/fal.h>
+#include <mem/vmm/vmm.h>
 #include <process/process.h>
 #include <process/sched/sched.h>
 
@@ -30,6 +31,8 @@ void syscall_init(){
     syscall_register(2, sys_open);
     syscall_register(3, sys_close);
     syscall_register(7, sys_waitpid);
+    syscall_register(9, sys_mmap);
+    syscall_register(11, sys_munmap);
     syscall_register(57, sys_fork);
     syscall_register(59, sys_execve);
     syscall_register(60, sys_exit);
