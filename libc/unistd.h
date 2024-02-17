@@ -2,6 +2,7 @@
 #define GARN_UNISTD_H
 
 #include "../kernel/types.h"
+#include "fnctl.h"
 
 ssize_t read(int fd, const void* buf, size_t count){
     ssize_t ret = 0;
@@ -25,19 +26,6 @@ ssize_t write(int fd, const void* buf, size_t count){
                  "movq %3, %%rdx\n"
                  "int $0x80\n"
                  "movq %%rax, %0" : "=r"(ret) : "r"(fd), "r"(buf), "r"(count) : "%rax", "%rdi", "%rsi", "%rdx");
-
-    return ret;
-}
-
-int open(char* pathname, int flags, int mode){
-    int ret = 0;
-
-    asm volatile("movq $2, %%rax\n"
-                 "movq %1, %%rdi\n"
-                 "movl %2, %%esi\n"
-                 "movl %3, %%edx\n"
-                 "int $0x80\n"
-                 "movl %%eax, %0" : "=r"(ret) : "r"(pathname), "r"(flags), "r"(mode) : "%rax", "%rdi", "%esi", "%edx");
 
     return ret;
 }

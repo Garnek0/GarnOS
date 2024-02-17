@@ -99,7 +99,7 @@ void input_send_key(kb_input_t input){
                 break;
         }
     } else {
-        //TODO: remove this and kreadline after removing kcon
+        //TODO: remove keyBuffer and kreadline after removing kcon
         if(input.pressed) keyBuffer = input.key;
         if(input.pressed){
             writeRBPos->chr = input.key;

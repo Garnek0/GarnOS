@@ -29,4 +29,25 @@
 #define S_IWOTH 0x0002
 #define S_IXOTH 0x0001
 
+int open(char* pathname, int flags, ...){
+    int ret = 0;
+
+    int mode = 0;
+    if(flags & O_CREAT){
+        va_list args;
+        va_start(args, flags);
+        mode = va_arg(args, int);
+        va_end(args);
+    }
+
+    asm volatile("movq $2, %%rax\n"
+                 "movq %1, %%rdi\n"
+                 "movl %2, %%esi\n"
+                 "movl %3, %%edx\n"
+                 "int $0x80\n"
+                 "movl %%eax, %0" : "=r"(ret) : "r"(pathname), "r"(flags), "r"(mode) : "%rax", "%rdi", "%rsi", "%rdx");
+
+    return ret;
+}
+
 #endif //GARN_FNCTL_H

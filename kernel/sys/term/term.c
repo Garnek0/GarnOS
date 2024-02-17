@@ -17,6 +17,8 @@
 
 term_context_t tc;
 
+// Very incomplete teminal emulator
+
 //colour lookup table. From flanterm (by mintsuki)
 static const uint32_t col256[] = {
     0x000000, 0x00005f, 0x000087, 0x0000af, 0x0000d7, 0x0000ff, 0x005f00, 0x005f5f,
@@ -162,6 +164,12 @@ static void term_handle_esc(char chr){
         case 'm':
             term_sgr();
             break;
+        case 'J':
+            if(tc.escArgsCount == 0){
+                if(tc.escArgs[0] == 2){
+                    term_clear();
+                }
+            }
         default:
             break;
     }

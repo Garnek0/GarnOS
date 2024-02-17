@@ -98,8 +98,7 @@ void _start(void) {
 
     dal_init(); //initialise Device Abstraction Layer
 
-    fb_clear(0x00000000);
-    cursor_set(&tc.cursor, 0, 0);
+    term_clear();
 
     //init_kcon(); //initialise demo console
 

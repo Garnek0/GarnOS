@@ -11,7 +11,7 @@ void _start(){
     char* buf = mmap(NULL, bufSize, PROT_WRITE | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
     memset(buf, 0, bufSize);
 
-    int fd = open(".", O_RDONLY | O_DIRECTORY, 0);
+    int fd = open(".", O_RDONLY | O_DIRECTORY);
     if(fd < 0){
         write(2, "ls: ", 4);
         switch(fd){
@@ -38,6 +38,7 @@ void _start(){
         i+=dirent->recordLength;
     } while(dirent->recordLength);
 
+    close(fd);
     
     exit(0);
 }
