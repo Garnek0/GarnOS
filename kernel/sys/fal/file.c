@@ -98,6 +98,7 @@ file_t* file_open(char* path, int flags, int mode){
         }
         file->fs = fs;
         file->refCount = 1;
+        
 
         file_list_add(file);
 
@@ -170,88 +171,6 @@ fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
     memcpy(newfd, fd, sizeof(fd_t)*prevSize);
 
     return newfd;
-}
-
-//TODO: sys_stat() syscalls;
-
-int sys_open(stack_frame_t* regs, char* pathname, int flags, int mode){
-    //TODO: finish this (flags, mode)
-
-    process_t* currentProcess = sched_get_current_process();
-
-    char absPath[PATH_MAX+1];
-
-findfd:
-
-    for(size_t i = 0; i < currentProcess->fdMax; i++){
-        if(!currentProcess->fdTable[i].file){
-            memcpy(&absPath[0], currentProcess->cwd, strlen(currentProcess->cwd));
-            memcpy(&absPath[strlen(currentProcess->cwd)], pathname, strlen(pathname)+1);
-            currentProcess->fdTable[i].file = file_open(pathname, flags, mode);
-            if(currentProcess->fdTable[i].file == NULL) return -kerrno;
-            if(flags & O_APPEND) currentProcess->fdTable[i].offset = currentProcess->fdTable[i].file->size;
-            else currentProcess->fdTable[i].offset = 0;
-            currentProcess->fdTable[i].offset = 0;
-            currentProcess->fdTable[i].flags = flags;
-            return i;
-        }
-    }
-
-    //no available fd found, try to realloc fd table
-    if((currentProcess->fdMax+1) >= PROCESS_MAX_FD) return -EMFILE;
-    file_realloc_fd_table(currentProcess->fdTable, currentProcess->fdMax+1, (currentProcess->fdMax+1)*2);
-    currentProcess->fdMax = (currentProcess->fdMax+1)*2-1;
-    goto findfd;
-}
-
-ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
-    process_t* currentProcess = sched_get_current_process();
-
-    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
-
-    fd_t* currentfd = &currentProcess->fdTable[fd];
-
-    if(!(currentfd->flags & O_RDONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
-
-    size_t res = file_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
-    if(res >= 0) currentProcess->fdTable[fd].offset += res;
-
-    return res;
-}
-
-ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count){
-    process_t* currentProcess = sched_get_current_process();
-
-    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
-
-    fd_t* currentfd = &currentProcess->fdTable[fd];
-
-    if(!(currentfd->flags & O_WRONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
-
-    size_t res = file_write(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
-    if(res >= 0) currentProcess->fdTable[fd].offset += res;
-
-    return res;
-}
-
-int sys_close(stack_frame_t* regs, int fd){
-    process_t* currentProcess = sched_get_current_process();
-
-    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
-
-    fd_t* currentfd = &currentProcess->fdTable[fd];
-
-    currentfd->file = NULL;
-
-    return 0;
-}
-
-uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size){
-    process_t* currentProcess = sched_get_current_process();
-    if(size < strlen(currentProcess->cwd)+1) return -ERANGE;
-
-    memcpy(buf, currentProcess->cwd, strlen(currentProcess->cwd)+1);
-    return (uint64_t)buf;
 }
 
 char* file_get_absolute_path(char* root, char* relative){
@@ -353,6 +272,87 @@ checkpath:
     return buf;
 }
 
+//TODO: sys_stat() syscalls;
+
+int sys_open(stack_frame_t* regs, char* path, int flags, int mode){
+    //TODO: finish this (flags, mode)
+
+    process_t* currentProcess = sched_get_current_process();
+
+    char* absPath = file_get_absolute_path(currentProcess->cwd, path);
+
+findfd:
+
+    for(size_t i = 0; i < currentProcess->fdMax; i++){
+        if(!currentProcess->fdTable[i].file){
+            currentProcess->fdTable[i].file = file_open(absPath, flags, mode);
+            if(currentProcess->fdTable[i].file == NULL) return -kerrno;
+            if(flags & O_APPEND) currentProcess->fdTable[i].offset = currentProcess->fdTable[i].file->size;
+            else currentProcess->fdTable[i].offset = 0;
+            currentProcess->fdTable[i].offset = 0;
+            currentProcess->fdTable[i].flags = flags;
+            kmfree(absPath);
+            return i;
+        }
+    }
+
+    //no available fd found, try to realloc fd table
+    if((currentProcess->fdMax+1) >= PROCESS_MAX_FD) return -EMFILE;
+    file_realloc_fd_table(currentProcess->fdTable, currentProcess->fdMax+1, (currentProcess->fdMax+1)*2);
+    currentProcess->fdMax = (currentProcess->fdMax+1)*2-1;
+    goto findfd;
+}
+
+ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
+    process_t* currentProcess = sched_get_current_process();
+
+    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
+
+    fd_t* currentfd = &currentProcess->fdTable[fd];
+
+    if(!(currentfd->flags & O_RDONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
+
+    size_t res = file_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
+    if(res >= 0) currentProcess->fdTable[fd].offset += res;
+
+    return res;
+}
+
+ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count){
+    process_t* currentProcess = sched_get_current_process();
+
+    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
+
+    fd_t* currentfd = &currentProcess->fdTable[fd];
+
+    if(!(currentfd->flags & O_WRONLY) && !(currentfd->flags & O_RDWR)) return -EACCES;
+
+    size_t res = file_write(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
+    if(res >= 0) currentProcess->fdTable[fd].offset += res;
+
+    return res;
+}
+
+int sys_close(stack_frame_t* regs, int fd){
+    process_t* currentProcess = sched_get_current_process();
+
+    if(fd < 0 || fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return -EBADF;
+
+    fd_t* currentfd = &currentProcess->fdTable[fd];
+
+    currentfd->file = NULL;
+
+    return 0;
+}
+
+uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size){
+    process_t* currentProcess = sched_get_current_process();
+    if(size < strlen(currentProcess->cwd)+1) return -ERANGE;
+
+    memcpy(buf, currentProcess->cwd, strlen(currentProcess->cwd)+1);
+    return (uint64_t)buf;
+}
+
 int sys_chdir(stack_frame_t* regs, const char* path){
     if(strlen(path) > PATH_MAX) return -ENAMETOOLONG;
 
@@ -377,5 +377,22 @@ int sys_chdir(stack_frame_t* regs, const char* path){
 
     kmfree(currentProcess->cwd);
     currentProcess->cwd = str;
+    return 0;
+}
+
+ssize_t sys_getdents64(stack_frame_t* regs, int fd, void* dirp, size_t count){
+    if(!dirp) return -EFAULT;
+
+    process_t* currentProcess = sched_get_current_process();
+
+    if(!currentProcess->fdTable[fd].file) return -EBADF;
+    if(!(currentProcess->fdTable[fd].file->flags & O_DIRECTORY)) return -ENOTDIR;
+
+    currentProcess->fdTable[fd].offset += file_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
+
+    if(currentProcess->fdTable[fd].offset != currentProcess->fdTable[fd].file->size) return -EINVAL;
+
+    garn_dirent64_t* dirent;
+
     return 0;
 }

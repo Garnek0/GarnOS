@@ -34,6 +34,9 @@
 #define S_IWOTH 0x0002
 #define S_IXOTH 0x0001
 
+#define DT_DIR 0
+#define DT_REG 1
+
 #include <types.h>
 #include <cpu/smp/spinlock.h>
 #include "filesys.h"
@@ -59,6 +62,13 @@ typedef struct _fd {
     int flags;
 } fd_t;
 
+typedef struct _garn_dirent64 {
+    uint64_t recordOffset;
+    uint32_t recordLength;
+    uint32_t type;
+    char name[1];
+} __attribute__((packed)) garn_dirent64_t;
+
 //open file
 file_t* file_open(char* path, int flags, int mode);
 
@@ -77,12 +87,13 @@ fd_t* file_alloc_fd_table(size_t size);
 //reallocate existing fd table
 fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize);
 
-int sys_open(stack_frame_t* regs, char* pathname, int flags, int mode);
+int sys_open(stack_frame_t* regs, char* path, int flags, int mode);
 ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count);
 ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count);
 int sys_close(stack_frame_t* regs, int fd);
 char* file_get_absolute_path(char* root, char* relative);
 uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size);
 int sys_chdir(stack_frame_t* regs, const char* path);
+ssize_t sys_getdents64(stack_frame_t* regs, int fd, void* dirp, size_t count);
 
 #endif //FILE_H

@@ -74,7 +74,17 @@ void run_program(){
             }
         }
         argv[0] = prog;
-        execve(prog, argv, envp);
+        int err = execve(prog, argv, envp);
+        write(2, cmd, strlen(cmd));
+        write(2, ": ", 2);
+        switch(err){
+            case -2: //ENOENT
+                write(2, "Command not found.\n", 19);
+                break;
+            default:
+                write(2, "Unknown error.\n", 15);
+                break;
+        }
         exit(-1);
     } else {
         int status;
@@ -96,31 +106,31 @@ void _start(){
 
         get_command();
 
-        if(!strncmp("cd ", cmd, 3)){
+        if(cmd[0] == 0) continue;
+
+        if(!strncmp("cd ", cmd, 3) || !strcmp("cd", cmd)){
+            if(strlen(cmd) <= 3) continue;
             int status = chdir((cmd+3));
+
             if(status != 0){
-                switch ((status))
-                {
-                case -2: //ENOENT
-                    write(2, "cd: No such file or directory.\n", 31);
-                    break;
-                case -20: //ENOTDIR
-                    write(2, "cd: Not a directory.\n", 21);
-                    break;
-                default:
-                    write(2, "cd: Unknown error.\n", 19);
-                    break;
+
+                write(2, "shell: cd: ", 11);
+                write(2, &cmd[3], strlen(&cmd[3]));
+                write(2, ": ", 2);
+                switch(status){
+                    case -2: //ENOENT
+                        write(2, "No such file or directory.\n", 27);
+                        break;
+                    case -20: //ENOTDIR
+                        write(2, "Not a directory.\n", 17);
+                        break;
+                    default:
+                        write(2, "Unknown error.\n", 15);
+                        break;
                 }
             }
         } else {
             run_program();
         }
-    }
-    char key;
-
-    for(;;){
-        read(0, &key, 1);
-        write(1, &key, 1);
-        key = 0;
     }
 }

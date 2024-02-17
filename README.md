@@ -75,7 +75,3 @@ See LICENSE for details.
 **Input**: PS/2 Keyboards \
 **Storage**: IDE \
 **Graphics**: Standard Graphics
-
-# Acknowledgments
-
-- toaruos (module loader)
