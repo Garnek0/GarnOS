@@ -4,6 +4,8 @@
 
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
+IMPORTANT: I have been very busy lately due to school and things are probably not going to get easier any time soon. I have been trying to allocate my very limited time in such a way that I would be able to release at least one version per week, but now even that isn't going to work anymore. I'll do my best to keep this project alive.
+
 ## Notable Features
 
 - Terminal Emulator

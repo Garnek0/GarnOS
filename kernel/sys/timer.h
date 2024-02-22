@@ -1,3 +1,10 @@
+/*  
+*   File: timer.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #ifndef TIMER_H
 #define TIMER_H
 

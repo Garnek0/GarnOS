@@ -79,7 +79,8 @@ void run_program(){
         write(2, ": ", 2);
         switch(err){
             case -2: //ENOENT
-                write(2, "Command not found.\n", 19);
+                if(isDir) write(2, "No such file or directory.\n", 27);
+                else write(2, "Command not found.\n", 19);
                 break;
             default:
                 write(2, "Unknown error.\n", 15);
