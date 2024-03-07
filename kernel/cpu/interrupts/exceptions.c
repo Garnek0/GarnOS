@@ -13,86 +13,57 @@
 
 #include <hw/serial/serial.h>
 
+#include <process/process.h>
+#include <process/sched/sched.h>
+
 #include <sys/panic.h>
 #include <kstdio.h>
 
+char* exceptionMessages[] = {
+    "Divide Error",
+    "Debug",
+    "NMI Triggered",
+    "Breakpoint Reached",
+    "Overflow",
+    "Bound Range Exceeded",
+    "Invalid Opcode",
+    "Device Not Available",
+    "Double Fault",
+    "Coprocessor Segment Overrun",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack Segment Fault",
+    "General Protection Fault",
+    "Page Fault",
+    "(Reserved)",
+    "(Reserved)",
+    "(Reserved)",
+    "(Reserved)",
+    "(Reserved)",
+    "(Reserved)",
+    "x87 Floating-Point Fault",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating-Point Fault",
+    "Virtualisation Fault",
+    "Control Protection Fault",
+    "(Reserved)",
+    "Hypervisor Injection",
+    "VMM Communication",
+    "Security Fault",
+    "(Reserved)"
+};
+
 void exception_handler(stack_frame_t* regs){
-    switch (regs->intn){
-    case 0:
-        panic_with_stack_frame("Exception: Divide Error!", regs);
-        break;
-    case 1:
-        panic_with_stack_frame("Exception: Debug!\n", regs);
-        break;
-    case 2:
-        panic_with_stack_frame("NMI Triggered!", regs);
-        break;
-    case 3:
-        panic_with_stack_frame("Exception: Breakpoint!\n", regs);
-        break;
-    case 4:
-        panic_with_stack_frame("Exception: Overflow!", regs);
-        break;
-    case 5:
-        panic_with_stack_frame("Exception: Bound Range Exceeded!", regs);
-        break;
-    case 6:
-        panic_with_stack_frame("Exception: Invalid Opcode!", regs);
-        break;
-    case 7:
-        panic_with_stack_frame("Exception: Device Not Available!", regs);
-        break;
-    case 8:
-        panic_with_stack_frame("Exception: Double Fault!", regs);
-        break;
-    case 9:
-        panic_with_stack_frame("Exception: Coprocessor Segment Overrun!", regs);
-        break;
-    case 10:
-        panic_with_stack_frame("Exception: Invalid TSS!", regs);
-        break;
-    case 11:
-        panic_with_stack_frame("Exception: Segment Not Present!", regs);
-        break;
-    case 12:
-        panic_with_stack_frame("Exception: Stack Segment Fault!", regs);
-        break;
-    case 13:
-        panic_with_stack_frame("Exception: General Protection Fault!", regs);
-        break;
-    case 14:
-        panic_with_stack_frame("Exception: Page Fault!", regs);
-        break;
-    case 16:
-        panic_with_stack_frame("Exception: x87 Floating-Point Fault!", regs);
-        break;
-    case 17:
-        panic_with_stack_frame("Exception: Alignment Check!", regs);
-        break;
-    case 18:
-        panic_with_stack_frame("Exception: Machine Check!", regs);
-        break;
-    case 19:
-        panic_with_stack_frame("Exception: SIMD Floating-Point Fault!", regs);
-        break;
-    case 20:
-        panic_with_stack_frame("Exception: Virtualisation Fault!", regs);
-        break;
-    case 21:
-        panic_with_stack_frame("Exception: Control Protection Fault!", regs);
-        break;
-    case 28:
-        panic_with_stack_frame("Exception: Hypervisor Injection!", regs);
-        break;
-    case 29:
-        panic_with_stack_frame("Exception: VMM Communication!", regs);
-        break;
-    case 30:
-        panic_with_stack_frame("Exception: Security Fault!", regs);
-        break;
-    default:
-        panic_with_stack_frame("Exception: (Reserved)", regs);
-        break;
+    if(regs->ds & 0x3){
+        process_t* currentProcess = sched_get_current_process();
+        kprintf("PID %d (%s): Process terminated due to exception. (%s)\n", currentProcess->pid, currentProcess->name, exceptionMessages[regs->intn]);
+        process_terminate(currentProcess);
+
+        asm volatile("sti");
+        while(1) asm volatile("nop"); //Wait for reschedule
+    } else {
+        panic_exception(exceptionMessages[regs->intn], regs);
     }
 }
 

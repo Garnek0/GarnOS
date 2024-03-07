@@ -13,6 +13,6 @@
 #include <kstdio.h>
 
 void panic(char* str, ...);
-void panic_with_stack_frame(char* str, stack_frame_t* regs, ...);
+void panic_exception(char* str, stack_frame_t* regs, ...);
 
 #endif //PANIC_H

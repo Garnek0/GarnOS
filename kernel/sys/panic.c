@@ -14,13 +14,9 @@
 
 spinlock_t panicLock;
 
-//FIXME: rip is not accurate because the displayed rip is actually the rip 
-//       at which panic() halts the kernel
+//TODO: only halts bsp, make panic() halt the other processors too
 
 void panic(char* str, ...){
-
-    //TODO: only halts bsp, make panic() halt the other processors too
-
     va_list args;
     va_start(args, str);
 
@@ -37,9 +33,7 @@ void panic(char* str, ...){
     }
 }
 
-void panic_with_stack_frame(char* str, stack_frame_t* regs, ...){
-    //TODO: only halts bsp, make panic() halt the other processors too
-
+void panic_exception(char* str, stack_frame_t* regs, ...){
     asm("cli");
 
     va_list args;
@@ -62,6 +56,7 @@ void panic_with_stack_frame(char* str, stack_frame_t* regs, ...){
         : "=r" (cr0), "=r" (cr2), "=r" (cr3), "=r" (cr4) :: "%rax");
 
         klog("Kernel Panic!\n\n", KLOG_FATAL);
+        kprintf("Exception: ");
         kvprintf(str, args);
         kprintf("\n\n");
         kprintf("RAX=0x%x RBX=0x%x RCX=0x%x\n"
