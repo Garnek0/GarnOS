@@ -36,85 +36,89 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
         uint64_t recordOffset = 0;
         garn_dirent64_t dirent;
 
-        while(p != size && currentCluster){
-            for(int i = 0; i < context->sectorsPerCluster; i++){
-                self->drive->read(self->drive, currentSector+i, 1, sectBuf);
-                for(int k = 0; k < context->bytesPerSector;){
-                    fat_directory_t* dir = sectBuf+k;
-                    k+=sizeof(fat_directory_t);
+        if(self->type == FILESYS_TYPE_FAT32){
+            while(p != size && currentCluster){
+                for(int i = 0; i < context->sectorsPerCluster; i++){
+                    self->drive->read(self->drive, currentSector+i, 1, sectBuf);
+                    for(int k = 0; k < context->bytesPerSector;){
+                        fat_directory_t* dir = sectBuf+k;
+                        k+=sizeof(fat_directory_t);
 
-                    if(recordOffset < offset){
-                        recordOffset += sizeof(fat_directory_t);
-                        continue;
-                    };
+                        if(recordOffset < offset){
+                            recordOffset += sizeof(fat_directory_t);
+                            continue;
+                        };
 
-                    if(dir->name[0] == 0) continue;
+                        if(dir->name[0] == 0) continue;
 
-                    if(dir->attr == FAT_ATTR_LFN){
-                        isInLFN == true;
-                        str = fat_parse_lfn((fat_lfn_t*)dir);
-                        if(str){
-                            isInLFN = false;
-                            LFNParsedFirst = true;
+                        if(dir->attr == FAT_ATTR_LFN){
+                            isInLFN == true;
+                            str = fat_parse_lfn((fat_lfn_t*)dir);
+                            if(str){
+                                isInLFN = false;
+                                LFNParsedFirst = true;
+                            }
+                            continue;
                         }
-                        continue;
-                    }
 
-                    if(LFNParsedFirst) LFNParsedFirst = false;
-                    else str = fat_parse_sfn(dir);
+                        if(LFNParsedFirst) LFNParsedFirst = false;
+                        else str = fat_parse_sfn(dir);
 
-                    if(dir->attr & FAT_ATTR_DIRECTORY) recordType = DT_DIR;
-                    else recordType = DT_REG;
+                        if(dir->attr & FAT_ATTR_DIRECTORY) recordType = DT_DIR;
+                        else recordType = DT_REG;
 
-                    recordLength = sizeof(garn_dirent64_t) + strlen(str);
+                        recordLength = sizeof(garn_dirent64_t) + strlen(str);
 
-                    dirent.recordLength = recordLength;
-                    dirent.recordOffset = recordOffset;
-                    dirent.type = recordType;
+                        dirent.recordLength = recordLength;
+                        dirent.recordOffset = recordOffset;
+                        dirent.type = recordType;
 
-                    j += sizeof(garn_dirent64_t) + strlen(str);
-                    if(j > size){
+                        j += sizeof(garn_dirent64_t) + strlen(str);
+                        if(j > size){
+                            kmfree(str);
+                            kmfree(sectBuf);
+
+                            j -= sizeof(garn_dirent64_t) + strlen(str);
+
+                            return j;
+                        }
+
+                        memcpy(&buf[p], &dirent, sizeof(garn_dirent64_t)-1);
+                        p+=sizeof(garn_dirent64_t)-1;
+                        memcpy(&buf[p], str, strlen(str)+1);
+                        p+=strlen(str)+1;
+
+                        recordOffset += sizeof(fat_directory_t);
+
+                        recordLength = 0;
+                        recordType = 0;
                         kmfree(str);
-                        kmfree(sectBuf);
-
-                        j -= sizeof(garn_dirent64_t) + strlen(str);
-
-                        return j;
                     }
 
-                    memcpy(&buf[p], &dirent, sizeof(garn_dirent64_t)-1);
-                    p+=sizeof(garn_dirent64_t)-1;
-                    memcpy(&buf[p], str, strlen(str)+1);
-                    p+=strlen(str)+1;
-
-                    recordOffset += sizeof(fat_directory_t);
-
-                    recordLength = 0;
-                    recordType = 0;
-                    kmfree(str);
                 }
-
+                currentCluster = fat32_next_cluster(self, context, currentCluster);
+                currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
             }
-            currentCluster = fat32_next_cluster(self, context, currentCluster);
-            currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
         }
     } else {
-        while(p != size && currentCluster){
-            for(int i = 0; i < context->sectorsPerCluster; i++){
-                self->drive->read(self->drive, currentSector+i, 1, sectBuf);
-                for(int k = 0; k < context->bytesPerSector; k++){
-                    if(j < offset){
-                        j++;
-                        continue;
+        if(self->type == FILESYS_TYPE_FAT32){
+            while(p != size && currentCluster){
+                for(int i = 0; i < context->sectorsPerCluster; i++){
+                    self->drive->read(self->drive, currentSector+i, 1, sectBuf);
+                    for(int k = 0; k < context->bytesPerSector; k++){
+                        if(j < offset){
+                            j++;
+                            continue;
+                        }
+                        ((uint8_t*)buf)[p] = sectBuf[k];
+                        offset++;
+                        p++; j++;
+                        if(p == size) break;
                     }
-                    ((uint8_t*)buf)[p] = sectBuf[k];
-                    offset++;
-                    p++; j++;
-                    if(p == size) break;
                 }
+                currentCluster = fat32_next_cluster(self, context, currentCluster);
+                currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
             }
-            currentCluster = fat32_next_cluster(self, context, currentCluster);
-            currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
         }
     }
 

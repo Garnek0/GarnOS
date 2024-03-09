@@ -14,6 +14,8 @@
 #include <kstdio.h>
 
 file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
+    kerrno = 0;
+
     fat_context_t* context = (fat_context_t*)self->context;
     fat_directory_t* currentDir;
     fat_lfn_t* currentLFN;
