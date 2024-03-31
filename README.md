@@ -16,7 +16,12 @@ IMPORTANT: I have been very busy lately due to school and things are probably no
 
 ## Building
 
-In the root directory, run:
+First of all, you need to build the toolchain:
+```
+make toolchain
+``` 
+
+Then, in the root directory, run:
 ```
 make all
 ```
