@@ -1,10 +1,14 @@
+#include <stdio.h>
 #include <unistd.h>
-#include <sys/mman.h>
 #include <string.h>
+#include <dirent.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <errno.h>
 
 #define MAX_PATH 4096
 #define MAX_CMD 4096
+#define MAX_ARGS 256
 
 char cmd[MAX_CMD];
 
@@ -17,8 +21,7 @@ void get_command(){
     while(read(0, &chr, 1));
     chr = 0;
 
-    while (chr != '\n')
-    {
+    while (chr != '\n'){
         chr = 0;
         read(0, &chr, 1);
         if(chr == 0) continue;
@@ -44,28 +47,58 @@ void get_command(){
 void run_program(){
     //TODO: Add support for arguments
 
-    char* argv[] = {0, 0};
+    char* argv[MAX_ARGS+1] = {0};
     char* envp[] = {0};
 
     bool isDir = false;
+    bool progString = true;
+    bool leadingSpace = true;
+    int argc = 1;
 
-    char* prog = mmap(NULL, MAX_PATH, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+    char* prog = malloc(MAX_PATH);
+    int progSize;
 
     for(int i = 0; i < strlen(cmd); i++){
+        //TODO: Add support for stuff like pipes
         if(cmd[i] == ' '){
-            cmd[i] = 0;
-            break;
-        } else if(cmd[i] == '/') isDir = true;
+            if(leadingSpace){
+                memcpy(cmd, cmd+1, strlen(cmd+1)+1);
+                i--;
+                continue;
+            } else if(cmd[i+1] == ' ' || cmd[i+1] == '\n' || cmd[i+1] == 0){
+                memcpy(&cmd[i], &cmd[i+1], strlen(&cmd[i+1])+1);
+                i--;
+                continue;
+            }
+
+            if(progString){
+                progString = false;
+                progSize = i;
+                memcpy(prog, cmd, progSize);
+                prog[progSize] = 0;
+            }
+            int istart = i+1;
+            while(cmd[i+1] != ' ' && cmd[i+1] != '\n' && cmd[i+1] != 0) i++;
+            int iend = i;
+
+            argv[argc] = malloc(iend-istart+2);
+            (argv[argc])[iend-istart+1] = 0;
+            memcpy(argv[argc], &cmd[istart], iend-istart+1);
+            argc++;
+        } else if(cmd[i] == '/' && progString) isDir = true;
+        else {
+            leadingSpace = false;
+        }
     }
 
-    memcpy(prog, cmd, strlen(cmd)+1);
+    if(progString) memcpy(prog, cmd, strlen(cmd)+1);
 
     if(fork() == 0){
         if(!isDir){
-            char* progBuf = mmap(NULL, MAX_PATH, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+            char* progBuf = malloc(MAX_PATH);
             memcpy(progBuf, prog, strlen(prog)+1);
             memcpy(&prog[5], progBuf, strlen(progBuf)+1);
-            munmap(progBuf, MAX_PATH);
+            free(progBuf);
 
             memcpy(prog, "/bin/", 5);
 
@@ -75,35 +108,28 @@ void run_program(){
         }
         argv[0] = prog;
         int err = execve(prog, argv, envp);
-        write(2, cmd, strlen(cmd));
-        write(2, ": ", 2);
-        switch(err){
-            case -2: //ENOENT
-                if(isDir) write(2, "No such file or directory.\n", 27);
-                else write(2, "Command not found.\n", 19);
-                break;
-            default:
-                write(2, "Unknown error.\n", 15);
-                break;
-        }
+        fprintf(stderr, "%s: ", prog);
+        perror(NULL);
         exit(-1);
     } else {
         int status;
         waitpid(-1, &status, 0);
     }
-    munmap(prog, MAX_PATH);
+    for(int i = 0; i < argc; i++){
+        free(argv[i]);
+    }
 }
 
-void _start(){
-    char* welcomeStr = "GarnOS Shell. Welcome to Userspace!\n\n";
+int main(){
     char cwd[MAX_PATH];
 
-    write(1, welcomeStr, strlen(welcomeStr));
+    printf("GarnOS Shell. Welcome to Userspace!\n\n");
+
+    opendir("/bin");
 
     for(;;){
         getcwd(cwd, MAX_PATH);
-        write(1, cwd, strlen(cwd));
-        write(1, ">", 1);
+        printf("%s>", cwd);
 
         get_command();
 
@@ -114,21 +140,8 @@ void _start(){
             int status = chdir((cmd+3));
 
             if(status != 0){
-
-                write(2, "shell: cd: ", 11);
-                write(2, &cmd[3], strlen(&cmd[3]));
-                write(2, ": ", 2);
-                switch(status){
-                    case -2: //ENOENT
-                        write(2, "No such file or directory.\n", 27);
-                        break;
-                    case -20: //ENOTDIR
-                        write(2, "Not a directory.\n", 17);
-                        break;
-                    default:
-                        write(2, "Unknown error.\n", 15);
-                        break;
-                }
+                fprintf(stderr, "shell: cd: %s: ", &cmd[3]);
+                perror(NULL);
             }
         } else {
             run_program();

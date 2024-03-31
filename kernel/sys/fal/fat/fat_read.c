@@ -23,10 +23,12 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
 
     int j = 0, p = 0;
 
-    //TODO: Use page cache instead of buffer cache
+    if(offset >= file->size) return 0;
 
     uint8_t* sectBuf = kmalloc(512);
     if(file->flags & O_DIRECTORY){
+
+        int bufind = 0;
 
         bool isInLFN = false;
         bool LFNParsedFirst = false;
@@ -34,17 +36,23 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
         uint32_t recordLength = 0;
         uint32_t recordType = 0;
         uint64_t recordOffset = 0;
-        garn_dirent64_t dirent;
+        dirent_t dirent;
+
+        fat_file_fs_data_t* fsData = (fat_file_fs_data_t*)file->fsData;
+        dirent.inode = fsData->startCluster;
+
+        size_t trueOffset = 0;
 
         if(self->type == FILESYS_TYPE_FAT32){
-            while(p != size && currentCluster){
+            while(currentCluster){
                 for(int i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);
                     for(int k = 0; k < context->bytesPerSector;){
+                        if(trueOffset >= file->size) goto done;
                         fat_directory_t* dir = sectBuf+k;
                         k+=sizeof(fat_directory_t);
 
-                        if(recordOffset < offset){
+                        if(recordOffset < trueOffset){
                             recordOffset += sizeof(fat_directory_t);
                             continue;
                         };
@@ -58,6 +66,8 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
                                 isInLFN = false;
                                 LFNParsedFirst = true;
                             }
+                            trueOffset += sizeof(fat_directory_t);
+                            recordOffset += sizeof(fat_directory_t);
                             continue;
                         }
 
@@ -67,28 +77,52 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
                         if(dir->attr & FAT_ATTR_DIRECTORY) recordType = DT_DIR;
                         else recordType = DT_REG;
 
-                        recordLength = sizeof(garn_dirent64_t) + strlen(str);
+                        recordLength = sizeof(dirent_t) + strlen(str);
+                        p += recordLength;
 
-                        dirent.recordLength = recordLength;
-                        dirent.recordOffset = recordOffset;
-                        dirent.type = recordType;
+                        if(p == offset){
+                            j = 0;
+                            for(size_t g = 0; g < size; g++){
+                                ((uint8_t*)buf)[g] = 0;
+                            }
 
-                        j += sizeof(garn_dirent64_t) + strlen(str);
-                        if(j > size){
+                            bufind = 0;
+
                             kmfree(str);
-                            kmfree(sectBuf);
-
-                            j -= sizeof(garn_dirent64_t) + strlen(str);
-
-                            return j;
+                            continue;
                         }
 
-                        memcpy(&buf[p], &dirent, sizeof(garn_dirent64_t)-1);
-                        p+=sizeof(garn_dirent64_t)-1;
-                        memcpy(&buf[p], str, strlen(str)+1);
-                        p+=strlen(str)+1;
+                        j += sizeof(dirent_t) + strlen(str);
+                        if(j > size){
+                            if(offset > p){
+                                j = recordLength;
+                                for(size_t g = 0; g < size; g++){
+                                    ((uint8_t*)buf)[g] = 0;
+                                }
+
+                                bufind = 0;
+                            } else {
+                                kmfree(str);
+                                kmfree(sectBuf);
+
+                                j -= sizeof(dirent_t) + strlen(str);
+
+                                return j;
+                            }
+                            
+                        }
+
+                        dirent.reclen = recordLength;
+                        dirent.offset = recordOffset;
+                        dirent.type = recordType;
+
+                        memcpy(&buf[bufind], &dirent, sizeof(dirent_t)-1);
+                        bufind+=sizeof(dirent_t)-1;
+                        memcpy(&buf[bufind], str, strlen(str)+1);
+                        bufind+=strlen(str)+1;
 
                         recordOffset += sizeof(fat_directory_t);
+                        trueOffset += sizeof(fat_directory_t);
 
                         recordLength = 0;
                         recordType = 0;
@@ -99,6 +133,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
                 currentCluster = fat32_next_cluster(self, context, currentCluster);
                 currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
             }
+            p = j;
         }
     } else {
         if(self->type == FILESYS_TYPE_FAT32){
@@ -122,7 +157,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
         }
     }
 
+done:
     kmfree(sectBuf);
-    
     return p;
 }

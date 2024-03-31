@@ -32,24 +32,25 @@ run: $(IMAGE_NAME).iso
 	
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -enable-kvm -M smm=off -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -m 2G -hda $(IMAGE_NAME).hdd -d int -M q35 -M smm=off -no-reboot
+	qemu-system-x86_64 -debugcon stdio -m 2G -hda $(IMAGE_NAME).hdd -M smm=off
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -enable-kvm -m 2G -M smm=off -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf
-	cd ovmf && curl -Lo OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
+	cd ovmf && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 
 limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
 	$(MAKE) -C limine CC="$(HOST_CC)"
 	cp -v limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin sysroot
+	mkdir -p sysroot/efi/boot
 	cp -v limine/BOOTX64.EFI sysroot/efi/boot/BOOTX64.EFI
 	
 .PHONY: kernel
@@ -67,12 +68,43 @@ programs:
 sysroot:
 	rm -rf sysroot
 
-	mkdir sysroot
-	mkdir sysroot/bin
-	# mkdir sysroot/lib
-	# mkdir sysroot/include
+	mkdir -p sysroot
+	mkdir -p sysroot/bin
 	mkdir sysroot/efi
 	mkdir sysroot/efi/boot
+
+.PHONY: libc
+libc: export DESTDIR=../../hosttools
+libc: 
+	rm -rf mlibc
+	git clone -b release-4.0 https://github.com/Garnek0/mlibc-garn mlibc
+	cd mlibc; meson setup build -Ddefault_library=static --cross-file garn.cross-file --prefix / && ninja -C build install
+
+# I know this is not a very futureproof/ethical way of
+# doing this :). I may use an actual fetch/patch/compile tool
+# In the future such as jinx
+.PHONY: toolchain
+toolchain: libc
+	rm -rf toolchain
+	mkdir toolchain
+	git clone https://github.com/Garnek0/gcc-garn toolchain/gcc
+	git clone https://github.com/Garnek0/binutils-gdb-garn toolchain/binutils
+	cd toolchain && mkdir -p binutils-build && mkdir -p ../hosttools
+	cd toolchain/binutils-build && ../binutils/configure --disable-shared --target=x86_64-pc-garn-mlibc --prefix=$(shell pwd)/hosttools --with-build-sysroot=$(shell pwd)/hosttools --disable-nls --disable-werror && make && make install
+	cd toolchain && mkdir -p gcc-build
+	cd toolchain/gcc-build && ../gcc/configure --disable-shared --target=x86_64-pc-garn-mlibc --with-headers=$(shell pwd)/hosttools/include --prefix=$(shell pwd)/hosttools --disable-nls --enable-languages=c --with-build-sysroot=$(shell pwd)/hosttools --enable-initfini-array --disable-shared && make all-gcc && make all-target-libgcc && make install-gcc && make install-target-libgcc
+	mv hosttools/lib/crt0.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/crti.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/crtn.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libc.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libcrypt.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libdl.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libm.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libpthread.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libresolv.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/librt.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+	mv hosttools/lib/libutil.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+
 
 $(IMAGE_NAME).iso: sysroot limine kernel modules programs
 	rm -rf iso_root
@@ -112,5 +144,5 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	rm -rf limine ovmf sysroot
+	rm -rf limine ovmf sysroot toolchain mlibc hosttools
 	$(MAKE) -C kernel distclean

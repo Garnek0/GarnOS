@@ -96,7 +96,7 @@ bool fat_attach(drive_t* drive, size_t partition){
 
     context->totalSectors = filesys.size/bpb->bytesPerSector;
     context->FATSize = (bpb->sectsPerFAT == 0) ? fat32ebpb->sectsPerFAT : bpb->sectsPerFAT;
-    context->rootDirSectors = ((bpb->rootDirEntryCount * 32) + (bpb->bytesPerSector - 1)) / bpb->bytesPerSector;
+    context->rootDirSectors = ((bpb->rootDirEntryCount * 32) + (bpb->bytesPerSector - 1)) / bpb->bytesPerSector; //FAT12 and FAT16 only
     context->firstDataSector = bpb->reservedSectors + (context->FATSize * bpb->FATCount) + context->rootDirSectors;
     context->firstRootDirSector = bpb->reservedSectors + (context->FATSize * bpb->FATCount);
     context->firstFATSector = bpb->reservedSectors;

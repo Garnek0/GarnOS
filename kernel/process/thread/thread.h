@@ -21,6 +21,7 @@ typedef struct _thread {
     int status;
 
     stack_frame_t regs;
+    uint64_t fsbase;
 
     void* kernelStack;
     void* kernelStackDeallocAddress;

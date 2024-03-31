@@ -3,6 +3,9 @@
 /limine
 /sysroot
 /kernel/limine.h
+/toolchain
+/hosttools
+/mlibc
 *.elf
 *.txt
 *.hdd

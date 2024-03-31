@@ -41,8 +41,6 @@ to run the hdd image.
 
 You can also run GarnOS in an EFI environment by appending `-uefi` to the commands showed above
 
-NOTE: At the time of writing this, the OVMF Nightly precompiled binary is broken and will not work. If that is the case, you will have to run GarnOS normally. (in BIOS mode)
-
 # License
 See LICENSE for details.
 
@@ -61,6 +59,7 @@ See LICENSE for details.
 - [x] Scheduler
 - [x] Processes and Threads
 - [x] Syscalls
+- [x] libc
 - [ ] Driver interface (Custom or UDI)
 - [ ] GUI
 - [ ] USB Driver
@@ -70,6 +69,9 @@ See LICENSE for details.
 ## Known Bugs
 
 - APIC implementation doesn't work properly on some systems.
+- Disk access doesnt work properly on "large" drives (> ~512 MiB).
+- Random ASLR startup crashes are back.
+- `fork()`/`execve()` is very slow. 
 
 ## Hardware Support
 

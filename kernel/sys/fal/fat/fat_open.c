@@ -54,7 +54,16 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
             file_t* file = kmalloc(sizeof(file_t));
             memset(file, 0, sizeof(file_t));
             fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
-            file->size = context->rootDirSectors * context->bytesPerSector;
+            {
+                int e = 0;
+                int clus = fat32ebpb->rootDirCluster;
+                while(clus){
+                    clus = fat32_next_cluster(self, context, clus);
+                    e++;
+                }
+                file->size = e*context->sectorsPerCluster*context->bytesPerSector;
+            }
+            
             file->mode = mode;
             file->flags = flags;
             file->fs = self;
@@ -159,7 +168,17 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                 file_t* file = kmalloc(sizeof(file_t));
                 memset(file, 0, sizeof(file_t));
                 fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
-                file->size = currentDir->size;
+                if(flags & O_DIRECTORY){
+                    int e = 0;
+                    int clus = currentCluster;
+                    while(clus){
+                        clus = fat32_next_cluster(self, context, clus);
+                        e++;
+                    }
+                    file->size = e*context->sectorsPerCluster*context->bytesPerSector;
+                } else {
+                    file->size = currentDir->size;
+                }
                 file->mode = mode;
                 file->flags = flags;
                 file->fs = self;

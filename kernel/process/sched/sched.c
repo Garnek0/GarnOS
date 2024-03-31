@@ -11,6 +11,7 @@
 #include <process/process.h>
 #include <ds/list.h>
 #include <cpu/gdt/gdt.h>
+#include <cpu/msr.h>
 #include <cpu/user.h>
 #include <kstdio.h>
 
@@ -78,6 +79,14 @@ static void _sched_switch_context(stack_frame_t* regs){
     *regs = currentThread->regs;
 
     vaspace_switch(currentThread->process->pml4);
+
+    //wrmsr(0xC0000100, currentThread->fsbase);
+}
+
+int sys_set_fs_base(stack_frame_t* regs, void* pointer){
+    currentThread->fsbase = pointer;
+    wrmsr(0xC0000100, (uint64_t)pointer);
+    return 0;
 }
 
 void sched_preempt(stack_frame_t* regs){

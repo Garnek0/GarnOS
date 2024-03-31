@@ -1,44 +1,57 @@
-#include <unistd.h>
-#include <sys/mman.h>
 #include <dirent.h>
-#include <fnctl.h>
-#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-void _start(){
-    struct garn_dirent64* dirent;
+void ls(const char* path){
+    struct dirent* dirent;
 
     size_t bufSize = 0x1000;
-    char* buf = mmap(NULL, bufSize, PROT_WRITE | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
+    char* buf = malloc(bufSize);
     memset(buf, 0, bufSize);
 
-    int fd = open(".", O_RDONLY | O_DIRECTORY);
-    if(fd < 0){
-        write(2, "ls: ", 4);
-        switch(fd){
-            case -2: //ENOENT
-                write(2, "No such file or directory.\n", 27);
-                break;
-            case -20: //ENOTDIR
-                write(2, "Not a directory.\n", 17);
-                break;
-            default:
-                write(2, "Unknown error.\n", 15);
-                break;
+    //TODO: fix this
+
+    DIR* dir = opendir(path);
+    if(!dir){
+        printf("ls: cant access \'%s\': ", path);
+        perror(NULL);
+        return -1;
+    }
+
+    dirent = readdir(dir); if(!dir) return 0; //Directory is empty
+
+    do {
+        printf("%s\n", dirent->d_name, dirent->d_reclen);
+        dirent = readdir(dir);
+    } while(dirent);
+
+    closedir(dir);
+}
+
+int main(int argc, char** argv){
+    if(argc == 1){
+        ls(".");
+    } else if(argc == 2){
+        ls(argv[1]);
+    } else if(argc >= 3){
+        DIR* check;
+
+        for(int i = 1; i < argc; i++){
+            check = opendir(argv[i]);
+            if(!check){
+                printf("ls: cant access \'%s\': ", argv[i]);
+                perror(NULL);
+                continue;
+            }
+            closedir(check);
+
+            printf("%s:\n", argv[i]);
+            ls(argv[i]);
+            printf("\n");
         }
     }
 
-    getdents64(fd, buf, bufSize);
-
-    int i = 0;
-
-    do {
-        dirent = (struct garn_dirent64_t*)(buf+i);
-        write(1, dirent->name, strlen(dirent->name));
-        write(1, "\n", 1);
-        i+=dirent->recordLength;
-    } while(dirent->recordLength);
-
-    close(fd);
     
-    exit(0);
+    
+    return 0;
 }

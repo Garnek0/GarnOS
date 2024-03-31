@@ -113,6 +113,7 @@ void process_create_init(){
     //returned by kmalloc() are already 16-byte aligned
     thread->kernelStackDeallocAddress = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1);
     thread->kernelStack = thread->kernelStackDeallocAddress + VMM_INIT_KERNEL_STACK_SIZE;
+    thread->fsbase = 0;
 
     vaspace_create_thread_user_stack(thread);
 
@@ -187,6 +188,7 @@ int sys_fork(stack_frame_t* regs){
     newProcess->mainThread = kmalloc(sizeof(thread_t));
     memset(newProcess->mainThread, 0, sizeof(thread_t));
     memcpy((void*)&newProcess->mainThread->regs, (void*)&currentProcess->mainThread->regs, sizeof(stack_frame_t));
+    newProcess->mainThread->fsbase = currentProcess->mainThread->fsbase;
 
     newProcess->mainThread->kernelStackDeallocAddress = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1);
     newProcess->mainThread->kernelStack = newProcess->mainThread->kernelStackDeallocAddress + VMM_INIT_KERNEL_STACK_SIZE;

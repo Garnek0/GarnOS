@@ -1,16 +1,21 @@
+#include <stdio.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 
-void _start(){
-    char* bufShellFailed = "init: failed to start shell\n";
+int main(int argc, char** argv){
     int status;
 
-    if(fork() == 0){
+    if(!fork()){
         char* argv[] = {"./bin/shell.elf", NULL};
         char* envp[] = {NULL};
+
+        printf("init: Starting shell...\n\n");
+
         execve("bin/shell.elf",argv,envp);
-        write(1, bufShellFailed, strlen(bufShellFailed));
-        exit(0);
+        printf("init: failed to start shell\n");
+        return -1;
     }
 
     for(;;){

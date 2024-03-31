@@ -1,30 +1,50 @@
-#include <unistd.h>
+#include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-void _start(){
-    char* testStr = "Test Program. Here are the first 7 Fibonacci numbers:\n";
 
-    write(1, testStr, strlen(testStr));
-
-    char fibChar;
-    int f1 = 0, f2 = 1, aux;
-    fibChar = f1 + '0';
-    write(1, &fibChar, 1);
-    write(1, " ", 1);
-    fibChar = f2 + '0';
-    write(1, &fibChar, 1);
-    write(1, " ", 1);
-
-    for(int i = 0; i < 5; i++){
-        aux = f1;
-        f1 = f2;
-        f2 = aux + f2;
-
-        fibChar = f2 + '0';
-        write(1, &fibChar, 1);
-        write(1, " ", 1);
+int main(int argc, char** argv){
+    if(argc == 1){
+        printf("test: Too few arguments.\n");
+        return -1;
     }
-    write(1, "\n", 1);
+    else if (argc >= 3){
+        printf("test: Too many arguments.\n");
+        return -1;
+    }
 
-    exit(0);
+    int n = atoi(argv[1]);
+
+    if(n > 92 || n <= 0){
+        printf("test: 1 >= n >= 92\n");
+        return -1;
+    }
+
+    long long fib[n];
+
+    if(n == 1){
+        printf("Test Program. Here is the first Fibonacci number:\n1\n");
+        return 0;
+    } else if(n == 2){
+        printf("Test Program. Here are the first 2 Fibonacci numbers:\n1 1\n");
+        return 0;
+    } else {
+        printf("Test Program. Here are the first %d Fibonacci numbers:\n", n);
+
+        fib[0] = fib[1] = 1;
+
+        for(int i = 2; i < n; i++){
+            fib[i] = fib[i-1] + fib[i-2];
+        }
+
+        for(int i = 0; i < n; i++){
+            printf("%lld ", fib[i]);
+        }
+
+        printf("\n");
+
+        return 0;
+    }
+
+    
 }

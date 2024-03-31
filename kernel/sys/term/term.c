@@ -12,6 +12,7 @@
 
 #include <display/fb.h>
 #include <mem/kheap/kheap.h>
+#include <hw/ports.h>
 
 #include <mem/memutil/memutil.h>
 
@@ -184,8 +185,9 @@ static void term_handle_esc(char chr){
 }
 
 char term_putchar(char chr){
-
     if(chr == 0) return 0;
+
+    outb(0xE9, (uint8_t)chr);
 
     if(!tc.enabled) return;
 

@@ -1,8 +1,5 @@
-#include <unistd.h>
+#include <stdio.h>
 
-void _start(){
-    
-    write(1, "\e[2J", 4);
-    
-    exit(0);
+int main(){
+    printf("\e[2J");
 }

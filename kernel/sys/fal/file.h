@@ -62,12 +62,13 @@ typedef struct _fd {
     int flags;
 } fd_t;
 
-typedef struct _garn_dirent64 {
-    uint64_t recordOffset;
-    uint32_t recordLength;
-    uint32_t type;
+typedef struct _dirent {
+    long inode;
+    long offset; 
+    uint16_t reclen;
+    uint8_t type;
     char name[1];
-} __attribute__((packed)) garn_dirent64_t;
+} __attribute__((packed)) dirent_t;
 
 //open file
 file_t* file_open(char* path, int flags, int mode);
@@ -94,6 +95,6 @@ int sys_close(stack_frame_t* regs, int fd);
 char* file_get_absolute_path(char* root, char* relative);
 uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size);
 int sys_chdir(stack_frame_t* regs, const char* path);
-ssize_t sys_getdents64(stack_frame_t* regs, int fd, void* dirp, size_t count);
+ssize_t sys_getdents(stack_frame_t* regs, int fd, void* dirp, size_t count);
 
 #endif //FILE_H

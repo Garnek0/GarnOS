@@ -33,7 +33,7 @@ filesys_t* filesys_mount(filesys_t filesys){
         filesystems[0].mountNumber = 0;
         fsAddr = &filesystems[0];
 
-        klog("FAL: Mounted system partition.\n", KLOG_OK);
+        klog("FAL: Mounted system FS %d:/ (%s).\n", KLOG_OK, filesystems[0].mountNumber, filesystems[0].name);
 
         if(device_driver_autoreg("0:/autoreg.txt") != 0){
             panic("autoreg.txt not found on system fs!");
@@ -45,6 +45,8 @@ filesys_t* filesys_mount(filesys_t filesys){
     filesystems[nextAvailFSIndex] = filesys;
     filesystems[nextAvailFSIndex].mountNumber = nextAvailFSIndex;
     fsAddr = &filesystems[nextAvailFSIndex];
+
+    klog("FAL: Mounted FS %d:/ (%s).\n", KLOG_OK, filesystems[nextAvailFSIndex].mountNumber, filesystems[nextAvailFSIndex].name);
 
     nextAvailFSIndex = _filesys_get_next_avail_index();
 

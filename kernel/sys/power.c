@@ -68,5 +68,5 @@ void power_init(){
     power.shutdown = _power_shutdown_default;
     power.restart = _power_restart_default;
 
-    klog("Power Initialised.\n", KLOG_OK);
+    klog("Power: Power Initialised.\n", KLOG_OK);
 }

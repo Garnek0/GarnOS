@@ -275,8 +275,6 @@ checkpath:
 //TODO: sys_stat() syscalls;
 
 int sys_open(stack_frame_t* regs, char* path, int flags, int mode){
-    //TODO: finish this (flags, mode)
-
     process_t* currentProcess = sched_get_current_process();
 
     char* absPath = file_get_absolute_path(currentProcess->cwd, path);
@@ -380,7 +378,7 @@ int sys_chdir(stack_frame_t* regs, const char* path){
     return 0;
 }
 
-ssize_t sys_getdents64(stack_frame_t* regs, int fd, void* dirp, size_t count){
+ssize_t sys_getdents(stack_frame_t* regs, int fd, void* dirp, size_t count){
     if(!dirp) return -EFAULT;
 
     process_t* currentProcess = sched_get_current_process();
@@ -388,11 +386,9 @@ ssize_t sys_getdents64(stack_frame_t* regs, int fd, void* dirp, size_t count){
     if(!currentProcess->fdTable[fd].file) return -EBADF;
     if(!(currentProcess->fdTable[fd].file->flags & O_DIRECTORY)) return -ENOTDIR;
 
-    currentProcess->fdTable[fd].offset += file_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
+    ssize_t bytesRead = file_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
 
-    if(currentProcess->fdTable[fd].offset != currentProcess->fdTable[fd].file->size) return -EINVAL;
+    currentProcess->fdTable[fd].offset += bytesRead;
 
-    garn_dirent64_t* dirent;
-
-    return 0;
+    return bytesRead;
 }

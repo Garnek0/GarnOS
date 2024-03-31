@@ -116,12 +116,15 @@ bool device_attach_to_driver(driver_node_t* node){
             status = driver->probe(device);
             if(status){
                 device->node = node;
+                klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
                 status = driver->attach(device);
                 if(status){
-                    klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
                     releaseLock(&deviceManagerLock);
                     return true;
-                } else device->node = NULL;
+                } else {
+                    klog("DAL: Failed to attach device %s to %s\n", KLOG_FAILED, device->name, node->path);
+                    device->node = NULL;
+                }
             }
         }
     });

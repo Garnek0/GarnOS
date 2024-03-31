@@ -36,8 +36,6 @@ exception_common:
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
     mov rdi, rsp
     ;clear direction flag
     cld
@@ -47,8 +45,6 @@ exception_common:
     pop rax
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
     
     ;pop all general purpose registers
     pop r15
@@ -93,8 +89,6 @@ irq_common:
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
     mov rdi, rsp
     cld
 
@@ -103,8 +97,6 @@ irq_common:
     pop rax
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
 
     pop r15
     pop r14
@@ -147,8 +139,6 @@ syscall_common:
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
     mov rdi, rsp
     cld
 
@@ -157,8 +147,6 @@ syscall_common:
     pop rax
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
 
     pop r15
     pop r14

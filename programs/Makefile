@@ -1,36 +1,19 @@
 override CFLAGS += \
     -Wall \
     -Wextra \
-    -std=gnu11 \
-    -ffreestanding \
     -fno-stack-protector \
     -fno-stack-check \
     -fno-lto \
 	-fno-PIE \
-	-mcmodel=large \
-    -m64 \
-    -march=x86-64 \
     -mabi=sysv \
     -mno-80387 \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -mno-red-zone \
-	-nostdlib \
-	-static \
-	-march=x86-64 \
-	-I../libc
+    -mno-red-zone
 
-override LDFLAGS += \
-    -m elf_x86_64 \
-    -nostdlib \
-    -static \
-    --no-dynamic-linker \
-    -z text \
-    -z max-page-size=0x1000 \
-
-override CC = gcc
-override LD = ld
+override CC = ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
+override LD = ../hosttools/bin/x86_64-pc-garn-mlibc-ld
 
 override CFILES := $(shell find -L . -type f -name '*.c')
 override EXEC := $(CFILES:.c=.elf)
