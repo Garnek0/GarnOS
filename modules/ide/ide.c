@@ -5,7 +5,7 @@
 *
 *   Module Author: Garnek
 *   
-*   Mdoule Description: ATA Controller Driver
+*   Module Description: ATA Controller Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -19,6 +19,8 @@
 #include <hw/ports.h>
 #include <mem/memutil/memutil.h>
 #include <sys/timer.h>
+
+//BUG: Something weird happens with larger size drives. I have a felling its due to this driver.
 
 typedef struct {
     uint16_t iobase;

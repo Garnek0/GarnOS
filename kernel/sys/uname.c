@@ -1,0 +1,36 @@
+/*  
+*   File: uname.c
+*
+*   Author: Garnek
+*   
+*   Description: uname() syscall
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
+#include "uname.h"
+#include <kernel.h>
+#include <errno.h>
+#include <sys/fal/file.h>
+
+int sys_uname(stack_frame_t* regs, utsname_t* buf){
+    if(!buf) return -EINVAL;
+
+    memcpy(buf->sysName, UNAME_SYS_NAME, strlen(UNAME_SYS_NAME)+1);
+    memcpy(buf->nodeName, UNAME_DEFAULT_NODE_NAME, strlen(UNAME_DEFAULT_NODE_NAME)+1);
+    memcpy(buf->release, KERNEL_VER, strlen(KERNEL_VER)+1);
+
+    file_t* file = file_open("0:/release", O_RDONLY, 0);
+    if(!file){
+        memcpy(buf->version, "unknown", 8);
+    } else {
+        int status = file_read(file, 64, buf->version, 0);
+        if(status < 0) memcpy(buf->version, "unknown", 8);
+
+        buf->version[status] = 0;
+
+        file_close(file);
+    }
+    
+    memcpy(buf->machine, UNAME_MACHINE_X86_64, strlen(UNAME_MACHINE_X86_64)+1);
+    memcpy(buf->domainname, UNAME_DEFAULT_NODE_NAME, strlen(UNAME_DEFAULT_NODE_NAME)+1);
+}

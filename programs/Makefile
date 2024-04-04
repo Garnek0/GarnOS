@@ -1,16 +1,13 @@
 override CFLAGS += \
     -Wall \
     -Wextra \
-    -fno-stack-protector \
-    -fno-stack-check \
     -fno-lto \
 	-fno-PIE \
     -mabi=sysv \
     -mno-80387 \
     -mno-mmx \
     -mno-sse \
-    -mno-sse2 \
-    -mno-red-zone
+    -mno-sse2
 
 override CC = ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
 override LD = ../hosttools/bin/x86_64-pc-garn-mlibc-ld

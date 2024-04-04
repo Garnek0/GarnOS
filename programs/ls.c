@@ -1,15 +1,20 @@
+/*  
+*   Program: ls
+*
+*   File: ls.c 
+*
+*   Program Author: Garnek
+*   
+*   Program Description: List information about files/directories
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 void ls(const char* path){
     struct dirent* dirent;
-
-    size_t bufSize = 0x1000;
-    char* buf = malloc(bufSize);
-    memset(buf, 0, bufSize);
-
-    //TODO: fix this
 
     DIR* dir = opendir(path);
     if(!dir){

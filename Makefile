@@ -73,6 +73,8 @@ sysroot:
 	mkdir sysroot/efi
 	mkdir sysroot/efi/boot
 
+	cp -f release sysroot/release
+
 .PHONY: libc
 libc: export DESTDIR=../../hosttools
 libc: 

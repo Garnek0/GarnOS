@@ -9,6 +9,7 @@
 
 #include "syscall.h"
 
+#include <sys/uname.h>
 #include <sys/dal/dal.h>
 #include <sys/fal/fal.h>
 #include <mem/vmm/vmm.h>
@@ -44,6 +45,7 @@ void syscall_init(){
     syscall_register(57, sys_fork);
     syscall_register(59, sys_execve);
     syscall_register(60, sys_exit);
+    syscall_register(63, sys_uname);
     syscall_register(78, sys_getdents);
     syscall_register(79, sys_getcwd);
     syscall_register(80, sys_chdir);

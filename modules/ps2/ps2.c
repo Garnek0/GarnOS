@@ -5,7 +5,7 @@
 *
 *   Module Author: Garnek
 *   
-*   Mdoule Description: PS/2 Controller Driver
+*   Module Description: PS/2 Controller Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 

@@ -7,6 +7,8 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
+#include "kernel.h"
+
 #include <types.h>
 #include <limine.h>
 
