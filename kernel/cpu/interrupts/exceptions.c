@@ -56,6 +56,8 @@ char* exceptionMessages[] = {
 
 void exception_handler(stack_frame_t* regs){
     if(regs->ds & 0x3){
+        //If the last 2 bits of ds are 0b11, then the exception occured in userspace,
+        //terminate the currently running process.
         process_t* currentProcess = sched_get_current_process();
         kprintf("PID %d (%s): Process terminated due to exception. (%s)\n", currentProcess->pid, currentProcess->name, exceptionMessages[regs->intn]);
         process_terminate(currentProcess);

@@ -64,6 +64,8 @@ typedef struct {
 
 //FADT
 
+#define HARDWARE_REDUCED_ACPI (1 << 20)
+
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t firmwareCtrl;

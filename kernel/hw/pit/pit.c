@@ -10,7 +10,7 @@
 #include "pit.h"
 #include <cpu/interrupts/interrupts.h>
 #include <hw/ports.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <process/sched/sched.h>
 #include <kstdio.h>
 

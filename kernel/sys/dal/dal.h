@@ -21,7 +21,7 @@
 #include "stor/part/part.h"
 #include "stor/bcache.h"
 #include "checksysfs.h"
-#include <cpu/smp/cpus.h>
+#include <cpu/multiproc/multiproc.h>
 
 #include <sys/dal/dev/pcidev.h>
 #include <sys/dal/dev/miscdev.h>
@@ -34,7 +34,7 @@ static inline void dal_init(){
 
     bcache_init(); //Initialise buffer cache
 
-    cpus_init(); //initialize CPUs
+    multiproc_init(); //initialize CPUs
 
     driver_init(); //initialise device driver manager
     module_init(); //initialise module manager

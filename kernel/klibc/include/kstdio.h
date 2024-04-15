@@ -12,7 +12,7 @@
 
 #include <types.h>
 #include <stdarg.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 #define KLOG_OK 0
 #define KLOG_FAILED 1

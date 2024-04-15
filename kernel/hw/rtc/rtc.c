@@ -11,7 +11,7 @@
 #include <hw/ports.h>
 #include <cpu/interrupts/interrupts.h>
 #include <kstdio.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 rtc_t rtc;
 

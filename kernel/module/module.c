@@ -15,7 +15,7 @@
 #include <sys/fal/initrd/initrd.h>
 #include <sys/fal/fal.h>
 #include <acpi/tables/tables.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <ds/list.h>
 #include <kstdio.h>
 

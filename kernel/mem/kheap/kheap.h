@@ -9,7 +9,7 @@
 #define KHEAP_H
 
 #include <types.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 #define KHEAP_FLAGS_FREE 1
 

@@ -9,7 +9,7 @@
 #define PMM_H
 
 #include <types.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 typedef struct {
     size_t freePages;

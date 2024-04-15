@@ -13,7 +13,7 @@
 #include <sys/bootloader.h>
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 ksym_entry_t* ksymLast;
 ksym_entry_t* ksymStart;

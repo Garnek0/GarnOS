@@ -14,8 +14,7 @@
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <module/module.h>
-#include <cpu/smp/spinlock.h>
-#include <mem/pmm/pmm.h>
+#include <cpu/multiproc/spinlock.h>
 #include <kstdio.h>
 #include <kerrno.h>
 
@@ -78,29 +77,8 @@ bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype){
 	return true;
 }
 
-int elf_load_module(char* modulePath){
+int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, module_t** modData, device_driver_t** driverData){
 	kerrno = 0;
-	int err;
-
-    Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
-    file_t* file = file_open(modulePath, O_RDONLY, 0);
-	err = kerrno;
-
-	if(!file){
-		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
-		return -1;
-	}
-
-    file_read(file, sizeof(Elf64_Ehdr), h, 0);
-
-	//Validate module
-	if(!elf_validate(h, ET_REL)){
-		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
-		return -1;
-	}
-
-	void* elf_module = kmalloc(file->size);
-	file_read(file, file->size, (void*)elf_module, 0);
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
 	//the correct load addresses for each section
@@ -113,12 +91,10 @@ int elf_load_module(char* modulePath){
 		} else {
 			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
 			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
-				klog("ML: Module %s not correctly aligned!\n", KLOG_WARNING, modulePath);
+				klog("ML: Module %s not correctly aligned!\n", KLOG_WARNING, path);
 			}
 		}
 	}
-
-	module_t* modData = NULL;
 
 	//Load symbols
 	for(size_t i = 0; i < h->e_shnum; i++){
@@ -141,16 +117,28 @@ int elf_load_module(char* modulePath){
 
 			//if the symbol is called "metadata", then save it. (We will need the metadata struct to
 			//retrieve info about the module.)
+			//if the symbol is called "driver_metadata", then this module is a driver and should
+			//be treated accordingly
 			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
-				modData = (module_t*)symTable[sym].st_value;
+				if(modData) *modData = (module_t*)symTable[sym].st_value;
+			} else if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "driver_metadata")){
+				if(driverData) *driverData = (device_driver_t*)symTable[sym].st_value;
 			}
 		}
 	}
 
-	//if no metadata struct was found, call the module invalid and unload.
-	if(!modData){
-		klog("ML: Module '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, modulePath);
-		goto unload;
+	//if no metadata struct was found, call the module invalid (and unload).
+	if(modData && !*modData){
+		klog("ML: Module '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, path);
+		kerrno = ENOEXEC;
+		return -1;
+	}
+
+	//...
+	if(driverData && !*driverData){
+		klog("ML: Driver '%s' has invalid driverdata struct! Unloading!\n", KLOG_FAILED, path);
+		kerrno = ENOEXEC;
+		return -1;
 	}
 
 	//calculate relocations
@@ -185,8 +173,9 @@ int elf_load_module(char* modulePath){
 					break;
 				default:
 					kerrno = ENOEXEC;
-					klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
-					goto unload;
+					if(driverData) klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, path, kstrerror(kerrno), KLOG_FAILED);
+					else klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, path, kstrerror(kerrno), KLOG_FAILED);
+					return -1;
 					break;
 			}
 		}
@@ -197,6 +186,39 @@ int elf_load_module(char* modulePath){
 #undef T32
 #undef T64
 #undef P
+
+	return 0;
+}
+
+int elf_load_module(char* modulePath){
+	kerrno = 0;
+	int err;
+
+    Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));
+    file_t* file = file_open(modulePath, O_RDONLY, 0);
+	err = kerrno;
+
+	if(!file){
+		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
+		return -1;
+	}
+
+    file_read(file, sizeof(Elf64_Ehdr), h, 0);
+
+	//Validate module
+	if(!elf_validate(h, ET_REL)){
+		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+		return -1;
+	}
+
+	void* elf_module = kmalloc(file->size);
+	file_read(file, file->size, (void*)elf_module, 0);
+
+	module_t* modData = NULL;
+
+	if(elf_module_load_common(h, elf_module, modulePath, &modData, NULL) != 0){
+		goto unload;
+	}
 
 	module_t* modDataStore = kmalloc(sizeof(module_t));
 	modDataStore->name = kmalloc(strlen(modData->name)+1);
@@ -243,8 +265,6 @@ unload:
 	return -1;
 }
 
-//TODO: This is very similar to elf_module_load(), put the common parts in subroutines.
-
 int elf_load_driver(driver_node_t* node){
 	kerrno = 0;
 	int err;
@@ -270,106 +290,12 @@ int elf_load_driver(driver_node_t* node){
 	void* elf_module = kmalloc(file->size);
 	file_read(file, file->size, (void*)elf_module, 0);
 
-	//allocate SHT_NOBITS sections and fill in sh_addr fields to have
-	//the correct load addresses for each section
-	for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-		if(sh->sh_type == SHT_NOBITS){
-			if(!sh->sh_size || !(sh->sh_flags & SHF_ALLOC)) continue;
-			sh->sh_addr = (Elf64_Addr)kmalloc(sh->sh_size);
-			memset((void*)sh->sh_addr, 0, sh->sh_size);
-		} else {
-			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
-			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
-				klog("ML: Driver %s not correctly aligned!\n", KLOG_WARNING, node->path);
-			}
-		}
-	}
-
 	module_t* modData = NULL;
 	device_driver_t* driverData = NULL;
 
-	//Load symbols
-	for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-		if(sh->sh_type != SHT_SYMTAB) continue;
-
-		Elf64_Shdr* strtab_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
-		char* symNames = (char*)strtab_hdr->sh_addr;
-		Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
-
-		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
-
-			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
-				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
-				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
-			} else if(symTable[sym].st_shndx == SHN_UNDEF) { //need to load kernel symbol here.
-				//look for the kernel symbol in the kernel symbol list.
-				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
-			}
-
-			//if the symbol is called "metadata", then save it. (We will need the metadata struct to
-			//retrieve info about the module.)
-			//if the symbol is called "driver_metadata", then this module is a driver and should
-			//be treated accordingly
-			if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "metadata")) {
-				modData = (module_t*)symTable[sym].st_value;
-			} else if(symTable[sym].st_name && !strcmp(symNames + symTable[sym].st_name, "driver_metadata")){
-				driverData = (device_driver_t*)symTable[sym].st_value;
-			}
-		}
-	}
-
-	//if no metadata struct was found, call the module invalid and unload.
-	if(!modData){
-		klog("ML: Driver '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, node->path);
+	if(elf_module_load_common(h, elf_module, node->path, &modData, &driverData) != 0){
 		goto unload;
 	}
-
-	//calculate relocations
-	for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-		if(sh->sh_type != SHT_RELA) continue;
-
-		Elf64_Rela* table = (Elf64_Rela*)sh->sh_addr;
-
-		Elf64_Shdr* targetSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_info);
-
-		Elf64_Shdr* symbolSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
-		Elf64_Sym* symbolTable = (Elf64_Sym*)symbolSection->sh_addr;
-
-#define S (symbolTable[ELF64_R_SYM(table[rela].r_info)].st_value)
-#define A (table[rela].r_addend)
-#define T32 (*(uint32_t*)target)
-#define T64 (*(uint64_t*)target)
-#define P  (target)
-
-		for (size_t rela = 0; rela < sh->sh_size / sizeof(Elf64_Rela); rela++) {
-			size_t target = table[rela].r_offset + targetSection->sh_addr;
-			switch (ELF64_R_TYPE(table[rela].r_info)) {
-				case R_X86_64_64:
-					T64 = S + A;
-					break;
-				case R_X86_64_32:
-					T32 = S + A;
-					break;
-				case R_X86_64_PC32:
-					T32 = S + A - P;
-					break;
-				default:
-					kerrno = ENOEXEC;
-					klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
-					goto unload;
-					break;
-			}
-		}
-	}
-
-#undef S
-#undef A
-#undef T32
-#undef T64
-#undef P
 
 	module_t* modDataStore = kmalloc(sizeof(module_t));
 	modDataStore->name = kmalloc(strlen(modData->name)+1);
@@ -429,7 +355,7 @@ int elf_exec_load(process_t* process, char* path){
 
 	if(!file){
 		kerrno = ENOENT;
-		return -ENOENT;
+		return -1;
 	}
 
 	Elf64_Ehdr* h = kmalloc(sizeof(Elf64_Ehdr));

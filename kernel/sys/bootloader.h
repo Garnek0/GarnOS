@@ -24,5 +24,6 @@ uint32_t bl_get_bsp_lapic_id();
 struct limine_smp_info** bl_get_cpu_info_array();
 struct limine_smp_info* bl_get_cpu_info(size_t index);
 uint8_t bl_is_x2apic();
+void* bl_get_rsdp_address();
 
 #endif //BOOTLOADER_IF_H

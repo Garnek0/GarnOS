@@ -38,7 +38,7 @@
 #define DT_REG 1
 
 #include <types.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include "filesys.h"
 
 typedef struct _file {

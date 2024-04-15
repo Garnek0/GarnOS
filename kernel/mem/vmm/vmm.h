@@ -42,7 +42,7 @@
 #define MAP_32BIT     0x20
 
 #include <types.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <process/thread/thread.h>
 #include <process/process.h>
 

@@ -11,6 +11,8 @@
 #include <mem/kheap/kheap.h>
 #include <kstdio.h>
 
+//Singly linked list data structure
+
 list_t* list_create(char* name){
     list_t* list = kmalloc(sizeof(list_t));
     list->head = NULL;

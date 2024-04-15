@@ -25,7 +25,7 @@
 
 #include <types.h>
 #include <sys/dal/dal.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 typedef struct _partition {
     uint64_t startLBA;

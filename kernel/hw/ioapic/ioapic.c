@@ -11,7 +11,7 @@
 #include <kstdio.h>
 #include <hw/ports.h>
 #include <acpi/tables/tables.h>
-#include <cpu/smp/cpus.h>
+#include <cpu/multiproc/multiproc.h>
 #include <mem/vmm/vmm.h>
 #include <sys/bootloader.h>
 

@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "filesys.h"
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 

@@ -9,7 +9,7 @@
 
 #include "panic.h"
 #include <kstdio.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <sys/bootloader.h>
 
 spinlock_t panicLock;

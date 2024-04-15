@@ -12,7 +12,7 @@
 
 #include <types.h>
 #include <sys/dal/dal.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include "file.h"
 
 #define FILESYS_TYPE_UNDEFINED 0

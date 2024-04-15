@@ -11,7 +11,7 @@
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <hw/pci/pci.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <ds/list.h>
 #include <kstdio.h>
 #include <kerrno.h>

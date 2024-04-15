@@ -122,7 +122,8 @@ void irq_handler(stack_frame_t* regs){
         default:
             break;
     }
+    // (apic_eoi() contains a PIC EOI as well,
+    // so things wont break if the system is
+    // using the PIC as a fallback ;))
     apic_eoi();
-    outb(0x20, 0x20); //PIC EOI
-    outb(0xA0, 0x20);
 }

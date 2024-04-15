@@ -10,6 +10,6 @@
 
 #include <types.h>
 
-void cpus_init();
+void multiproc_init();
 
 #endif //SMP_H

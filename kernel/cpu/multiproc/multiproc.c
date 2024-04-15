@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "cpus.h"
+#include "multiproc.h"
 #include <sys/bootloader.h>
 #include <kstdio.h>
 #include <sys/dal/dal.h>
@@ -26,13 +26,16 @@
 
 bool isx2APIC;
 
-static void smp_configure_cpu_device(){
+//Create a CPU device
+static void multiproc_configure_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
     cpuDevice->bus = DEVICE_BUS_NONE;
     cpuDevice->data = NULL;
     cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
     cpuDevice->id = 0;
+
+    //Using CPUID to get the CPU brand name
 
     uint32_t regs[13];
 
@@ -69,13 +72,14 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
     apic_init(isx2APIC);
 
     //CPU device
-    smp_configure_cpu_device();
+    multiproc_configure_cpu_device();
 
     //Halt (for now)
     while(1) asm("hlt");
 }
 
-bool cpus_check_x2apic(){
+bool multiproc_check_x2apic(){
+    //Check if x2APIC is supported
     if(bl_is_x2apic()) return true;
     else {
         kerrno = ENODEV;
@@ -83,16 +87,18 @@ bool cpus_check_x2apic(){
     }
 }
 
-void cpus_init(){
+void multiproc_init(){
     kerrno = 0;
 
-    if(cpus_check_x2apic()){
-        klog("SMP: Set x2APIC mode.\n", KLOG_OK);
+    if(multiproc_check_x2apic()){
+        klog("multiproc: Set x2APIC mode.\n", KLOG_OK);
         isx2APIC = true;
     } else {
-        klog("SMP: Could not set x2APIC mode!\n", KLOG_FAILED);
+        klog("multiproc: Could not set x2APIC mode!\n", KLOG_FAILED);
         isx2APIC = false;
     }
+
+    //Start up the other processors
 
     struct limine_smp_info* cpuinfo;
     for(size_t i = 0; i < bl_get_cpu_count(); i++){
@@ -101,9 +107,11 @@ void cpus_init(){
     }
     apic_init(isx2APIC);
 
-    smp_configure_cpu_device();
+    multiproc_configure_cpu_device();
+
+    //Initialise I/O APICS
 
     ioapic_init();
 
-    klog("SMP: SMP and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, bl_get_cpu_count());
+    klog("multiproc: Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, bl_get_cpu_count());
 }

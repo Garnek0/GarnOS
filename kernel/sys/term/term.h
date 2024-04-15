@@ -15,7 +15,7 @@
 #include <sys/term/font/font.h>
 #include <sys/term/cursor/cursor.h>
 #include <sys/term/tty.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 #define GLYPH_X 8
 #define GLYPH_Y 16

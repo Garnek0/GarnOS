@@ -13,7 +13,7 @@
 #include <sys/bootloader.h>
 #include <mem/vmm/vmm.h>
 #include <acpi/tables/tables.h>
-#include <cpu/smp/cpus.h>
+#include <cpu/multiproc/multiproc.h>
 #include <hw/ports.h>
 
 static uint64_t* LAPICAddress;
@@ -40,12 +40,12 @@ void apic_eoi(){
 }
 
 void apic_init(bool isx2APIC){
-    vmm_map(vmm_get_kernel_pml4(), MADT->LAPICAddress, MADT->LAPICAddress + bl_get_hhdm_offset(), 0x13);
+    vmm_map(vmm_get_kernel_pml4(), MADT->LAPICAddress, MADT->LAPICAddress + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
     LAPICAddress = (uint64_t*)(MADT->LAPICAddress + bl_get_hhdm_offset());
 
     uint32_t lapicID = apic_read_register(APIC_ID);
     if(!isx2APIC) lapicID = (lapicID >> 24);
 
-    //This is basically turning on the APIC
+    //This basically turns on the APIC
     apic_write_register(APIC_SPURIOUS_INT_VECT, apic_read_register(APIC_SPURIOUS_INT_VECT) | 0x100);
 }

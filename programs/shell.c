@@ -80,7 +80,7 @@ void run_program(){
 
             memcpy(prog, currentToken, strlen(currentToken)+1);
 
-            if(currentToken[0] == '/'){
+            if(currentToken[0] == '/' || (currentToken[0] == '.' && currentToken[1] == '/')){
                 argv[0] = prog;
             } else {
                 char* progBuf = malloc(MAX_PATH);

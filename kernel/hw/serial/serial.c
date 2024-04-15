@@ -10,7 +10,7 @@
 #include "serial.h"
 #include <hw/ports.h>
 #include <mem/memutil/memutil.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 #include <kstdio.h>
 

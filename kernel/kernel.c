@@ -16,7 +16,7 @@
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/interrupts/interrupts.h>
-#include <cpu/smp/cpus.h>
+#include <cpu/multiproc/multiproc.h>
 
 #include <mem/memmap/memmap.h>
 #include <mem/memutil/memutil.h>
@@ -102,7 +102,7 @@ void _start(void) {
 
     term_clear();
 
-    //init_kcon(); //initialise demo console
+    //init_kcon(); //start demo console
 
     sched_init(); //initialise thread scheduler
 

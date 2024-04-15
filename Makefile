@@ -36,11 +36,11 @@ run-uefi: ovmf $(IMAGE_NAME).iso
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -debugcon stdio -m 2G -hda $(IMAGE_NAME).hdd -M smm=off
+	qemu-system-x86_64 -debugcon stdio -enable-kvm -m 2G -vga std -hda $(IMAGE_NAME).hdd -M smm=off
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -enable-kvm -m 2G -M smm=off -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -debugcon stdio -enable-kvm -m 2G -vga std -M smm=off -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf

@@ -12,7 +12,7 @@
 #define BCACHE_BLOCK_SIZE 512
 
 #include <types.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <cpu/interrupts/interrupts.h>
 #include <sys/dal/dal.h>
 

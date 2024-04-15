@@ -12,13 +12,13 @@
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <sys/term/term.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 
 framebuffer_info_t framebuffer_info;
 
 spinlock_t fbLock;
 
-//TODO: move to sys/bootloader.c
+//(Having this in bootloader.c seems to limine crash randomly...)
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0

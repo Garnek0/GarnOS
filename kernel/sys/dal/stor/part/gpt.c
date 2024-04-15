@@ -10,7 +10,7 @@
 #include "gpt.h"
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
-#include <cpu/smp/spinlock.h>
+#include <cpu/multiproc/spinlock.h>
 #include <sys/bootloader.h>
 #include <sys/fal/fal.h>
 

@@ -30,6 +30,11 @@ static volatile struct limine_smp_request smp_request = {
     .flags = 1
 };
 
+static volatile struct limine_rsdp_request rsdp_request = {
+    .id = LIMINE_RSDP_REQUEST,
+    .revision = 0
+};
+
 void* bl_get_kernel_file_address(){
     return kernel_file_request.response->kernel_file->address;
 }
@@ -80,4 +85,8 @@ struct limine_smp_info* bl_get_cpu_info(size_t index){
 
 uint8_t bl_is_x2apic(){
     return smp_request.response->flags;
+}
+
+void* bl_get_rsdp_address(){
+    return rsdp_request.response->address;
 }
