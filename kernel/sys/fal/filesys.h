@@ -15,17 +15,17 @@
 #include <cpu/multiproc/spinlock.h>
 #include "file.h"
 
-#define FILESYS_TYPE_UNDEFINED 0
-#define FILESYS_TYPE_INIT_USTAR 1
-#define FILESYS_TYPE_FAT12 2
-#define FILESYS_TYPE_FAT16 3
-#define FILESYS_TYPE_FAT32 4
-#define FILESYS_TYPE_EXFAT 5
-#define FILESYS_TYPE_EXT 6
-#define FILESYS_TYPE_EXT2 7
-#define FILESYS_TYPE_EXT3 8
-#define FILESYS_TYPE_EXT4 9
-#define FILESYS_TYPE_ISO9660 10
+#define FILESYS_TYPE_UNDEFINED "undefined"
+#define FILESYS_TYPE_INIT_USTAR "init-ustar"
+#define FILESYS_TYPE_FAT12 "fat12"
+#define FILESYS_TYPE_FAT16 "fat16"
+#define FILESYS_TYPE_FAT32 "fat32"
+#define FILESYS_TYPE_EXFAT "exfat"
+#define FILESYS_TYPE_EXT "ext"
+#define FILESYS_TYPE_EXT2 "ext2"
+#define FILESYS_TYPE_EXT3 "ext3"
+#define FILESYS_TYPE_EXT4 "ext4"
+#define FILESYS_TYPE_ISO9660 "iso9660
 
 #define PATH_MAX 4096
 
@@ -40,7 +40,7 @@ typedef struct _filesys_operations {
 
 typedef struct _filesys {
     char name[32];
-    uint8_t type;
+    char type[32];
     size_t size;
 
     filesys_operations_t fsOperations;
@@ -61,6 +61,5 @@ filesys_t* filesys_mount(filesys_t filesys);
 void filesys_unmount(filesys_t* filesys);
 filesys_t* filesys_get(size_t index);
 filesys_t* filesys_get_all();
-void filesys_set_name(filesys_t* fs, char* name);
 
 #endif //FILESYS_H

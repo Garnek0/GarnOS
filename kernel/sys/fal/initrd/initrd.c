@@ -115,9 +115,10 @@ int initrd_mkdir(filesys_t* fs, char* path){
 //initialise initrd
 void initrd_init(){
     filesys_t initrdFS;
+    memset(&initrdFS, 0, sizeof(filesys_t));
 
-    filesys_set_name(&initrdFS, "init");
-    initrdFS.type = FILESYS_TYPE_INIT_USTAR;
+    memcpy(initrdFS.name, "init", 5);
+    memcpy(initrdFS.type, FILESYS_TYPE_INIT_USTAR, strlen(FILESYS_TYPE_INIT_USTAR)+1);
     initrdFS.fsOperations.open = initrd_open;
     initrdFS.fsOperations.close = initrd_close;
     initrdFS.fsOperations.read = initrd_read;

@@ -43,7 +43,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
 
         size_t trueOffset = 0;
 
-        if(self->type == FILESYS_TYPE_FAT32){
+        if(!strcmp(self->type, FILESYS_TYPE_FAT32)){
             while(currentCluster){
                 for(int i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);
@@ -136,7 +136,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
             p = j;
         }
     } else {
-        if(self->type == FILESYS_TYPE_FAT32){
+        if(!strcmp(self->type, FILESYS_TYPE_FAT32)){
             while(p != size && currentCluster){
                 for(int i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);

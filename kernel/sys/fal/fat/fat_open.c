@@ -24,9 +24,9 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     char* pathTmp = kmalloc(strlen(path)+1);
     memcpy(pathTmp, path, strlen(path)+1);
 
-    if(self->type == FILESYS_TYPE_FAT12){
-        //TODO: This      
-    } else if(self->type == FILESYS_TYPE_FAT16){
+    if(!strcmp(self->type, FILESYS_TYPE_FAT12)){
+        //TODO: This
+    } else if(!strcmp(self->type, FILESYS_TYPE_FAT16)){
         //TODO: This
     } else {
         fat32_ebpb_t* fat32ebpb = (fat32_ebpb_t*)context->ebpb;

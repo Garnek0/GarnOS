@@ -110,12 +110,12 @@ bool fat_attach(drive_t* drive, size_t partition){
     filesys.size = context->dataSectors*512;
 
     if(context->clusterCount < 4085){
-        filesys.type = FILESYS_TYPE_FAT12;
+        memcpy(filesys.type, FILESYS_TYPE_FAT12, strlen(FILESYS_TYPE_FAT12)+1);
         context->ebpb = (void*)fat12_16ebpb;
         filesys.context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            filesys_set_name(&filesys, "No Label");
+            memset(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -136,12 +136,12 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
     } else if(context->clusterCount < 65525){
-        filesys.type = FILESYS_TYPE_FAT16;
+        memcpy(filesys.type, FILESYS_TYPE_FAT16, strlen(FILESYS_TYPE_FAT16)+1);
         context->ebpb = (void*)fat12_16ebpb;
         filesys.context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            filesys_set_name(&filesys, "No Label");
+            memset(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -162,7 +162,7 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
     } else {
-        filesys.type = FILESYS_TYPE_FAT32;
+        memcpy(filesys.type, FILESYS_TYPE_FAT32, strlen(FILESYS_TYPE_FAT32)+1);
         context->ebpb = (void*)fat32ebpb;
         filesys.context = (void*)context;
         kmfree(fat12_16ebpb);
@@ -171,7 +171,7 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
         if(fat32ebpb->signature == 0x28){
-            filesys_set_name(&filesys, "No Label");
+            memset(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat32ebpb->signature == 0x29){

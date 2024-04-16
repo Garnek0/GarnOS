@@ -67,11 +67,3 @@ filesys_t* filesys_get(size_t index){
 filesys_t* filesys_get_all(){
     return filesystems;
 }
-
-void filesys_set_name(filesys_t* fs, char* name){
-    size_t nameSize = strlen(name);
-    if(nameSize > 32) nameSize = 32;
-
-    memcpy(fs->name, name, nameSize);
-    fs->name[nameSize] = 0;
-}

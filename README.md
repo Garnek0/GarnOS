@@ -31,7 +31,7 @@ make all-hdd
 ```
 to get a hdd image.
 
-NOTE: I dont guarantee the iso image will work, it is recommended to use the hdd image instead!
+NOTE: The ISO image will probably not work. Use the HDD image instead!
 
 ## Running
 In the root directory, run:
