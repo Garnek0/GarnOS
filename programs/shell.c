@@ -88,7 +88,7 @@ void run_program(){
                 memcpy(&prog[5], progBuf, strlen(progBuf)+1);
                 free(progBuf);
 
-                memcpy(prog, "/zbin/", 5);
+                memcpy(prog, "/bin/", 5);
 
                 if(strncmp(&prog[strlen(prog)-4], ".elf", 4)){
                     memcpy(&prog[strlen(prog)], ".elf", 5);

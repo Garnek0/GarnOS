@@ -13,6 +13,7 @@
 #include <mem/memutil/memutil.h>
 #include <sys/term/term.h>
 #include <cpu/multiproc/spinlock.h>
+#include <sys/term/term.h>
 
 framebuffer_info_t framebuffer_info;
 
@@ -67,6 +68,5 @@ void fb_init(){
 void fb_read_init(){
     framebuffer_info.readAddress = kmalloc(framebuffer_info.height*framebuffer_info.pitch);
     memset(framebuffer_info.readAddress, 0, framebuffer_info.height*framebuffer_info.pitch);
-    fb_clear(0x00000000);
-    cursor_set(&tc.cursor,0,0);
+    term_clear();
 }

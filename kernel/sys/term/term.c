@@ -55,9 +55,9 @@ static const uint32_t col256[] = {
 };
 
 void term_init(){
-    cursor_set(&tc.cursor, 0, 0);
-    tc.foregroundColour = 0xFFFFFFFF;
+    tc.foregroundColour = 0xffffffff;
     tc.backgroundColour = 0x00000000;
+    term_clear();
     tc.escape = tc.escapeCSI = false;
     tc.escapeOffset = 0;
     tc.enabled = true;
