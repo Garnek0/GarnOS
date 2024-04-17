@@ -10,6 +10,9 @@
 #ifndef IDE_MODULE_H
 #define IDE_MODULE_H
 
+#include <types.h>
+#include <sys/dal/dal.h>
+
 #define ATA_SR_BSY     0x80    // Busy
 #define ATA_SR_DRDY    0x40    // Drive ready
 #define ATA_SR_DF      0x20    // Drive write fault
@@ -86,11 +89,47 @@
 #define ATA_REG_CONTROL    0x0C
 #define ATA_REG_ALTSTATUS  0x0C
 #define ATA_REG_DEVADDRESS 0x0D
+#define ATA_REG_BMIDE_CMD  0x0E
+#define ATA_REG_BMIDE_STAT 0x10
+#define ATA_REG_BMIDE_ADDR 0x12
 
 #define IDE_CONTROLLER_PCI_NATIVE_PRIMARY 1
 #define IDE_CONTROLLER_MODE_TOGGLEABLE_PRIMARY (1 << 1)
 #define IDE_CONTROLLER_PCI_NATIVE_SECONDARY (1 << 2)
 #define IDE_CONTROLLER_MODE_TOGGLEABLE_SECONDARY (1 << 3)
 #define IDE_CONTROLLER_BUS_MASTERING (1 << 7)
+
+typedef struct {
+    uint16_t iobase;
+    uint16_t control;
+    uint16_t busMastering;
+    uint8_t noInt;
+} ide_channel_t;
+
+typedef struct {
+    uint8_t ideChannel;
+    uint8_t masterSlave;
+    uint8_t type; //ATA or ATAPI
+    uint16_t idSpace[256];
+    size_t size;
+    char model[41];
+
+    ide_channel_t* channel;
+    drive_t* drive;
+} ide_drive_t;
+
+typedef struct {
+    ide_drive_t* primaryMaster;
+    ide_drive_t* primarySlave;
+    ide_drive_t* secondaryMaster;
+    ide_drive_t* secondarySlave;
+} ide_controller_t;
+
+typedef struct {
+    uint32_t addr;
+    uint16_t byteCount;
+    uint16_t reserved : 15;
+    uint8_t eot : 1;
+}__attribute__((packed)) ide_prd_t;
 
 #endif //IDE_MODULE_H

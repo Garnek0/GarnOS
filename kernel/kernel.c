@@ -100,9 +100,11 @@ void _start(void) {
 
     dal_init(); //initialise Device Abstraction Layer
 
+    while(1);
+
     term_clear();
 
-    //init_kcon(); //start demo console
+    init_kcon(); //start demo console
 
     sched_init(); //initialise thread scheduler
 

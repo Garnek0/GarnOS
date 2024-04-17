@@ -1,17 +1,16 @@
 /*  
-*   Module: ata.mod
+*   Module: ide.sys
 *
-*   File: ata.c
+*   File: ide.c
 *
 *   Module Author: Garnek
 *   
-*   Module Description: ATA Controller Driver
+*   Module Description: IDE Controller Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ide.h"
 #include <module/module.h>
-#include <sys/dal/dal.h>
 #include <hw/pci/pci.h>
 #include <kstdio.h>
 #include <sys/fal/fal.h>
@@ -19,33 +18,10 @@
 #include <hw/ports.h>
 #include <mem/memutil/memutil.h>
 #include <sys/timer.h>
+#include <sys/bootloader.h>
+#include <cpu/interrupts/irq.h>
 
-//BUG: Something weird happens with larger size drives. I have a felling its due to this driver.
-
-typedef struct {
-    uint16_t iobase;
-    uint16_t control;
-    uint16_t busMastering;
-    uint8_t noInt;
-} ide_channel_t;
-typedef struct {
-    uint8_t ideChannel;
-    uint8_t masterSlave;
-    uint8_t type; //ATA or ATAPI
-    uint16_t idSpace[256];
-    size_t size;
-    char model[41];
-
-    ide_channel_t* channel;
-    drive_t* drive;
-} ide_drive_t;
-
-typedef struct {
-    ide_drive_t* primaryMaster;
-    ide_drive_t* primarySlave;
-    ide_drive_t* secondaryMaster;
-    ide_drive_t* secondarySlave;
-} ide_controller_t;
+//BUG: Something weird happens with larger size drives. I have a feeling its due to this driver.
 
 uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     uint8_t result;
@@ -152,8 +128,8 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         head = (startLBA + 1  - sect) % (16 * 63) / (63);
     }
 
-    //TODO: Add DMA Support
     dma = 0;
+
     while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
 
     if(lba_mode == 0) ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (ideDrive->masterSlave << 4) | head);
@@ -232,7 +208,6 @@ void ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         head = (startLBA + 1  - sect) % (16 * 63) / (63);
     }
 
-    //TODO: Add DMA Support
     dma = 0;
 
     while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
@@ -344,11 +319,7 @@ bool attach(device_t* device){
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_PRIMARY){
         channelPrimary->iobase = pciConfig->BAR0;
         channelPrimary->control = pciConfig->BAR1;
-        if(pciConfig->hdr.progIF & IDE_CONTROLLER_BUS_MASTERING){
-            channelPrimary->busMastering = pciConfig->BAR4;
-        } else {
-            channelPrimary->busMastering = 0;
-        }
+        
     } else {
         channelPrimary->iobase = 0x1F0;
         channelPrimary->control = 0x3F6;
@@ -357,14 +328,17 @@ bool attach(device_t* device){
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_SECONDARY){
         channelSecondary->iobase = pciConfig->BAR2;
         channelSecondary->control = pciConfig->BAR3;
-        if(pciConfig->hdr.progIF & IDE_CONTROLLER_BUS_MASTERING){
-            channelSecondary->busMastering = pciConfig->BAR4 + 8;
-        } else {
-            channelSecondary->busMastering = 0;
-        }
     } else {
         channelSecondary->iobase = 0x170;
         channelSecondary->control = 0x376;
+    }
+
+    if(pciConfig->hdr.progIF & IDE_CONTROLLER_BUS_MASTERING){
+        channelPrimary->busMastering = pciConfig->BAR4;
+        channelSecondary->busMastering = pciConfig->BAR4 + 8;
+    } else {
+        channelPrimary->busMastering = 0;
+        channelSecondary->busMastering = 0;
     }
 
     primaryMaster->channel = channelPrimary;
@@ -503,6 +477,6 @@ device_driver_t driver_metadata = {
 };
 
 device_id_t driver_ids[] = {
-    DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY, 0x01, 0x01, DEVICE_ID_PCI_PROGIF_ANY),
+    DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY, PCI_CLASS_STORAGE_CONTROLLER, PCI_SUBCLASS_IDE, DEVICE_ID_PCI_PROGIF_ANY),
     0
 };

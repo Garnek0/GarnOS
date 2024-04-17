@@ -1,5 +1,5 @@
 /*  
-*   Module: ps2.mod
+*   Module: ps2.sys
 *
 *   File: ps2.c
 *
@@ -14,15 +14,6 @@
 #include <cpu/interrupts/interrupts.h>
 #include <mem/kheap/kheap.h>
 #include <sys/input.h>
-
-#define LEFT_SHIFT 0x2A
-#define LEFT_CTRL 0x1D
-#define RIGHT_SHIFT 0x36
-#define RIGHT_CTRL 0x1D
-#define ENTER 0x1C
-#define BACKSPACE 0x0E
-#define CAPSLOCK 0x3A
-#define EX_SCANCODE 0xE0
 
 device_driver_t driver_metadata;
 

@@ -54,6 +54,15 @@
 
 #define PS2_DEVICE_RESET 0xFF
 
+#define LEFT_SHIFT 0x2A
+#define LEFT_CTRL 0x1D
+#define RIGHT_SHIFT 0x36
+#define RIGHT_CTRL 0x1D
+#define ENTER 0x1C
+#define BACKSPACE 0x0E
+#define CAPSLOCK 0x3A
+#define EX_SCANCODE 0xE0
+
 static inline void ps2_write(uint8_t port, uint8_t data){
     size_t timeout = TIMEOUT;
     while(timeout--) if(!(inb(PS2_COMMAND) & PS2_STATUS_WRITERDY)) break;

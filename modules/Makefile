@@ -34,7 +34,7 @@ override CFILES := $(shell find -L . -type f -name '*.c')
 override MOD_OBJ := $(CFILES:.c=.sys)
 override MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-override INITRD_MODS := ide.sys
+override INITRD_MODS := ide.sys ahci.sys
 override INITRD_AUTOREG := initreg.txt
 override AUTOREG := autoreg.txt
 

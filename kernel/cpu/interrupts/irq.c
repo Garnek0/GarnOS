@@ -50,19 +50,19 @@ void irq_set_handler(uint8_t irq, void* handler){
             irqHandler.irq10 = handler;
             break;
         case 11:
-            irqHandler.irq10 = handler;
+            irqHandler.irq11 = handler;
             break;
         case 12:
-            irqHandler.irq10 = handler;
+            irqHandler.irq12 = handler;
             break;
         case 13:
-            irqHandler.irq10 = handler;
+            irqHandler.irq13 = handler;
             break;
         case 14:
-            irqHandler.irq10 = handler;
+            irqHandler.irq14 = handler;
             break;
         case 15:
-            irqHandler.irq10 = handler;
+            irqHandler.irq15 = handler;
             break;
         default:
             break;
