@@ -113,6 +113,11 @@ int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, mo
 			} else if(symTable[sym].st_shndx == SHN_UNDEF) { //need to load kernel symbol here.
 				//look for the kernel symbol in the kernel symbol list.
 				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
+				if((int64_t)symTable[sym].st_value == -1){
+					klog("ML: Kernel Module/Driver '%s' contains an invalid symbol (%s)! Unloading!\n", KLOG_FAILED, path, symNames + symTable[sym].st_name);
+					kerrno = ENOEXEC;
+					return -1;
+				}
 			}
 
 			//if the symbol is called "metadata", then save it. (We will need the metadata struct to

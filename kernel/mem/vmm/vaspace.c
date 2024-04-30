@@ -18,8 +18,8 @@
 void vaspace_switch(page_table_t* pml4){
     uint64_t hhdm = bl_get_hhdm_offset();
     uint64_t kernelVirtBase = bl_get_kernel_virt_base();
-    if(pml4 > kernelVirtBase) pml4 = (page_table_t*)((uint64_t)pml4 - kernelVirtBase);
-    else if(pml4 > hhdm) pml4 = (page_table_t*)((uint64_t)pml4 - hhdm);
+    if((uint64_t)pml4 > kernelVirtBase) pml4 = (page_table_t*)((uint64_t)pml4 - kernelVirtBase);
+    else if((uint64_t)pml4 > hhdm) pml4 = (page_table_t*)((uint64_t)pml4 - hhdm);
     asm volatile("mov %0, %%cr3" : : "r" (pml4));
 }
 
@@ -175,7 +175,7 @@ void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, ui
 
 void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int flags, int fd, uint64_t offset){
     if(length == 0) return -EINVAL;
-    if(addr > VMM_USER_END) return -ENOMEM;
+    if((uint64_t)addr > VMM_USER_END) return -ENOMEM;
 
     //We dont support shared mappings yet
     if(flags & MAP_SHARED) return -EINVAL;
@@ -194,12 +194,12 @@ void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int fla
 
     int Pi, PTi, PDi, PDPi;
     page_table_entry_t currentEntry;
-    int npages = 0;
+    size_t npages = 0;
 
     uint64_t userEnd = VMM_USER_END;
     if(flags & MAP_32BIT) userEnd = VMM_USER_END_32BIT;
 
-    for(uint64_t i = (uint64_t)addr; i < VMM_USER_END; i+=PAGE_SIZE){
+    for(uint64_t i = (uint64_t)addr; i < userEnd; i+=PAGE_SIZE){
         vmm_indexer(i, &Pi, &PTi, &PDi, &PDPi);
 
         currentEntry = currentProcess->pml4->entries[PDPi];
@@ -241,15 +241,15 @@ found_addr:
         if(npages == 1) addr = (void*)i;
         if(npages == length){
             uint64_t phys;
-            uint32_t vmmflags = 0;
+            uint64_t vmmflags = 0;
 
             vmmflags = (VMM_USER | VMM_PRESENT | VMM_NX);
 
-            if(prot & PROT_READ);
+            //if(prot & PROT_READ);
             if(prot & PROT_WRITE) vmmflags |= VMM_RW;
             if(prot & PROT_EXEC) vmmflags &= ~(VMM_NX);
             
-            for(int j = 0; j < length; j++){
+            for(size_t j = 0; j < length; j++){
                 phys = (uint64_t)pmm_allocate(1);
                 vmm_map(currentProcess->pml4, phys, (uint64_t)addr+(j*PAGE_SIZE), vmmflags);
             }
@@ -262,7 +262,7 @@ found_addr:
 
 int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
     if(length == 0) return -EINVAL;
-    if(addr > VMM_USER_END || (uint64_t)addr%PAGE_SIZE != 0) return -EINVAL;
+    if((uint64_t)addr > VMM_USER_END || (uint64_t)addr%PAGE_SIZE != 0) return -EINVAL;
 
     if(length%PAGE_SIZE != 0) ALIGN_UP(length, PAGE_SIZE);
     length /= PAGE_SIZE;
@@ -272,7 +272,7 @@ int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
     int Pi, PTi, PDi, PDPi;
     page_table_entry_t currentEntry;
     for(size_t i = 0; i < length; i++){
-        vmm_indexer(addr, &Pi, &PTi, &PDi, &PDPi);
+        vmm_indexer((uint64_t)addr, &Pi, &PTi, &PDi, &PDPi);
 
         currentEntry = currentProcess->pml4->entries[PDPi];
         page_table_t* PDP;
@@ -302,7 +302,7 @@ int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
         if(!currentEntry.present && currentEntry.addr == 0){
             return -EINVAL;
         } else {
-            pmm_free((currentEntry.addr << 12), 1);
+            pmm_free((void*)(currentEntry.addr << 12), 1);
             vmm_unmap(currentProcess->pml4, (uint64_t)addr);
         }
 

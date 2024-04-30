@@ -9,6 +9,7 @@
 
 #include "pit.h"
 #include <cpu/interrupts/interrupts.h>
+#include <cpu/interrupts/irq.h>
 #include <hw/ports.h>
 #include <cpu/multiproc/spinlock.h>
 #include <process/sched/sched.h>

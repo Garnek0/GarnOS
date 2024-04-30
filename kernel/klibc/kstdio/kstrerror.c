@@ -54,9 +54,9 @@ void kperror(const char* str){
 
 void kerrlog(const char* str, uint8_t loglevel){
     int err = kerrno;
-    klog("%s: %s", str, kerrStr[err-1]);
+    klog("%s: %s", loglevel, str, kerrStr[err-1]);
 }
 
-char* kstrerror(int err){
+const char* kstrerror(int err){
     return kerrStr[err-1];
 }

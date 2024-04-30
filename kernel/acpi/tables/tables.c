@@ -131,7 +131,7 @@ void acpi_tables_parse(){
     //FACS is optional in some cases.
     FACS = (acpi_facs_t*)acpi_tables_find("FACS");
     if(FACS == NULL || !acpi_tables_validate_checksum((uint64_t)FACS, FACS->length)){
-        if(!FADT->X_FirmwareControl && !FADT->firmwareCtrl && !FADT->flags & HARDWARE_REDUCED_ACPI){
+        if(!FADT->X_FirmwareControl && !FADT->firmwareCtrl && !(FADT->flags & HARDWARE_REDUCED_ACPI)){
             kprintf("\n");
             acpi_panic("ACPI: Invalid FACS or FACS Not Found! (FACS not optional)");
         }

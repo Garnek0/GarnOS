@@ -16,7 +16,7 @@ spinlock_t panicLock;
 
 //TODO: only halts bsp, make panic() halt the other processors too
 
-void panic(char* str, ...){
+void panic(const char* str, ...){
     va_list args;
     va_start(args, str);
 
@@ -33,7 +33,7 @@ void panic(char* str, ...){
     }
 }
 
-void panic_exception(char* str, stack_frame_t* regs, ...){
+void panic_exception(const char* str, stack_frame_t* regs, ...){
     asm("cli");
 
     va_list args;

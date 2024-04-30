@@ -50,7 +50,16 @@ static uint64_t pmm_find_free(int npages){
     int foundPages = 0;
     uint64_t base = 0;
     bool inChunk = false;
-    for(size_t i = 0; i < bitmapSize; i++){
+    bool searchingHighPages = false;
+    size_t i;
+    if(bitmapSize > 131072){
+        i = 131072;
+        searchingHighPages = true;
+    } else {
+        i = 0;
+    }
+retry:
+    for(; i < bitmapSize; i++){
         for(uint8_t j = 0; j < 8; j++){
             if(!(bitmap[i] & (0b10000000 >> j))){
                 if(!inChunk){
@@ -69,8 +78,53 @@ static uint64_t pmm_find_free(int npages){
             }
         }
     }
+
+    if(searchingHighPages){
+        searchingHighPages = false;
+        inChunk = false;
+        i = 0;
+        foundPages = 0;
+        kprintf("searching high");
+        goto retry;
+    }
+
     kerrno = ENOMEM;
     panic("PMM: Out of Memory!");
+    return 0;
+}
+
+static uint64_t pmm_find_free32(int npages){
+    int foundPages = 0;
+    uint64_t base = 0;
+    bool inChunk = false;
+    size_t limit;
+    if(bitmapSize > 131072){
+        limit = 131072;
+    } else {
+        limit = bitmapSize;
+    }
+    for(size_t i = 0; i < limit; i++){
+        for(uint8_t j = 0; j < 8; j++){
+            if(!(bitmap[i] & (0b10000000 >> j))){
+                if(!inChunk){
+                    inChunk = true;
+                    base = (i*8)+j;
+                }
+                foundPages++;
+                if(foundPages == npages){
+                    return (base << 12);
+                }
+            } else {
+                if(inChunk){
+                    inChunk = false;
+                    foundPages = 0;
+                }
+            }
+        }
+    }
+
+    kerrno = ENOMEM;
+    panic("PMM: Out of Memory! (32-bit Allocator)");
     return 0;
 }
 
@@ -78,6 +132,17 @@ void* pmm_allocate(int npages){
     uint64_t base;
     lock(pmm_info.lock, {
         base = pmm_find_free(npages);
+        for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
+            pmm_bitmap_set(i);
+        }
+    });
+    return (void*)base;
+}
+
+void* pmm_allocate32(int npages){
+    uint64_t base;
+    lock(pmm_info.lock, {
+        base = pmm_find_free32(npages);
         for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
             pmm_bitmap_set(i);
         }

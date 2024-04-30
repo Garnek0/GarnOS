@@ -21,6 +21,7 @@ extern pmm_info_t pmm_info;
 
 void pmm_init();
 void* pmm_allocate(int npages);
+void* pmm_allocate32(int npages);
 void pmm_free(void* base, int npages);
 
 #endif //PMM_H

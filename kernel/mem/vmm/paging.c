@@ -38,7 +38,7 @@ void vmm_init(){
     //map kernel
 
     memmap_entry_t entry;
-    for(size_t i = 0; i < memmap_get_entry_count(); i++){
+    for(int i = 0; i < memmap_get_entry_count(); i++){
         entry = memmap_get_entry(i);
         if(entry.type != MEMMAP_KERNEL_AND_MODULES) continue;
 

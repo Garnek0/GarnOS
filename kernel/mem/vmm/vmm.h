@@ -24,7 +24,7 @@
 #define VMM_PCD (1 << 4)
 #define VMM_ACCESSED (1 << 5)
 #define VMM_PS (1 << 7)
-#define VMM_NX (1 << 63)
+#define VMM_NX (1ull << 63)
 
 #define PROT_NONE  0x00
 #define PROT_READ  0x01

@@ -19,7 +19,7 @@ int kvprintf(char* fmt, va_list args){
     int chars = 0;
 
     lock(kvprintfLock, {
-        for(int i = 0; i < strlen(fmt); i++){
+        for(uint32_t i = 0; i < strlen(fmt); i++){
             if(fmt[i] == '%'){
                 switch(fmt[++i]){
                     case '%':

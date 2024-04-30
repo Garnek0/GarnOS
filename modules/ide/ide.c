@@ -23,6 +23,12 @@
 
 //BUG: Something weird happens with larger size drives. I have a feeling its due to this driver.
 
+/*TODO:
+- [ ] Fix the bug thing.
+- [ ] Add support for DMA transfer modes.
+- [ ] Implement ATAPI read/write.
+*/
+
 uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     uint8_t result;
     if(reg > 0x07 && reg < 0x0C)
@@ -87,7 +93,7 @@ uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErr
     return err;
 }
 
-void ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
+int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint8_t lba_mode, dma, cmd;
     uint8_t lba_io[6];
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
@@ -165,9 +171,11 @@ void ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
             }
         }
     }
+
+    return 0;
 }
 
-void ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
+int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint8_t lba_mode, dma, cmd;
     uint8_t lba_io[6];
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
@@ -246,16 +254,18 @@ void ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         }
         ide_write(channel, ATA_REG_COMMAND, (char []){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
         ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
+
+        return 0;
     }
 }
 
 //TODO: ATAPI
 
-void ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
+int ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     ;
 }
 
-void ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
+int ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     ;
 }
 
@@ -447,8 +457,9 @@ bool attach(device_t* device){
                 drive.write = ide_ata_write;
                 drive.type = DRIVE_TYPE_DISK;
             } else {
-                drive.read = ide_atapi_read;
-                drive.write = ide_atapi_write;
+                //ATAPI read/write not implemented
+                drive.read = NULL;
+                drive.write = NULL;
                 drive.type = DRIVE_TYPE_OPTICAL;
             }
             currentDrive->drive = drive_add(drive);

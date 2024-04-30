@@ -14,14 +14,14 @@
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <cpu/multiproc/spinlock.h>
+#include <ds/list.h>
 
-ksym_entry_t* ksymLast;
-ksym_entry_t* ksymStart;
+list_t* ksymList;
 
 spinlock_t ksymLock;
 
 void ksym_init(){
-    ksymLast = ksymStart = (ksym_entry_t*)kmalloc(sizeof(ksym_entry_t));
+    ksymList = list_create("ksymList");
     Elf64_Ehdr* h = (Elf64_Ehdr*)bl_get_kernel_file_address();
 
     for(size_t i = 0; i < h->e_shnum; i++){
@@ -50,24 +50,23 @@ void ksym_add(char* name, Elf64_Addr address){
         ksym_entry_t* newKsym = (ksym_entry_t*)kmalloc(sizeof(ksym_entry_t));
         memset(newKsym, 0, sizeof(ksym_entry_t));
 
-        ksymLast->address = (address - 0xFFFFFFFF80000000 + bl_get_kernel_virt_base());
-        ksymLast->name = name;
-        ksymLast->next = newKsym;
+        newKsym->address = (address - 0xFFFFFFFF80000000 + bl_get_kernel_virt_base());
+        newKsym->name = name;
 
-        ksymLast = newKsym;
+        list_insert(ksymList, (void*)newKsym);
     });
 }
 
 Elf64_Addr ksym_find(char* name){
     lock(ksymLock, {
-        ksym_entry_t* ksym = ksymStart;
-        while(ksym){
+        ksym_entry_t* ksym;
+        foreach(i, ksymList){
+            ksym = (ksym_entry_t*)i->value;
             if(!strcmp(ksym->name, name)){
                 releaseLock(&ksymLock);
                 return ksym->address;
             }
-            ksym = ksym->next;
         }
     });
-    return 0;
+    return (Elf64_Addr)-1;
 }

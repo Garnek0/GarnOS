@@ -11,10 +11,9 @@
 #include <types.h>
 #include <exec/elfabi.h>
 
-typedef struct _ksym_entry {
+typedef struct {
     Elf64_Addr address;
     char* name;
-    struct _ksym_entry* next;
 } ksym_entry_t;
 
 void ksym_init();

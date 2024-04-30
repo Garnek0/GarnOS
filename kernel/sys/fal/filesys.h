@@ -25,7 +25,7 @@
 #define FILESYS_TYPE_EXT2 "ext2"
 #define FILESYS_TYPE_EXT3 "ext3"
 #define FILESYS_TYPE_EXT4 "ext4"
-#define FILESYS_TYPE_ISO9660 "iso9660
+#define FILESYS_TYPE_ISO9660 "iso9660"
 
 #define PATH_MAX 4096
 

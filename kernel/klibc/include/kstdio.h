@@ -27,6 +27,6 @@ void klog(char* str, uint8_t loglevel, ...);
 char* kreadline(char* prompt);
 void kperror(const char* str);
 void kerrlog(const char* str, uint8_t loglevel);
-char* kstrerror(int err);
+const char* kstrerror(int err);
 
 #endif //KSTDIO_H
