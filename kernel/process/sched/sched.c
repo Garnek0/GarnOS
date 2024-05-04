@@ -21,7 +21,7 @@ thread_t* currentThread;
 process_t* currentProcess;
 
 void sched_init(){
-    threadList = list_create("schedThreadList");
+    threadList = list_create();
 
     process_init();
 }

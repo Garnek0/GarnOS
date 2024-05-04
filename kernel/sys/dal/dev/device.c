@@ -25,7 +25,7 @@ list_t* deviceList;
 size_t deviceCount;
 
 void device_init(){
-    deviceList = list_create("DALdeviceList");
+    deviceList = list_create();
 }
 
 void device_add(device_t* device){

@@ -13,12 +13,11 @@
 
 //Singly linked list data structure
 
-list_t* list_create(char* name){
+list_t* list_create(){
     list_t* list = kmalloc(sizeof(list_t));
     list->head = NULL;
     list->tail = NULL;
     list->nodeCount = 0;
-    list->name = name;
     list->lock = 0;
     
     return list;

@@ -195,7 +195,7 @@ bool attach(device_t* device){
     ps2_write(PS2_DATA, 2);
     ps2_read(PS2_DATA);
 
-    irq_set_handler(1, keyboard_handler);
+    irq_add_handler(1, keyboard_handler);
     klog("PS2: Keyboard Initialised\n", KLOG_OK);
 
     asm volatile("sti");
@@ -206,7 +206,7 @@ bool attach(device_t* device){
 }
 
 bool remove(device_t* device){
-    irq_set_handler(1, NULL);
+    irq_add_handler(1, NULL);
     return true;
 }
 

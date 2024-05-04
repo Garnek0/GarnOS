@@ -21,7 +21,7 @@ list_t* ksymList;
 spinlock_t ksymLock;
 
 void ksym_init(){
-    ksymList = list_create("ksymList");
+    ksymList = list_create();
     Elf64_Ehdr* h = (Elf64_Ehdr*)bl_get_kernel_file_address();
 
     for(size_t i = 0; i < h->e_shnum; i++){

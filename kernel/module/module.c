@@ -31,7 +31,7 @@ void module_init(){
         panic("initreg.txt not found on initrd!");
     }
 
-    moduleList = list_create("moduleList");
+    moduleList = list_create();
 }
 
 bool module_list_search(char* name){

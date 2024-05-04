@@ -25,7 +25,7 @@ list_t* driverList;
 size_t driverCount;
 
 void driver_init(){
-    driverList = list_create("DALdriverList");   
+    driverList = list_create();   
 }
 
 void device_driver_add(driver_node_t* node){

@@ -78,9 +78,10 @@ See LICENSE for details.
 - Disk access is EXTREMELY slow. It's so slow it takes 2-4 seconds to load a simple program such as `ls`.
 - Random ASLR startup crashes are back.
 
-## Hardware Support
+## Support
 
 **General**: PCI \
 **Input**: PS/2 Keyboards \
-**Storage**: IDE \
+**Storage**: IDE, AHCI \
+**File Systems**: FAT32 \
 **Graphics**: Standard Graphics

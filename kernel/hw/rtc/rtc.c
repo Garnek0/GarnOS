@@ -94,7 +94,7 @@ void rtc_init(){
     statb |= RTC_UPDATE_ENDED_INT;
     rtc_write_register(RTC_STATUS_B, statb);
 
-    irq_set_handler(8, rtc_handler);
+    irq_add_handler(8, rtc_handler);
     //This needs to be here on real hardware for the RTC to function.
     //I dont know why, but RTC interrupts won't work otherwise.
     rtc_read_register(RTC_STATUS_C);

@@ -24,12 +24,11 @@ typedef struct {
     list_node_t* head;
     list_node_t* tail;
     size_t nodeCount;
-    char* name;
 
     spinlock_t lock; 
 } list_t;
 
-list_t* list_create(char* name);
+list_t* list_create();
 void list_destroy(list_t* list);
 void list_insert(list_t* list, void* value);
 int list_index_of(list_t* list, void* value);

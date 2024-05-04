@@ -138,7 +138,7 @@ void init_kcon(){
     fb_clear(0x00000000);
     cursor_set(&tc.cursor, 0, 0);
 
-    commandList = list_create("commandList");
+    commandList = list_create();
 
     kcon_add_command("help", console_help);
     kcon_add_command("clear", console_clear);
