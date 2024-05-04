@@ -21,6 +21,8 @@
 #define SHELL_PATH "/bin/shell.elf"
 
 int main(int argc, char** argv){
+    printf("Welcome to GarnOS!\n\n");
+
     int status;
 
     struct utsname name;

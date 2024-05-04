@@ -56,7 +56,7 @@ See LICENSE for details.
 - [x] APIC, I/O APIC
 - [x] Timer
 - [x] PCI Driver
-- [ ] AHCI driver
+- [x] AHCI driver
 - [x] IDE driver
 - [x] FAT Driver
 - [ ] Ext2 Driver

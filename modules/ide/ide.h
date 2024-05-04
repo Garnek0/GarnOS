@@ -48,18 +48,6 @@
 #define ATAPI_CMD_READ       0xA8
 #define ATAPI_CMD_EJECT      0x1B
 
-#define ATA_IDENT_DEVICETYPE   0
-#define ATA_IDENT_CYLINDERS    2
-#define ATA_IDENT_HEADS        6
-#define ATA_IDENT_SECTORS      12
-#define ATA_IDENT_SERIAL       20
-#define ATA_IDENT_MODEL        27
-#define ATA_IDENT_CAPABILITIES 49
-#define ATA_IDENT_FIELDVALID   53
-#define ATA_IDENT_MAX_LBA      60
-#define ATA_IDENT_COMMANDSETS  82
-#define ATA_IDENT_MAX_LBA_EXT  100
-
 #define IDE_ATA        0x00
 #define IDE_ATAPI      0x01
  
@@ -106,11 +94,33 @@ typedef struct {
     uint8_t noInt;
 } ide_channel_t;
 
+typedef volatile struct {
+	uint16_t flags;
+	uint16_t unused0[9];
+	uint8_t serial[20];
+	uint16_t unused1[3];
+	uint8_t firmware[8];
+	uint8_t model[40];
+	uint16_t sectsPerInt;
+	uint16_t unused2;
+	uint32_t capabilities;
+	uint16_t unused3[2];
+	uint16_t validExtData;
+	uint16_t unused4[5];
+	uint16_t sizeOfRWMult;
+	uint32_t sectorsLBA28;
+	uint16_t unused5[20];
+    uint16_t commandSets[6];
+    uint16_t unused6[12];
+	uint64_t sectorsLBA48;
+	uint16_t unused7[152];
+}__attribute__((packed)) ide_ata_identify_t;
+
 typedef struct {
     uint8_t ideChannel;
     uint8_t masterSlave;
     uint8_t type; //ATA or ATAPI
-    uint16_t idSpace[256];
+    ide_ata_identify_t idSpace;
     size_t size;
     char model[41];
 

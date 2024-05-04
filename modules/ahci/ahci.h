@@ -31,7 +31,14 @@
 
 //CAP
 #define AHCI_CAP_NCS (1 << 8)
+#define AHCI_CAP_SAM (1 << 18)
+#define AHCI_CAP_SSS (1 << 27)
 #define AHCI_CAP_S64A (1 << 31)
+
+//GHC
+#define AHCI_GHC_AE (1 << 31)
+#define AHCI_GHC_IE (1 << 1)
+#define AHCI_GHC_HR 1
 
 //EXCAP
 #define AHCI_EXCAP_BOH 1
@@ -87,10 +94,6 @@
 #define ATA_CMD_PACKET 0xA0
 #define ATA_CMD_IDENTIFY_PACKET 0xA1
 #define ATA_CMD_IDENTIFY 0xEC
-
-//ATA IDENT
-#define ATA_IDENT_CAPABILITIES 49
-#define ATA_IDENT_MODEL 27
 
 #define MAX_PRDS 248
 
@@ -234,7 +237,9 @@ typedef volatile struct {
 	uint32_t ghc; // Global host control
 	uint32_t is; // Interrupt status
 	uint32_t pi; // Port implemented
-	uint32_t vs; // Version
+	uint8_t vsPatch; // Patch
+	uint8_t vsMinor; // Minor Version
+	uint16_t vsMajor; // Major Version
 	uint32_t cccControl; // Command completion coalescing control
 	uint32_t cccPorts; // Command completion coalescing ports
 	uint32_t emLocation; // Enclosure management location
@@ -312,10 +317,32 @@ typedef struct {
 	int maxCommands;
 } ahci_controller_t;
 
+typedef volatile struct {
+	uint16_t flags;
+	uint16_t unused0[9];
+	uint8_t serial[20];
+	uint16_t unused1[3];
+	uint8_t firmware[8];
+	uint8_t model[40];
+	uint16_t sectsPerInt;
+	uint16_t unused2;
+	uint32_t capabilities;
+	uint16_t unused3[2];
+	uint16_t validExtData;
+	uint16_t unused4[5];
+	uint16_t sizeOfRWMult;
+	uint32_t sectorsLBA28;
+	uint16_t unused5[20];
+    uint16_t commandSets[6];
+    uint16_t unused6[12];
+	uint64_t sectorsLBA48;
+	uint16_t unused7[152];
+}__attribute__((packed)) ahci_ata_identify_t;
+
 typedef struct {
 	int type;
 	size_t size;
-	uint16_t idSpace[256];
+	ahci_ata_identify_t idSpace;
 	char model[41];
 
 	ahci_controller_t* controller;

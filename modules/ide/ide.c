@@ -21,11 +21,12 @@
 #include <sys/bootloader.h>
 #include <cpu/interrupts/irq.h>
 
-//BUG: Something weird happens with larger size drives. I have a feeling its due to this driver.
+//BUG: Something weird happens with larger size drives. I have a feeling its due to this driver, but it could also be the FS driver
 
 /*TODO:
-- [ ] Fix the bug thing.
+- [ ] Fix the large drive bug thing.
 - [ ] Add support for DMA transfer modes.
+- [ ] Add support for memory address space BARs
 - [ ] Implement ATAPI read/write.
 */
 
@@ -94,6 +95,7 @@ uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErr
 }
 
 int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
+    //kprintf("[IDE] Read Req: LBA 0x%x, Seccount %d\n", startLBA, blocks);
     uint8_t lba_mode, dma, cmd;
     uint8_t lba_io[6];
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
@@ -101,7 +103,7 @@ int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint16_t cyl;
     uint8_t head, sect, err;
 
-    if(startLBA >= 0x10000000){
+    if(startLBA >= 0x100000){
         // LBA48:
         lba_mode = 2;
         lba_io[0] = (startLBA & 0x0000000000FF) >> 0;
@@ -110,7 +112,7 @@ int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         lba_io[3] = (startLBA & 0x0000FF000000) >> 24;
         lba_io[4] = (startLBA & 0x00FF00000000) >> 32;
         lba_io[5] = (startLBA & 0xFF0000000000) >> 40;
-    } else if(ideDrive->idSpace[ATA_IDENT_CAPABILITIES] & (1 << 9)){ 
+    } else if(ideDrive->idSpace.capabilities & (1 << 9)){ 
         // LBA28:
         lba_mode = 1;
         lba_io[0] = (startLBA & 0x00000FF) >> 0;
@@ -167,7 +169,7 @@ int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         for(int i = 0; i < blocks; i++) {
             if(err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true)) return;
             for(int j = 0; j < 256; j++){
-                tmp[j] = inw(channel->iobase + ATA_REG_DATA);
+                tmp[j + 256*i] = inw(channel->iobase + ATA_REG_DATA);
             }
         }
     }
@@ -183,7 +185,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     uint16_t cyl;
     uint8_t head, sect, err;
 
-    if(startLBA >= 0x10000000){
+    if(startLBA >= 0x100000){
         // LBA48:
         lba_mode = 2;
         lba_io[0] = (startLBA & 0x0000000000FF) >> 0;
@@ -192,7 +194,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         lba_io[3] = (startLBA & 0x0000FF000000) >> 24;
         lba_io[4] = (startLBA & 0x00FF00000000) >> 32;
         lba_io[5] = (startLBA & 0xFF0000000000) >> 40;
-    } else if(ideDrive->idSpace[ATA_IDENT_CAPABILITIES] & (1 << 9)){ 
+    } else if(ideDrive->idSpace.capabilities & (1 << 9)){ 
         // LBA28:
         lba_mode = 1;
         lba_io[0] = (startLBA & 0x00000FF) >> 0;
@@ -249,7 +251,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         for (int i = 0; i < blocks; i++) {
             ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
             for(int j = 0; j < 256; j++){
-                outw(channel->iobase + ATA_REG_DATA, tmp[j]);
+                outw(channel->iobase + ATA_REG_DATA, tmp[j + 256*i]);
             }
         }
         ide_write(channel, ATA_REG_COMMAND, (char []){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
@@ -327,8 +329,12 @@ bool attach(device_t* device){
     secondarySlave->masterSlave = ATA_SLAVE;
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_PRIMARY){
-        channelPrimary->iobase = pciConfig->BAR0;
-        channelPrimary->control = pciConfig->BAR1;
+        if(!(pciConfig->BAR0 & 1) || !(pciConfig->BAR1 & 1)){
+            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            return false;
+        }
+        channelPrimary->iobase = (pciConfig->BAR0 & 0xFFFFFFFC);
+        channelPrimary->control = (pciConfig->BAR1 & 0xFFFFFFFC);
         
     } else {
         channelPrimary->iobase = 0x1F0;
@@ -336,16 +342,24 @@ bool attach(device_t* device){
     }
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_SECONDARY){
-        channelSecondary->iobase = pciConfig->BAR2;
-        channelSecondary->control = pciConfig->BAR3;
+        if(!(pciConfig->BAR2 & 1) || !(pciConfig->BAR3 & 1)){
+            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            return false;
+        }
+        channelSecondary->iobase = (pciConfig->BAR2 & 0xFFFFFFFC);
+        channelSecondary->control = (pciConfig->BAR3 & 0xFFFFFFFC);
     } else {
         channelSecondary->iobase = 0x170;
         channelSecondary->control = 0x376;
     }
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_BUS_MASTERING){
-        channelPrimary->busMastering = pciConfig->BAR4;
-        channelSecondary->busMastering = pciConfig->BAR4 + 8;
+        if(!(pciConfig->BAR4 & 1)){
+            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            return false;
+        }
+        channelPrimary->busMastering = (pciConfig->BAR4 & 0xFFFFFFFC);
+        channelSecondary->busMastering = (pciConfig->BAR4 & 0xFFFFFFFC) + 8;
     } else {
         channelPrimary->busMastering = 0;
         channelSecondary->busMastering = 0;
@@ -424,16 +438,20 @@ bool attach(device_t* device){
 
             if(error) continue;
 
+            uint16_t idSpaceBuf[256];
+
             for(uint16_t k = 0; k < 256; k++){
-                currentDrive->idSpace[k] = inw(currentChannel->iobase);
+                idSpaceBuf[k] = inw(currentChannel->iobase);
             }
+
+            memcpy((void*)&currentDrive->idSpace, (void*)idSpaceBuf, 512);
             
-            if(currentDrive->idSpace[ATA_IDENT_COMMANDSETS+1] & (1 << 10)) currentDrive->size = *((uint64_t*)(currentDrive->idSpace + ATA_IDENT_MAX_LBA_EXT));
-            else currentDrive->size = *((uint32_t*)(currentDrive->idSpace + ATA_IDENT_MAX_LBA));
+            if(currentDrive->idSpace.commandSets[1] & (1 << 10)) currentDrive->size = currentDrive->idSpace.sectorsLBA48;
+            else currentDrive->size = currentDrive->idSpace.sectorsLBA28;
 
             currentDrive->size *= 512;
 
-            tmp = &currentDrive->idSpace[ATA_IDENT_MODEL];
+            tmp = &currentDrive->idSpace.model;
 
             for(uint8_t k = 0; k < 40; k+=2){
                 currentDrive->model[k] = tmp[k + 1];
@@ -466,7 +484,7 @@ bool attach(device_t* device){
         }
     }
 
-    klog("IDE: Initialised Controller! (BAR0: 0x%x, BAR1: 0x%x, BAR2: 0x%x, BAR3: 0x%x, BAR4: 0x%x)\n", KLOG_OK, channelPrimary->iobase, channelPrimary->control, channelSecondary->iobase, channelSecondary->control, pciConfig->BAR4);
+    klog("IDE: Initialised Controller! (I/O Base 1: 0x%x, CTRL 1: 0x%x, I/O Base 2: 0x%x, CTRL 2: 0x%x, BM: 0x%x)\n", KLOG_OK, channelPrimary->iobase, channelPrimary->control, channelSecondary->iobase, channelSecondary->control, channelPrimary->busMastering);
 
     return true;
 }
