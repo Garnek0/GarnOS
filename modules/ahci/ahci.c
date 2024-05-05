@@ -477,7 +477,7 @@ bool attach(device_t* device){
                 }
             }
 
-            //Allocate Recieved FIS
+            //Allocate Received FIS
             if(!(abar->cap1 & AHCI_CAP_S64A)){
                 abar->ports[i].fb = pmm_allocate32(1);
                 abar->ports[i].fbu = 0;

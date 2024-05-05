@@ -14,7 +14,7 @@
 #include <kstdio.h>
 
 //these lists hold the function pointers to all irq handlers
-list_t* irqHandlerLists[16];
+list_t* irqHandlerLists[224];
 
 void irq_add_handler(uint8_t irq, void* handler){
     if(!irqHandlerLists[irq]) irqHandlerLists[irq] = list_create();
@@ -28,6 +28,7 @@ void irq_remove_handler(uint8_t irq, void* handler){
 
 void irq_handler(stack_frame_t* regs){
     //for irqs, errCode stores the irq number
+    if(regs->errCode == 224) return; //This is an APIC Spurious Interrupt. Return without signaling EOI
     if(!irqHandlerLists[regs->errCode]) goto done;
     foreach(i, irqHandlerLists[regs->errCode]){
         void (*irq)(stack_frame_t* regs) = (void(*)(stack_frame_t* regs))i->value;

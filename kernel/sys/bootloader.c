@@ -27,7 +27,7 @@ static volatile struct limine_hhdm_request hhdm_request = {
 static volatile struct limine_smp_request smp_request = {
     .id = LIMINE_SMP_REQUEST,
     .revision = 0,
-    .flags = 1
+    .flags = 0
 };
 
 static volatile struct limine_rsdp_request rsdp_request = {

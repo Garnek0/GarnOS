@@ -138,6 +138,9 @@ extern acpi_fadt_t* FADT;
 #define ACPI_MADT_APIC 0x00
 #define ACPI_MADT_IOAPIC 0x01
 #define ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE 0x02
+#define ACPI_MADT_NMI_SOURCE 0x03
+#define ACPI_MADT_LAPIC_NMI 0x04
+#define ACPI_MADT_LAPIC_ADDR_OVERRIDE 0x05
 
 typedef struct {
     uint8_t entryType;
@@ -148,7 +151,7 @@ typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t LAPICAddress;
     uint32_t flags;
-    acpi_madt_record_hdr_t MADTRecords;
+    acpi_madt_record_hdr_t records[];
 }__attribute__((packed)) acpi_madt_t;
 extern acpi_madt_t* MADT;
 
@@ -174,6 +177,25 @@ typedef struct {
     uint32_t GSI;
     uint16_t flags;
 }__attribute__((packed)) acpi_madt_record_source_override_t;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint16_t flags;
+    uint32_t GSI;
+}__attribute__((packed)) acpi_madt_record_nmi_source_t;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint8_t acpiID;
+    uint16_t flags;
+    uint8_t pinNumber;
+}__attribute__((packed)) acpi_madt_record_lapic_nmi_t;
+
+typedef struct {
+    acpi_madt_record_hdr_t hdr;
+    uint16_t reserved;
+    uint64_t addr;
+}__attribute__((packed)) acpi_madt_record_lapic_addr_override_t;
 
 //BGRT
 

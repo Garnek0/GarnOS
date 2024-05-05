@@ -310,7 +310,7 @@ typedef volatile struct {
  
 	uint8_t UnknownFIS[64];
 
-}__attribute((packed)) ahci_recieved_fis_t;
+}__attribute((packed)) ahci_received_fis_t;
 
 typedef struct {
 	ahci_mem_t* abar;

@@ -37,4 +37,7 @@ void interrupts_init(){
     idt_set_entry(45, irq13, INT_GATE);
     idt_set_entry(46, irq14, INT_GATE);
     idt_set_entry(47, irq15, INT_GATE);
+
+    idt_set_entry(254, irq223, INT_GATE); //APIC Error
+    idt_set_entry(255, irq224, INT_GATE); //APIC Spurious Interrupt Vector
 }

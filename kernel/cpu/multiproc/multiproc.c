@@ -24,8 +24,6 @@
 #include <cpuid.h>
 #include <kerrno.h>
 
-bool isx2APIC;
-
 //Create a CPU device
 static void multiproc_configure_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
@@ -56,6 +54,10 @@ static void multiproc_configure_cpu_device(){
     device_add(cpuDevice);
 }
 
+//Keep track of how many CPUs finished initialisation
+volatile size_t CPUInitCount;
+spinlock_t InitCountLock;
+
 void _ready_cpus(struct limine_smp_info* cpuinfo){
     //boot the other cpus
 
@@ -69,34 +71,23 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
     vaspace_switch(vmm_get_kernel_pml4());
 
     //APIC
-    apic_init(isx2APIC);
+    apic_init();
 
     //CPU device
     multiproc_configure_cpu_device();
+
+    //Report Initialisation Completion
+    lock(InitCountLock, {
+        klog("multiproc: CPU %u Initialised.\n", KLOG_OK, cpuinfo->processor_id);
+        CPUInitCount++;
+    });
 
     //Halt (for now)
     while(1) asm("hlt");
 }
 
-bool multiproc_check_x2apic(){
-    //Check if x2APIC is supported
-    if(bl_is_x2apic()) return true;
-    else {
-        kerrno = ENODEV;
-        return false;
-    }
-}
-
 void multiproc_init(){
     kerrno = 0;
-
-    if(multiproc_check_x2apic()){
-        klog("multiproc: Set x2APIC mode.\n", KLOG_OK);
-        isx2APIC = true;
-    } else {
-        klog("multiproc: Could not set x2APIC mode!\n", KLOG_FAILED);
-        isx2APIC = false;
-    }
 
     //Start up the other processors
 
@@ -105,7 +96,7 @@ void multiproc_init(){
         cpuinfo = bl_get_cpu_info(i);
         cpuinfo->goto_address = _ready_cpus;
     }
-    apic_init(isx2APIC);
+    apic_init();
 
     multiproc_configure_cpu_device();
 
@@ -113,5 +104,9 @@ void multiproc_init(){
 
     ioapic_init();
 
-    klog("multiproc: Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, bl_get_cpu_count());
+    size_t CPUCount = bl_get_cpu_count();
+
+    while(CPUInitCount != (CPUCount-1)) asm volatile("nop");
+
+    klog("multiproc: Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, CPUCount);
 }

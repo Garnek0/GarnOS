@@ -18,7 +18,7 @@
 #include <types.h>
 
 typedef struct {
-    uint64_t ticksSinceOSBoot;
+    volatile uint64_t ticksSinceOSBoot;
 } pit_info;
 extern pit_info PITInfo;
 

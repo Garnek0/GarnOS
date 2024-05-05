@@ -9,6 +9,7 @@
 
 #include "ioapic.h"
 #include <kstdio.h>
+#include <mem/memutil/memutil.h>
 #include <hw/ports.h>
 #include <acpi/tables/tables.h>
 #include <cpu/multiproc/multiproc.h>
@@ -49,6 +50,22 @@ void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
 
     ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
     ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
+}
+
+ioapic_redirection_entry_t ioapic_get_redirection(uint32_t entry){
+    ioapic_redirection_entry_t red;
+    memset(&red, 0, sizeof(ioapic_redirection_entry_t));
+
+    if(fallback) return;
+    uint64_t data;
+    size_t ioapic;
+
+    for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
+
+    red.bits = ((uint64_t)ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry)) | 
+               (uint64_t)(ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry)+1) << 32));
+
+    return red;
 }
 
 void ioapic_init(){
@@ -93,24 +110,31 @@ void ioapic_init(){
     outb(PIC2_DATA, 0xff);
     io_wait();
 
-    acpi_madt_record_hdr_t* hdr = &MADT->MADTRecords;
+    acpi_madt_record_hdr_t* hdr = MADT->records;
     acpi_madt_record_ioapic_t* ioapicRec;
 
-    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t); i++){
-        i += hdr->recordLength;
-        hdr += hdr->recordLength;
-
-        if(hdr->entryType != ACPI_MADT_IOAPIC) continue;
+    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
+        if(hdr->entryType != ACPI_MADT_IOAPIC){
+            i += hdr->recordLength;
+            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+            continue;
+        }
 
         ioapicRec = (acpi_madt_record_ioapic_t*)hdr;
         ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
         ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
         ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->ioapicAddress + bl_get_hhdm_offset());
-        vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), 0x13);
+        vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
         ioapicCount++;
+        i += hdr->recordLength;
+        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
     }
 
     if(ioapicCount == 0){
+        if(!(MADT->flags & 1)){
+            panic("ioapic: I/O APICs not found and PICs not installed.");
+        }
+
         //use the PIC as a fallback interrupt controller
         outb(PIC1_DATA, 0x00);
         io_wait();
@@ -138,7 +162,7 @@ void ioapic_init(){
     ioapic_redirect(red, 0);
     red.fields.vector = 33;
     ioapic_redirect(red, 1);
-    red.fields.vector = 32;
+    red.fields.vector = 34;
     ioapic_redirect(red, 2); 
     red.fields.vector = 35;
     ioapic_redirect(red, 3);
@@ -167,21 +191,63 @@ void ioapic_init(){
     red.fields.vector = 47;
     ioapic_redirect(red, 15);
 
-    hdr = &MADT->MADTRecords;
+    //Get Interrupt source overrides
+
+    hdr = MADT->records;
     acpi_madt_record_source_override_t* sourceOverrideRec;
 
-    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t); i++){
-        i += hdr->recordLength;
-        hdr += hdr->recordLength;
-
-        if(hdr->entryType != ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE) continue;
+    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
+        if(hdr->entryType != ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE){
+            i += hdr->recordLength;
+            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+            continue;
+        }
 
         sourceOverrideRec = (acpi_madt_record_source_override_t*)hdr;
         red.fields.vector = 32 + sourceOverrideRec->IRQSource;
+
+        uint8_t polarity = sourceOverrideRec->flags & 0b11;
+        if(polarity == 0b01) red.fields.pinPolarity = 0;
+        else if(polarity == 0b11) red.fields.pinPolarity = 1;
+
+        uint8_t triggerMode = (sourceOverrideRec->flags >> 2) & 0b11;
+        if(triggerMode == 0b01) red.fields.triggerMode = 0;
+        else if(triggerMode == 0b11) red.fields.triggerMode = 1;
+
         ioapic_redirect(red, sourceOverrideRec->GSI);
+        i += hdr->recordLength;
+        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
     }
 
-    //TODO: Find NMI entries in the madt
+    //Get NMI sources
+
+    hdr = MADT->records;
+    acpi_madt_record_nmi_source_t* nmiRec;
+
+    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
+        if(hdr->entryType != ACPI_MADT_NMI_SOURCE){
+            i += hdr->recordLength;
+            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+            continue;
+        }
+
+        nmiRec = (acpi_madt_record_source_override_t*)hdr;
+        red = ioapic_get_redirection(nmiRec->GSI);
+
+        uint8_t polarity = nmiRec->flags & 0b11;
+        if(polarity == 0b01) red.fields.pinPolarity = 0;
+        else if(polarity == 0b11) red.fields.pinPolarity = 1;
+
+        uint8_t triggerMode = (nmiRec->flags >> 2) & 0b11;
+        if(triggerMode == 0b01) red.fields.triggerMode = 0;
+        else if(triggerMode == 0b11) red.fields.triggerMode = 1;
+
+        red.fields.delvMode = 0b100;
+
+        ioapic_redirect(red, nmiRec->GSI);
+        i += hdr->recordLength;
+        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+    }
 
     asm volatile("sti");
 

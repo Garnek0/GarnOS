@@ -218,275 +218,287 @@ global irq12
 global irq13
 global irq14
 global irq15
+global irq223
+global irq224
 
 ; Divide Error
 isr0:
-    push byte 0
-    push byte 0
+    push 0
+    push 0
     jmp exception_common
 
 ; Debug Exception
 isr1:
-    push byte 0
-    push byte 1
+    push 0
+    push 1
     jmp exception_common
 
 ; Non Maskable Interrupt Exception
 isr2:
-    push byte 0
-    push byte 2
+    push 0
+    push 2
     jmp exception_common
 
 ; Int 3 Exception
 isr3:
-    push byte 0
-    push byte 3
+    push 0
+    push 3
     jmp exception_common
 
 ; INTO Exception
 isr4:
-    push byte 0
-    push byte 4
+    push 0
+    push 4
     jmp exception_common
 
 ; Out of Bounds Exception
 isr5:
-    push byte 0
-    push byte 5
+    push 0
+    push 5
     jmp exception_common
 
 ; Invalid Opcode Exception
 isr6:
-    push byte 0
-    push byte 6
+    push 0
+    push 6
     jmp exception_common
 
 ; Coprocessor Not Available Exception
 isr7:
-    push byte 0
-    push byte 7
+    push 0
+    push 7
     jmp exception_common
 
 ; Double Fault Exception
 isr8:
-    push byte 8
+    push 8
     jmp exception_common
 
 ; Coprocessor Segment Overrun Exception
 isr9:
-    push byte 0
-    push byte 9
+    push 0
+    push 9
     jmp exception_common
 
 ; Bad TSS Exception
 isr10:
-    push byte 10
+    push 10
     jmp exception_common
 
 ; Segment Not Present Exception
 isr11:
-    push byte 11
+    push 11
     jmp exception_common
 
 ; Stack Fault Exception
 isr12:
-    push byte 12
+    push 12
     jmp exception_common
 
 ; General Protection Fault Exception
 isr13:
-    push byte 13
+    push 13
     jmp exception_common
 
 ; Page Fault Exception
 isr14:
-    push byte 14
+    push 14
     jmp exception_common
 
 ; Reserved Exception
 isr15:
-    push byte 0
-    push byte 15
+    push 0
+    push 15
     jmp exception_common
 
 ; Floating Point Exception
 isr16:
-    push byte 0
-    push byte 16
+    push 0
+    push 16
     jmp exception_common
 
 ; Alignment Check Exception
 isr17:
-    push byte 0
-    push byte 17
+    push 0
+    push 17
     jmp exception_common
 
 ; Machine Check Exception
 isr18:
-    push byte 0
-    push byte 18
+    push 0
+    push 18
     jmp exception_common
 
 ; Reserved
 isr19:
-    push byte 0
-    push byte 19
+    push 0
+    push 19
     jmp exception_common
 
 ; Reserved
 isr20:
-    push byte 0
-    push byte 20
+    push 0
+    push 20
     jmp exception_common
 
 ; Reserved
 isr21:
-    push byte 0
-    push byte 21
+    push 0
+    push 21
     jmp exception_common
 
 ; Reserved
 isr22:
-    push byte 0
-    push byte 22
+    push 0
+    push 22
     jmp exception_common
 
 ; Reserved
 isr23:
-    push byte 0
-    push byte 23
+    push 0
+    push 23
     jmp exception_common
 
 ; Reserved
 isr24:
-    push byte 0
-    push byte 24
+    push 0
+    push 24
     jmp exception_common
 
 ; Reserved
 isr25:
-    push byte 0
-    push byte 25
+    push 0
+    push 25
     jmp exception_common
 
 ; Reserved
 isr26:
-    push byte 0
-    push byte 26
+    push 0
+    push 26
     jmp exception_common
 
 ; Reserved
 isr27:
-    push byte 0
-    push byte 27
+    push 0
+    push 27
     jmp exception_common
 
 ; Reserved
 isr28:
-    push byte 0
-    push byte 28
+    push 0
+    push 28
     jmp exception_common
 
 ; Reserved
 isr29:
-    push byte 0
-    push byte 29
+    push 0
+    push 29
     jmp exception_common
 
 ; Reserved
 isr30:
-    push byte 0
-    push byte 30
+    push 0
+    push 30
     jmp exception_common
 
 ; Reserved
 isr31:
-    push byte 0
-    push byte 31
+    push 0
+    push 31
     jmp exception_common
 
 ; Syscall interrupt
 isr128:
-    push byte 0
-    push byte 0
+    push 0
+    push 0
     jmp syscall_common
 
 irq0:
-    push byte 0
-    push byte 32
+    push 0
+    push 32
     jmp irq_common
 
 irq1:
-    push byte 1
-    push byte 33
+    push 1
+    push 33
     jmp irq_common
 
 irq2:
-    push byte 2
-    push byte 34
+    push 2
+    push 34
     jmp irq_common
 
 irq3:
-    push byte 3
-    push byte 35
+    push 3
+    push 35
     jmp irq_common
 
 irq4:
-    push byte 4
-    push byte 36
+    push 4
+    push 36
     jmp irq_common
 
 irq5:
-    push byte 5
-    push byte 37
+    push 5
+    push 37
     jmp irq_common
 
 irq6:
-    push byte 6
-    push byte 38
+    push 6
+    push 38
     jmp irq_common
 
 irq7:
-    push byte 7
-    push byte 39
+    push 7
+    push 39
     jmp irq_common
 
 irq8:
-    push byte 8
-    push byte 40
+    push 8
+    push 40
     jmp irq_common
 
 irq9:
-    push byte 9
-    push byte 41
+    push 9
+    push 41
     jmp irq_common
 
 irq10:
-    push byte 10
-    push byte 42
+    push 10
+    push 42
     jmp irq_common
 
 irq11:
-    push byte 11
-    push byte 43
+    push 11
+    push 43
     jmp irq_common
 
 irq12:
-    push byte 12
-    push byte 44
+    push 12
+    push 44
     jmp irq_common
 
 irq13:
-    push byte 13
-    push byte 45
+    push 13
+    push 45
     jmp irq_common
 
 irq14:
-    push byte 14
-    push byte 46
+    push 14
+    push 46
     jmp irq_common
 
 irq15:
-    push byte 15
-    push byte 47
+    push 15
+    push 47
+    jmp irq_common
+
+irq223:
+    push 223
+    push 254
+    jmp irq_common
+
+irq224:
+    push 224
+    push 255
     jmp irq_common

@@ -46,12 +46,12 @@ typedef union {
     struct {
         uint8_t vector;
         uint8_t delvMode : 3;
-        bool destMode : 1;
-        bool delvStatus : 1;
-        bool pinPolarity : 1;
-        bool remoteIRR : 1;
-        bool triggerMode : 1;
-        bool mask : 1;
+        uint8_t destMode : 1;
+        uint8_t delvStatus : 1;
+        uint8_t pinPolarity : 1;
+        uint8_t remoteIRR : 1;
+        uint8_t triggerMode : 1;
+        uint8_t mask : 1;
         uint64_t reserved : 39;
         uint8_t destination;
     } fields;

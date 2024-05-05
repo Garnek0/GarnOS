@@ -67,9 +67,18 @@
 #define APIC_TIMER_CURRENT_COUNT 0x390
 #define APIC_TIMER_DIVIDE_CONFIG 0x3E0
 
+#define APIC_ESR_CHECKSUM_SEND 1
+#define APIC_ESR_CHECKSUM_RECEIVE (1 << 1)
+#define APIC_ESR_ACC_ERR_SEND (1 << 2)
+#define APIC_ESR_ACC_ERR_RECEIVE (1 << 3)
+#define APIC_ESR_REDIRECTABLE_IPI (1 << 4)
+#define APIC_ESR_ILLEGAL_VECTOR_SEND (1 << 5)
+#define APIC_ESR_ILLEGAL_VECTOR_RECEIVE (1 << 6)
+#define APIC_ESR_ILLEGAL_VREG_ADDR (1 << 7)
+
 #include <types.h>
 
-void apic_init(bool isx2APIC);
+void apic_init();
 void apic_eoi();
 
 #endif //APIC_H
