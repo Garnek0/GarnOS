@@ -47,9 +47,19 @@ static void multiproc_configure_cpu_device(){
 
     regs[12] = 0;
 
+    char name[49];
+    memcpy((void*)name, (void*)regs, 48);
+    name[48] = 0;
+
+    //Remove the spaces
+    for(int i = 47; i > 0; i--){
+        if(name[i] == ' ' || name[i] == 0) name[i] = 0;
+        else break;
+    }
+
     cpuDevice->name = kmalloc(sizeof(uint32_t) * 13);
 
-    memcpy(cpuDevice->name, regs, sizeof(uint32_t) * 13);
+    memcpy(cpuDevice->name, name, 49);
 
     device_add(cpuDevice);
 }
@@ -78,7 +88,7 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
 
     //Report Initialisation Completion
     lock(InitCountLock, {
-        klog("multiproc: CPU %u Initialised.\n", KLOG_OK, cpuinfo->processor_id);
+        klog("Processor and APIC %u Initialised.\n", KLOG_OK, "multiproc", cpuinfo->processor_id);
         CPUInitCount++;
     });
 
@@ -87,7 +97,15 @@ void _ready_cpus(struct limine_smp_info* cpuinfo){
 }
 
 void multiproc_init(){
-    kerrno = 0;
+    klog("Initialising Processors and APICs...\n", KLOG_INFO, "multiproc");
+
+    apic_init();
+
+    multiproc_configure_cpu_device();
+
+    klog("Bootstrap Processor APIC Initialised (APIC 0).\n", KLOG_OK, "multiproc");
+
+    CPUInitCount++;
 
     //Start up the other processors
 
@@ -96,17 +114,14 @@ void multiproc_init(){
         cpuinfo = bl_get_cpu_info(i);
         cpuinfo->goto_address = _ready_cpus;
     }
-    apic_init();
 
-    multiproc_configure_cpu_device();
+    size_t CPUCount = bl_get_cpu_count();
+
+    while(CPUInitCount != CPUCount) asm volatile("nop");
+
+    klog("Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, "multiproc", CPUInitCount);
 
     //Initialise I/O APICS
 
     ioapic_init();
-
-    size_t CPUCount = bl_get_cpu_count();
-
-    while(CPUInitCount != (CPUCount-1)) asm volatile("nop");
-
-    klog("multiproc: Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, CPUCount);
 }

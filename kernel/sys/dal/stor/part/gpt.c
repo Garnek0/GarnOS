@@ -72,7 +72,7 @@ bool gpt_initialise_drive(drive_t* drive){
                             break;
                         }
                     }
-                    klog("DAL: Found Partition of Drive \"%s\". (startLBA: 0x%x, endLBA: 0x%x)\n", KLOG_OK, drive->name, currentEntry->startLBA, currentEntry->endLBA);
+                    klog("Found Partition of Drive \"%s\". (startLBA: 0x%x, endLBA: 0x%x)\n", KLOG_OK, "DAL", drive->name, currentEntry->startLBA, currentEntry->endLBA);
                 }
             }
             bcache_release(buf);

@@ -163,21 +163,21 @@ bool attach(device_t* device){
     ps2_write(PS2_COMMAND, PS2_COMMAND_SELFTEST);
     res = ps2_read(PS2_DATA);
     if(res != 0x55){
-        klog("PS2: PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, res);
+        klog("PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, "PS/2", res);
         return;
     }
 
     ps2_write(PS2_COMMAND, PS2_COMMAND_TEST_PORT1);
     res = ps2_read(PS2_DATA);
     if(res){
-        klog("PS2: PS2 Port 1 Faulty! Test returned 0x%x.\n", KLOG_WARNING, res);
+        klog("PS2 Port 1 Faulty! Test returned 0x%x.\n", KLOG_WARNING, "PS/2", res);
     }
 
     if(dualChannel){
         ps2_write(PS2_COMMAND, PS2_COMMAND_TEST_PORT2);
         res = ps2_read(PS2_DATA);
         if(res){
-            klog("PS2: PS2 Port 2 Faulty! Test returned 0x%x.\n", KLOG_WARNING, res);
+            klog("PS2 Port 2 Faulty! Test returned 0x%x.\n", KLOG_WARNING, "PS/2", res);
         }
     }
 
@@ -196,11 +196,11 @@ bool attach(device_t* device){
     ps2_read(PS2_DATA);
 
     irq_add_handler(1, keyboard_handler);
-    klog("PS2: Keyboard Initialised\n", KLOG_OK);
+    klog("Keyboard Initialised\n", KLOG_OK, "PS/2");
 
     asm volatile("sti");
 
-    klog("PS2: PS2 Controller Initialised.\n", KLOG_OK);
+    klog("PS2 Controller Initialised.\n", KLOG_OK, "PS/2");
 
     return true;
 }

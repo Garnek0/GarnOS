@@ -30,6 +30,21 @@
 - [ ] Implement ATAPI read/write.
 */
 
+void ide_write(ide_channel_t* channel, unsigned char reg, unsigned char data){
+    if(reg > 0x07 && reg < 0x0C)
+        ide_write(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
+    if(reg < 0x08)
+        outb(channel->iobase  + reg - 0x00, data);
+    else if(reg < 0x0C)
+        outb(channel->iobase  + reg - 0x06, data);
+    else if(reg < 0x0E)
+        outb(channel->control  + reg - 0x0A, data);
+    else if(reg < 0x16)
+        outb(channel->busMastering + reg - 0x0E, data);
+    if(reg > 0x07 && reg < 0x0C)
+        ide_write(channel, ATA_REG_CONTROL, channel->noInt);
+}
+
 uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     uint8_t result;
     if(reg > 0x07 && reg < 0x0C)
@@ -47,36 +62,17 @@ uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     return result;
 }
 
-void ide_write(ide_channel_t* channel, unsigned char reg, unsigned char data){
-    if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
-    if(reg < 0x08)
-        outb(channel->iobase  + reg - 0x00, data);
-    else if(reg < 0x0C)
-        outb(channel->iobase  + reg - 0x06, data);
-    else if(reg < 0x0E)
-        outb(channel->control  + reg - 0x0A, data);
-    else if(reg < 0x16)
-        outb(channel->busMastering + reg - 0x0E, data);
-    if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, channel->noInt);
-}
-
-
-
 uint8_t ide_error(uint8_t error){
     if(error == 0) return 0;
 
-    klog("IDE: ", KLOG_FAILED);
-
-    if(error & ATA_ER_AMNF) kprintf("Address Mark Not Found!\n");
-    if(error & ATA_ER_TK0NF) kprintf("Track 0 Not Found!\n");
-    if(error & ATA_ER_ABRT) kprintf("Command Aborted!\n");
-    if(error & ATA_ER_MCR) kprintf("Media Change Request!\n");
-    if(error & ATA_ER_IDNF) kprintf("ID Mark Not Found!\n");
-    if(error & ATA_ER_MC) kprintf("Media Changed!\n");
-    if(error & ATA_ER_UNC) kprintf("Uncorrectable Data!\n");
-    if(error & ATA_ER_BBK) kprintf("Bad Block!\n");
+    if(error & ATA_ER_AMNF) klog("Address Mark Not Found!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_TK0NF) klog("Track 0 Not Found!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_ABRT) klog("Command Aborted!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_MCR) klog("Media Change Request!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_IDNF) klog("ID Mark Not Found!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_MC) klog("Media Changed!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_UNC) klog("Uncorrectable Data!\n", KLOG_FAILED, "IDE");
+    if(error & ATA_ER_BBK) klog("Bad Block!\n", KLOG_FAILED, "IDE");
 
     return error;
     
@@ -330,7 +326,7 @@ bool attach(device_t* device){
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_PRIMARY){
         if(!(pciConfig->BAR0 & 1) || !(pciConfig->BAR1 & 1)){
-            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            klog("Memory Address Space BARs not supported!\n", KLOG_FAILED, "IDE");
             return false;
         }
         channelPrimary->iobase = (pciConfig->BAR0 & 0xFFFFFFFC);
@@ -343,7 +339,7 @@ bool attach(device_t* device){
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_PCI_NATIVE_SECONDARY){
         if(!(pciConfig->BAR2 & 1) || !(pciConfig->BAR3 & 1)){
-            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            klog("Memory Address Space BARs not supported!\n", KLOG_FAILED, "IDE");
             return false;
         }
         channelSecondary->iobase = (pciConfig->BAR2 & 0xFFFFFFFC);
@@ -355,7 +351,7 @@ bool attach(device_t* device){
 
     if(pciConfig->hdr.progIF & IDE_CONTROLLER_BUS_MASTERING){
         if(!(pciConfig->BAR4 & 1)){
-            klog("IDE: Memory Address Space BARs not supported!\n", KLOG_FAILED);
+            klog("Memory Address Space BARs not supported!\n", KLOG_FAILED, "IDE");
             return false;
         }
         channelPrimary->busMastering = (pciConfig->BAR4 & 0xFFFFFFFC);
@@ -420,10 +416,13 @@ bool attach(device_t* device){
 
             if(ide_read(currentChannel, ATA_REG_LBA1) != 0 || ide_read(currentChannel, ATA_REG_LBA2) != 0){
                 currentDrive->type = IDE_ATAPI;
+                klog("Found ATAPI Device.\n", KLOG_INFO, "IDE");
 
                 //identify ATAPI drive
                 ide_write(currentChannel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
                 ksleep(10);
+            } else {
+                klog("Found ATA Device.\n", KLOG_INFO, "IDE");
             }
 
             error = false;
@@ -484,7 +483,7 @@ bool attach(device_t* device){
         }
     }
 
-    klog("IDE: Initialised Controller! (I/O Base 1: 0x%x, CTRL 1: 0x%x, I/O Base 2: 0x%x, CTRL 2: 0x%x, BM: 0x%x)\n", KLOG_OK, channelPrimary->iobase, channelPrimary->control, channelSecondary->iobase, channelSecondary->control, channelPrimary->busMastering);
+    klog("Initialised Controller! (I/O Base 1: 0x%x, CTRL 1: 0x%x, I/O Base 2: 0x%x, CTRL 2: 0x%x, BM: 0x%x)\n", KLOG_OK, "IDE", channelPrimary->iobase, channelPrimary->control, channelSecondary->iobase, channelSecondary->control, channelPrimary->busMastering);
 
     return true;
 }

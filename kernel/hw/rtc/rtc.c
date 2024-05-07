@@ -99,5 +99,5 @@ void rtc_init(){
     //I dont know why, but RTC interrupts won't work otherwise.
     rtc_read_register(RTC_STATUS_C);
 
-    klog("RTC: RTC Initialised Successfully.\n", KLOG_OK);
+    klog("RTC Initialised Successfully.\n", KLOG_OK, "RTC");
 }

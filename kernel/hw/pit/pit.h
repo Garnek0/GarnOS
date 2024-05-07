@@ -17,13 +17,9 @@
 
 #include <types.h>
 
-typedef struct {
-    volatile uint64_t ticksSinceOSBoot;
-} pit_info;
-extern pit_info PITInfo;
-
 void pit_init();
 void pit_sleep(size_t ms);
-void pit_set_divisor(uint16_t div);
+void pit_set_frequency(uint32_t freq);
+inline uint64_t pit_get_ticks();
 
 #endif //PIT_H

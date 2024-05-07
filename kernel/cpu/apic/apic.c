@@ -48,7 +48,7 @@ void apic_error_handler(stack_frame_t* regs){
 
     for(int i = 0; i < 8; i++){
         if(esr & (1 << i)){
-            panic("A Local APIC Signaled %s!", apicErrorStrings[i]);
+            panic("A Local APIC Signaled %s!", "APIC", apicErrorStrings[i]);
         }
     }
 }
@@ -81,7 +81,7 @@ void apic_init(){
 
             lapicAddrOverride = (acpi_madt_record_lapic_addr_override_t*)hdr;
 
-            klog("APIC: Using 64-bit Address.\n", KLOG_INFO);
+            klog("Using 64-bit Address.\n", KLOG_INFO, "APIC");
 
             LAPICAddress = (void*)lapicAddrOverride->addr;
 
@@ -139,7 +139,11 @@ void apic_init(){
 
                 if(lapicNMIRec->acpiID == lapicRec->acpiID || lapicNMIRec->acpiID == 0xFF){
                     //We found the right entry
+
+                    klog("Found Local APIC NMI Structure for APIC %u.\n", KLOG_INFO, "APIC", lapicRec->apicID);
+
                     uint32_t data = 2; //NMI Vector
+                    data |= (0b100 << 8); //NMI Delivery Mode
 
                     uint8_t polarity = lapicNMIRec->flags & 0b11;
                     if(polarity == 0b01) data &= ~(1 << 13);

@@ -18,15 +18,18 @@
 #define KLOG_FAILED 1
 #define KLOG_INFO 2
 #define KLOG_WARNING 3
-#define KLOG_FATAL 4
+#define KLOG_CRITICAL 4
+
+extern bool kernelScreenOut;
 
 int kprintf(char* str, ...);
 int kvprintf(char* str, va_list args);
 char kputchar(char chr);
-void klog(char* str, uint8_t loglevel, ...);
+void klog(char* fmt, uint8_t status, const char* component, ...);
 char* kreadline(char* prompt);
-void kperror(const char* str);
-void kerrlog(const char* str, uint8_t loglevel);
 const char* kstrerror(int err);
+
+inline void kernel_screen_output_disable();
+inline void kernel_screen_output_enable();
 
 #endif //KSTDIO_H

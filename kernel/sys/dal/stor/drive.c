@@ -22,7 +22,7 @@ static size_t _drive_get_next_avail_index(){
         if(!drives[i]._valid) return i;
     }
 
-    panic("DAL: Too many drives attached! Limit of %d Drives exceeded!", MAX_DRIVES);
+    panic("Too many drives attached! Limit of %d Drives exceeded!", "DAL", MAX_DRIVES);
 }
 
 drive_t* drive_add(drive_t drive){
@@ -39,7 +39,7 @@ drive_t* drive_add(drive_t drive){
     lock(drvAddr->lock, {
         nextAvailDriveIndex = _drive_get_next_avail_index();
 
-        klog("DAL: Found Drive \"%s\".\n", KLOG_OK, drvAddr->name);
+        klog("Found Drive \"%s\".\n", KLOG_OK, "DAL", drvAddr->name);
 
         //search for partitions
 
@@ -52,9 +52,9 @@ drive_t* drive_add(drive_t drive){
             drvAddr->partitions[0].size = 0;
             drvAddr->partitions[0]._valid = true;
         } else if(gpt_validate_drive(drvAddr)){
-            if(!gpt_initialise_drive(drvAddr)) klog("DAL: Drive \"%s\" has a corrupt GPT Header or Table!\n", KLOG_FAILED, drvAddr->name);
+            if(!gpt_initialise_drive(drvAddr)) klog("Drive \"%s\" has a corrupt GPT Header or Table!\n", KLOG_FAILED, "DAL", drvAddr->name);
         } else {
-            klog("DAL: Drive \"%s\" not partitioned or partition table unsupported!\n", KLOG_WARNING, drvAddr->name);
+            klog("Drive \"%s\" not partitioned or partition table unsupported!\n", KLOG_WARNING, "DAL", drvAddr->name);
         }
         //TODO: Add MBR Partition Table support
 

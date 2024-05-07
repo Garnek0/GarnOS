@@ -13,7 +13,7 @@
 
 #define KHEAP_FLAGS_FREE 1
 
-#define KHEAP_INIT_PAGES 16
+#define KHEAP_INIT_PAGES 128
 
 typedef struct _kheap_block_header {
     size_t size;

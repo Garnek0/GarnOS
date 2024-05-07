@@ -87,7 +87,7 @@ bool fat_attach(drive_t* drive, size_t partition){
     filesys.fsOperations.rmdir = fat_rmdir;
 
     if(bpb->bytesPerSector != 512){
-        klog("FAT: Filesystem on drive \"%s\" partition %d has an unsupported sector size of %d Bytes per secotr!\n", KLOG_WARNING, drive->name, partition, bpb->bytesPerSector);
+        klog("Filesystem on drive \"%s\" partition %d has an unsupported sector size of %d Bytes per secotr!\n", KLOG_WARNING, "FAT", drive->name, partition, bpb->bytesPerSector);
         goto fail;
     }
 
@@ -132,7 +132,7 @@ bool fat_attach(drive_t* drive, size_t partition){
 
             goto success;
         } else {
-            klog("FAT: Filesystem on drive \"\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, drive->name, partition);
+            klog("Filesystem on drive \"\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, "FAT", drive->name, partition);
             goto fail;
         }
     } else if(context->clusterCount < 65525){
@@ -158,7 +158,7 @@ bool fat_attach(drive_t* drive, size_t partition){
 
             goto success;
         } else {
-            klog("FAT: Filesystem on drive \"%s\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, drive->name, partition);
+            klog("Filesystem on drive \"%s\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, "FAT", drive->name, partition);
             goto fail;
         }
     } else {
@@ -167,7 +167,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.context = (void*)context;
         kmfree(fat12_16ebpb);
         if(fat32ebpb->fatVer != 0){
-            klog("FAT: Filesystem on drive \"%s\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, drive->name, partition);
+            klog("Filesystem on drive \"%s\" partition %d is Corrupted or Unsupported!\n", KLOG_WARNING, "FAT", drive->name, partition);
             goto fail;
         }
         if(fat32ebpb->signature == 0x28){
@@ -188,7 +188,7 @@ bool fat_attach(drive_t* drive, size_t partition){
 
             goto success;
         } else {
-            klog("FAT: Filesystem on drive \"\" partition %d is corrupt or unsupported!\n", KLOG_WARNING, drive->name, partition);
+            klog("Filesystem on drive \"%s\" partition %d is Corrupted or Unsupported!\n", KLOG_WARNING, "FAT", drive->name, partition);
             goto fail;
         }
     }
@@ -198,6 +198,7 @@ fail:
     return false;
 
 success:
+    klog("Found FAT system on drive \"%s\" partition %d. (FAT Version: %s)\n", KLOG_OK, "FAT", drive->name, partition, filesys.type);
     bcache_release(buf);
     filesys_mount(filesys);
     return true;

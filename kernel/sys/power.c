@@ -14,7 +14,7 @@ power_t power;
 
 int power_shutdown(){
     if(power.shutdown == NULL){
-        klog("Shutdown Not Implemented!\n", KLOG_FAILED);
+        klog("Shutdown Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
     return power.shutdown();
@@ -22,7 +22,7 @@ int power_shutdown(){
 
 int power_restart(){
     if(power.restart == NULL){
-        klog("Restart Not Implemented!\n", KLOG_FAILED);
+        klog("Restart Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
     return power.restart();
@@ -30,7 +30,7 @@ int power_restart(){
 
 int power_suspend(){
     if(power.suspend == NULL){
-        klog("Suspend Not Implemented!\n", KLOG_FAILED);
+        klog("Suspend Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
     return power.suspend();
@@ -68,5 +68,5 @@ void power_init(){
     power.shutdown = _power_shutdown_default;
     power.restart = _power_restart_default;
 
-    klog("Power: Power Initialised.\n", KLOG_OK);
+    klog("Power Initialised.\n", KLOG_OK, "Power");
 }

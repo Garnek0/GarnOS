@@ -45,7 +45,7 @@ char* kreadline(char* prompt){
             backspaces++;
             if(i > 255){
                 kprintf("\n");
-                klog("kreadline Buffer Overflow!\n", KLOG_WARNING);
+                klog("kreadline Buffer Overflow!\n", KLOG_WARNING, "klibc");
                 kerrno = EOVERFLOW;
                 line[0] = 0;
                 break;

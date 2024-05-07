@@ -67,7 +67,6 @@ void process_free(process_t* process){
     process_t* prev = NULL;
     for(process_t* proc = processList; proc != NULL; proc=proc->next){
         if(proc == process){
-
             if(proc == processListLast) processListLast = prev;
             if(proc == processList) processList = proc->next;
             if(prev) prev->next = proc->next;
@@ -82,6 +81,7 @@ void process_free(process_t* process){
             for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
                 if(childProc->parent == proc) childProc->parent = initProc;
             }
+
             kmfree(proc);
 
             return;
@@ -138,7 +138,7 @@ void process_create_init(){
     kbd->refCount++;
 
     if(elf_exec_load(initProcess, "0:/bin/init.elf") != 0){
-        panic("Could not load init!");
+        panic("Could not load init!", "proc");
     }
 
     processList = processListLast = initProcess;
@@ -157,6 +157,8 @@ void process_create_init(){
     PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
     PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
     PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
+
+    klog("Spawned init process. Jumping into userspace. Bye!\n", KLOG_OK, "proc");
 
     sched_add_thread(initProcess->mainThread);
 

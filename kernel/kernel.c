@@ -99,6 +99,8 @@ void _start(void) {
     input_init(); //initialise keyboard ringbuffer
 
     dal_init(); //initialise Device Abstraction Layer
+
+    kernel_screen_output_disable();
     
     term_clear();
 

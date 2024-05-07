@@ -47,7 +47,7 @@ file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
     //...or not found, in which case a kernel panic is triggered 
     for(int i = 0; ; i++){
         if(h->filename[0] == 0){
-            klog("initrd: Couldn't find %s\n", KLOG_FAILED, path);
+            klog("Couldn't find %s\n", KLOG_FAILED, "initrd", path);
             kerrno = ENOENT;
             return NULL;
         } else if (!strcmp(path, h->filename)){
@@ -129,7 +129,7 @@ void initrd_init(){
     //fetch module address from limine
     initrd = (initrd_tar_header_t*)(module_request.response->modules[0]->address);
     if(initrd == NULL){
-        panic("Initrd not found!");
+        panic(INITRD_FILENAME" not found!", "initrd");
     }
 
     initrdFS.context = (void*)initrd;

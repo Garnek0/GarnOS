@@ -45,6 +45,8 @@ static void kheap_extend(size_t size){
         prev->next = NULL;
         end = prev;
     }
+
+    klog("Extended kheap size. New size: %uKiB.\n", KLOG_INFO, "kheap", kheapSize/1024);
 }
 
 static void kheap_create_block(kheap_block_header_t* h, size_t size){
@@ -74,7 +76,7 @@ void kheap_init(){
 
     kheapSize = PAGE_SIZE*KHEAP_INIT_PAGES;
 
-    klog("kheap: Kernel Heap Initialised Successfully (kheap size: %uKiB)\n", KLOG_OK, (PAGE_SIZE*KHEAP_INIT_PAGES)/1024);
+    klog("Kernel Heap Initialised Successfully (kheap size: %uKiB)\n", KLOG_OK, "kheap", (PAGE_SIZE*KHEAP_INIT_PAGES)/1024);
 }
 
 void* kmalloc(size_t size){
@@ -106,7 +108,7 @@ void kmfree(void* ptr){
     h = (kheap_block_header_t*)((uint64_t)ptr - sizeof(kheap_block_header_t));
 
     if(h->flags & KHEAP_FLAGS_FREE)
-        klog("kheap: Invalid kheap free operation", KLOG_WARNING);
+        klog("Invalid kheap free operation", KLOG_WARNING, "kheap");
 
     lock(kheapLock, {
         h->flags |= KHEAP_FLAGS_FREE;

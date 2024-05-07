@@ -16,12 +16,14 @@ spinlock_t panicLock;
 
 //TODO: only halts bsp, make panic() halt the other processors too
 
-void panic(const char* str, ...){
+void panic(const char* str, const char* component, ...){
+    kernel_screen_output_enable();
     va_list args;
     va_start(args, str);
 
     lock(panicLock, {
-        klog("Kernel Panic!\n\n", KLOG_FATAL);
+        kputchar('\n');
+        klog("Kernel Panic!\n\n", KLOG_CRITICAL, component);
         kvprintf(str, args);
     });
 
@@ -34,6 +36,7 @@ void panic(const char* str, ...){
 }
 
 void panic_exception(const char* str, stack_frame_t* regs, ...){
+    kernel_screen_output_enable();
     asm("cli");
 
     va_list args;
@@ -55,7 +58,8 @@ void panic_exception(const char* str, stack_frame_t* regs, ...){
             "pop %%rax"
         : "=r" (cr0), "=r" (cr2), "=r" (cr3), "=r" (cr4) :: "%rax");
 
-        klog("Kernel Panic!\n\n", KLOG_FATAL);
+        kputchar('\n');
+        klog("Kernel Panic!\n\n", KLOG_CRITICAL, "Exception Handler");
         kprintf("Exception: ");
         kvprintf(str, args);
         kprintf("\n\n");

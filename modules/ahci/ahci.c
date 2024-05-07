@@ -38,7 +38,7 @@ static int ahci_find_cmd_slot(ahci_controller_t* controller, ahci_mem_port_t* po
 		if((slots & 1) == 0) return i;
 		slots >>= 1;
 	}
-	klog("AHCI: Cannot find free command slot!\n", KLOG_FAILED);
+	klog("Cannot find free command slot!\n", KLOG_FAILED, "AHCI");
 	return -1;
 }
 
@@ -186,7 +186,7 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     //Wait for the port to finish whatever it may be doing
     if(!ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_BSY, 1000) ||
         !ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_DRQ, 1000)){
-        klog("AHCI: Warning! Device on port %d hung!\n", KLOG_WARNING, ahciDrive->port);
+        klog("Device on port %d hung!\n", KLOG_WARNING, "AHCI", ahciDrive->port);
         return -ENODEV;
     }
 
@@ -197,12 +197,12 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         if((port->ci & (1 << freeCMDSlot)) == 0) break;
         //Task file error
         if (port->is & AHCI_PxIS_TFES){
-            klog("AHCI: Controller or Device Faulty or Unsupported! Could not Read Device\n", KLOG_FAILED);
+            klog("Controller or Device Faulty or Unsupported! Could not Read Device\n", KLOG_FAILED, "AHCI");
             return -ENODEV;
         }
     }
     if (port->is & AHCI_PxIS_TFES){
-        klog("AHCI: Controller or Device Faulty or Unsupported! Could not Read Device\n", KLOG_FAILED);
+        klog("Controller or Device Faulty or Unsupported! Could not Read Device\n", KLOG_FAILED, "AHCI");
         return -ENODEV;
     }
 
@@ -324,7 +324,7 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     //Wait for the port to finish whatever it may be doing
     if(!ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_BSY, 1000) ||
         !ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_DRQ, 1000)){
-        klog("AHCI: Warning! Device on port %d hung!\n", KLOG_WARNING, ahciDrive->port);
+        klog("Device on port %d hung!\n", KLOG_WARNING, "AHCI", ahciDrive->port);
         return -ENODEV;
     }
 
@@ -334,13 +334,13 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         if((port->ci & (1 << freeCMDSlot)) == 0) break;
         //Task file error
         if (port->is & AHCI_PxIS_TFES){
-            klog("AHCI: Controller or Device Faulty or Unsupported! Could not Write to Device\n", KLOG_FAILED);
+            klog("Controller or Device Faulty or Unsupported! Could not Write to Device\n", KLOG_FAILED, "AHCI");
             return -ENODEV;
         }
     }
 
     if (port->is & AHCI_PxIS_TFES){
-        klog("AHCI: Controller or Device Faulty or Unsupported! Could not Write to Device\n", KLOG_FAILED);
+        klog("Controller or Device Faulty or Unsupported! Could not Write to Device\n", KLOG_FAILED, "AHCI");
         return -ENODEV;
     }
 
@@ -402,7 +402,7 @@ bool attach(device_t* device){
             ksleep(25); //Give the BIOS time to set AHCI_BOHC_BB
             if(!ahci_wait_clear(&abar->bohc, AHCI_BOHC_BB, 3000) ||
                !ahci_wait_clear(&abar->bohc, AHCI_BOHC_BOS, 3000)){
-                klog("AHCI: Controller Faulty or Unsupported! Could not Complete BIOS/OS Handoff!\n", KLOG_FAILED);
+                klog("Controller Faulty or Unsupported! Could not Complete BIOS/OS Handoff!\n", KLOG_FAILED, "AHCI");
                 return false;
             }
         }   
@@ -413,7 +413,7 @@ bool attach(device_t* device){
 
     //Enable AHCI
     if(!ahci_enable(abar)){
-        klog("AHCI: Controller Faulty or Unsupported! Could not Enable AHCI Mode!\n", KLOG_FAILED);
+        klog("Controller Faulty or Unsupported! Could not Enable AHCI Mode!\n", KLOG_FAILED, "AHCI");
         return false;
     }
 
@@ -435,7 +435,7 @@ bool attach(device_t* device){
             //TODO: Maybe add some code to handle these kinds of situations...
             if(!ahci_wait_clear(&abar->ports[i].cmd, AHCI_PxCMD_CR, 600) ||
                !ahci_wait_clear(&abar->ports[i].cmd, AHCI_PxCMD_FR, 600)){
-                klog("AHCI: Warning! Port %d hung!\n", KLOG_WARNING, i);
+                klog("Port %d hung!\n", KLOG_WARNING, "AHCI", i);
                 continue;
             }
 
@@ -499,11 +499,17 @@ bool attach(device_t* device){
 
                 if(!ahci_wait_set(&abar->ports[i].cmd, AHCI_PxCMD_CR, 600) ||
                    !ahci_wait_set(&abar->ports[i].cmd, AHCI_PxCMD_FR, 600)){
-                    klog("AHCI: Warning! Port %d hung!\n", KLOG_WARNING, i);
+                    klog("Port %d hung!\n", KLOG_WARNING, "AHCI", i);
                     continue;
                 }
 
                 if(abar->ports[i].sig == SATA_SIG_ATA || abar->ports[i].sig == SATA_SIG_ATAPI){
+                    if(abar->ports[i].sig == SATA_SIG_ATA){
+                        klog("Found ATA device on port %u.\n", KLOG_INFO, "AHCI", i);
+                    } else {
+                        klog("Found ATAPI device on port %u.\n", KLOG_INFO, "AHCI", i);
+                    }
+
                     ahciDrive = kmalloc(sizeof(ahci_drive_t));
                     memset((void*)ahciDrive, 0, sizeof(ahci_drive_t));
                     ahciDrive->controller = ahciController;
@@ -546,7 +552,7 @@ bool attach(device_t* device){
                     //Wait for the device to finish whatever it may be doing
                     if(!ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_BSY, 1000) ||
                        !ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_DRQ, 1000)){
-                        klog("AHCI: Warning! Device on port %d hung!\n", KLOG_WARNING, i);
+                        klog("Device on port %d hung!\n", KLOG_WARNING, "AHCI", i);
                         pmm_free(buf, 1);
                         continue;
                     }
@@ -554,7 +560,7 @@ bool attach(device_t* device){
                     abar->ports[i].ci = 1 << freeCMDSlot;
                     
                     if(!ahci_wait_clear(&abar->ports[i].tfd, AHCI_PxTFD_BSY, 1000)){
-                        klog("AHCI: Warning! Device on port %d hung!\n", KLOG_WARNING, i);
+                        klog("Device on port %d hung!\n", KLOG_WARNING, "AHCI", i);
                         pmm_free(buf, 1);
                         continue;
                     }
@@ -564,7 +570,7 @@ bool attach(device_t* device){
                         if((abar->ports[i].ci & (1 << freeCMDSlot)) == 0) break;
                         //Task file error
                         if (abar->ports[i].is & AHCI_PxIS_TFES){
-                            klog("AHCI: Controller or Device Faulty or Unsupported! Could not Identify Device\n", KLOG_WARNING);
+                            klog("Controller or Device Faulty or Unsupported! Could not Identify Device\n", KLOG_WARNING, "AHCI");
                             pmm_free(buf, 1);
                             status = false;
                             break;
@@ -606,13 +612,13 @@ bool attach(device_t* device){
 
                     drive_add(drive);
                 } else {
-                    //. . .
+                    klog("Found PM or EM device (both of which are currently unsupported).\n", KLOG_INFO, "AHCI");
                 }
             }
             
         }
     }
-    klog("AHCI: Controller Initialised. (HBA Implements AHCI %d.%d.%d)\n", KLOG_OK, abar->vsMajor, abar->vsMinor, abar->vsPatch);
+    klog("Controller Initialised. (HBA Implements AHCI %d.%d.%d)\n", KLOG_OK, "AHCI", abar->vsMajor, abar->vsMinor, abar->vsPatch);
     return true;
 }
 

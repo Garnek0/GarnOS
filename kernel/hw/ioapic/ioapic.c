@@ -15,6 +15,7 @@
 #include <cpu/multiproc/multiproc.h>
 #include <mem/vmm/vmm.h>
 #include <sys/bootloader.h>
+#include <cpu/apic/apic.h>
 
 uint8_t ioapicCount;
 uint8_t ioapicIDs[256];
@@ -43,10 +44,13 @@ uint32_t ioapic_read_reg(uint64_t ioapicAddress, uint32_t reg){
 
 void ioapic_redirect(ioapic_redirection_entry_t redirection, uint32_t entry){
     if(fallback) return;
+
     uint64_t data = redirection.bits;
     size_t ioapic;
 
     for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
+
+    klog("Redirecting GSI %u to vector %u (IRQ %u) (I/O APIC %u).\n", KLOG_INFO, "I/O APIC", entry, redirection.fields.vector, redirection.fields.vector-32, ioapic);
 
     ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry), (data & 0x00000000FFFFFFFF));
     ioapic_write_reg((uint64_t)ioapicAddresses[ioapic], (IOREDTBL(entry)+1), ((data & 0xFFFFFFFF00000000) >> 32));
@@ -121,18 +125,22 @@ void ioapic_init(){
         }
 
         ioapicRec = (acpi_madt_record_ioapic_t*)hdr;
+
         ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
         ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
         ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->ioapicAddress + bl_get_hhdm_offset());
         vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
         ioapicCount++;
+
+        klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->ioapicID, ioapicRec->gsiBase, ((ioapic_read_reg(ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
+
         i += hdr->recordLength;
         hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
     }
 
     if(ioapicCount == 0){
         if(!(MADT->flags & 1)){
-            panic("ioapic: I/O APICs not found and PICs not installed.");
+            panic("I/O APICs not found and PICs not installed.", "I/O APIC");
         }
 
         //use the PIC as a fallback interrupt controller
@@ -141,7 +149,7 @@ void ioapic_init(){
         outb(PIC2_DATA, 0x00);
         io_wait();
 
-        klog("ioapic: I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED);
+        klog("I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED, "I/O APIC");
 
         fallback = true;
 
@@ -204,6 +212,11 @@ void ioapic_init(){
         }
 
         sourceOverrideRec = (acpi_madt_record_source_override_t*)hdr;
+
+        klog("Found I/O APIC Interrupt Override Source. (IRQ %u -> GSI %u)\n", KLOG_INFO, "I/O APIC", sourceOverrideRec->IRQSource, sourceOverrideRec->GSI);
+
+        red.bits = 0;
+
         red.fields.vector = 32 + sourceOverrideRec->IRQSource;
 
         uint8_t polarity = sourceOverrideRec->flags & 0b11;
@@ -219,7 +232,7 @@ void ioapic_init(){
         hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
     }
 
-    //Get NMI sources
+    // Get NMI sources
 
     hdr = MADT->records;
     acpi_madt_record_nmi_source_t* nmiRec;
@@ -232,6 +245,9 @@ void ioapic_init(){
         }
 
         nmiRec = (acpi_madt_record_source_override_t*)hdr;
+
+        klog("Found I/O APIC NMI Source. (GSI: %u)\n", KLOG_INFO, "I/O APIC", nmiRec->GSI);
+
         red = ioapic_get_redirection(nmiRec->GSI);
 
         uint8_t polarity = nmiRec->flags & 0b11;
@@ -251,5 +267,5 @@ void ioapic_init(){
 
     asm volatile("sti");
 
-    klog("ioapic: I/O APICs Initialised Successfully.\n", KLOG_OK);
+    klog("I/O APICs Initialised Successfully.\n", KLOG_OK, "I/O APIC");
 }

@@ -28,8 +28,8 @@ acpi_sbst_t* SBST;
 acpi_mcfg_t* MCFG;
 
 void acpi_panic(const char* str){
-    klog("ACPI: Could not Parse ACPI Tables.\n", KLOG_FAILED);
-    panic(str);
+    klog("Could not Parse ACPI Tables.\n", KLOG_FAILED, "ACPI");
+    panic(str, "ACPI");
 }
 
 //returns true if acpi table checksum is valid.
@@ -65,11 +65,21 @@ static uint64_t acpi_tables_find(const char* sig){
     return 0;
 }
 
+char OEMIDBuf[6];
+static char* acpi_tables_get_oemid(char* str){
+    memcpy((void*)OEMIDBuf, (void*)str, 6);
+    OEMIDBuf[5] = 0;
+    return OEMIDBuf;
+}
+
 void acpi_tables_parse(){
 
     //Store HHDM offset
 
     uint64_t hhdm = bl_get_hhdm_offset();
+
+    //Start getting tables
+    klog("Parsing ACPI Tables...\n", KLOG_INFO, "ACPI");
 
     //Mandatory Tables
 
@@ -79,6 +89,7 @@ void acpi_tables_parse(){
     if(!acpi_tables_validate_checksum((uint64_t)RSDP, RSDP->revision == 2 ? ACPI_RSDP_1_SZ+ACPI_RSDP_2_SZ : ACPI_RSDP_1_SZ)){
         acpi_panic("ACPI: Invalid RSDP or RSDP Pointer!");
     }
+    klog("Found RSDP at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)RSDP - bl_get_hhdm_offset(), acpi_tables_get_oemid(RSDP->OEMID));
 
     if(RSDP->revision == 0){
         XSDT = (acpi_xsdt_t*)(RSDP->RSDTAddress + hhdm); //use the RSDT instead
@@ -94,8 +105,9 @@ void acpi_tables_parse(){
         acpi_panic("ACPI: Invalid RSDT/XSDT or RSDT/XSDT Pointer!");
     }
 
-    //Start actually parsing tables
-    klog("ACPI: Parsed ACPI Tables: ", KLOG_INFO);
+    if(ACPIVer == 1) klog("Found RSDT at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)XSDT - bl_get_hhdm_offset(), acpi_tables_get_oemid(XSDT->header.OEMID));
+    else klog("Found XSDT at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)XSDT - bl_get_hhdm_offset(), acpi_tables_get_oemid(XSDT->header.OEMID));
+    
 
     //FADT, contains information about ACPI fixed registers.
     FADT = (acpi_fadt_t*)acpi_tables_find("FACP");
@@ -103,7 +115,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid FADT or FADT Not Found!");
     }
-    kprintf("FADT ");
+    klog("Found FADT at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)FADT - bl_get_hhdm_offset(), acpi_tables_get_oemid(FADT->header.OEMID));
 
     //MADT, contains info about APICs, I/O APICs, which interrupts should be set as
     //non-maskable etc.
@@ -112,7 +124,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid MADT or MADT Not Found!");
     }
-    kprintf("MADT ");
+    klog("Found MADT at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)MADT - bl_get_hhdm_offset(), acpi_tables_get_oemid(MADT->header.OEMID));
 
     //DSDT, used for various power functions.
     if(FADT->DSDT != 0){
@@ -124,19 +136,29 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid DSDT or DSDT Not Found!");
     }
-    kprintf("DSDT ");
+    klog("Found DSDT at 0x%x %s\n", KLOG_OK, "ACPI", (uint64_t)DSDT - bl_get_hhdm_offset(), acpi_tables_get_oemid(DSDT->header.OEMID));
 
     //I dont really know what the FACS does. I think it has something to do
-    //with resuming the system after a sleep.
+    //with waking the system up from sleep.
     //FACS is optional in some cases.
-    FACS = (acpi_facs_t*)acpi_tables_find("FACS");
-    if(FACS == NULL || !acpi_tables_validate_checksum((uint64_t)FACS, FACS->length)){
-        if(!FADT->X_FirmwareControl && !FADT->firmwareCtrl && !(FADT->flags & HARDWARE_REDUCED_ACPI)){
-            kprintf("\n");
-            acpi_panic("ACPI: Invalid FACS or FACS Not Found! (FACS not optional)");
-        }
+    if(FADT->X_FirmwareControl){
+        FACS = (acpi_facs_t*)(FADT->X_FirmwareControl + bl_get_hhdm_offset());
+    } else if(FADT->firmwareCtrl){
+        FACS = (acpi_facs_t*)((uint64_t)FADT->firmwareCtrl + bl_get_hhdm_offset());
+    } else {
+        FACS = NULL;
+    }
+
+    if(FACS == NULL && !(FADT->flags & HARDWARE_REDUCED_ACPI)){
+        kprintf("\n");
+        acpi_panic("ACPI: Invalid FACS or FACS Not Found! (FACS not optional)");
     } else if (FACS != NULL){
-        kprintf("FACS ");
+        if(!(FADT->flags & HARDWARE_REDUCED_ACPI)){
+            klog("Found FACS at 0x%x\n", KLOG_OK, "ACPI", (uint64_t)FACS - bl_get_hhdm_offset());
+        } else {
+            klog("Found FACS at 0x%x\n", KLOG_INFO, "ACPI", (uint64_t)FACS - bl_get_hhdm_offset());
+        }
+        
     }
 
     //Optional Tables
@@ -147,7 +169,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid BGRT Structure!");
     } else if (BGRT != NULL){
-        kprintf("BGRT ");
+        klog("Found BGRT at 0x%x %s\n", KLOG_INFO, "ACPI", (uint64_t)BGRT - bl_get_hhdm_offset(), acpi_tables_get_oemid(BGRT->header.OEMID));
     }
 
     BERT = (acpi_bert_t*)acpi_tables_find("BERT");
@@ -155,7 +177,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid BERT Structure!");
     } else if (BERT != NULL){
-        kprintf("BERT ");
+        klog("Found BERT at 0x%x %s\n", KLOG_INFO, "ACPI", (uint64_t)BERT - bl_get_hhdm_offset(), acpi_tables_get_oemid(BERT->header.OEMID));
     }
 
     //HPET, this is a timer.
@@ -164,7 +186,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid HPET Structure!");
     } else if (HPET != NULL){
-        kprintf("HPET ");
+        klog("Found HPET at 0x%x %s\n", KLOG_INFO, "ACPI", (uint64_t)HPET - bl_get_hhdm_offset(), acpi_tables_get_oemid(HPET->header.OEMID));
     }
 
     //SBST, for devices that have smart batteries. Contains the battery energy
@@ -175,7 +197,7 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid SBST Structure!");
     } else if (SBST != NULL){
-        kprintf("SBST ");
+        klog("Found SBST at 0x%x %s\n", KLOG_INFO, "ACPI", (uint64_t)SBST - bl_get_hhdm_offset(), acpi_tables_get_oemid(SBST->header.OEMID));
     }
 
     //MCFG, used for PCI(e) address spaces
@@ -184,9 +206,8 @@ void acpi_tables_parse(){
         kprintf("\n");
         acpi_panic("ACPI: Invalid MCFG Structure!");
     } else if (MCFG != NULL){
-        kprintf("MCFG ");
+        klog("Found MCFG at 0x%x %s\n", KLOG_INFO, "ACPI", (uint64_t)MCFG - bl_get_hhdm_offset(), acpi_tables_get_oemid(MCFG->header.OEMID));
     }
 
-    kprintf("\n");
-    klog("ACPI: ACPI Tables Parsed Successfully.\n", KLOG_OK);
+    klog("ACPI Tables Parsed Successfully.\n", KLOG_OK, "ACPI");
 }

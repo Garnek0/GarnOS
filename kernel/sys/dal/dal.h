@@ -30,7 +30,7 @@
 static inline void dal_init(){
     device_init(); //initialise device manager
 
-    klog("DAL Initialised\n", KLOG_OK);
+    klog("DAL Initialised\n", KLOG_OK, "DAL");
 
     bcache_init(); //Initialise buffer cache
 
@@ -42,7 +42,7 @@ static inline void dal_init(){
     pcidev_init(); //detect pci devices
     miscdev_init(); //detect misc devices
 
-    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!");
+    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
 }
 
 #endif //DAL_H

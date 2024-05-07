@@ -50,7 +50,7 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
             }
         }
     });
-    panic("No available bcache buffers!");
+    panic("No available bcache buffers!", "bcache");
     return NULL;
 }
 
@@ -60,7 +60,7 @@ bcache_buf_t* bcache_read(drive_t* drive, size_t block){
         if(drive->read){
             drive->read(drive, block, 1, buf->data);
         } else {
-            klog("bcache: Cant read from drive \"%s\"! Read unimplemented.\n", KLOG_FAILED, drive->name);
+            klog("Cant read from drive \"%s\"! Read unimplemented.\n", KLOG_FAILED, "bcache", drive->name);
         }
         buf->valid = true;
     }
@@ -73,7 +73,7 @@ void bcache_write(bcache_buf_t* buf){
         if(buf->drive->write){
             buf->drive->write(buf->drive, buf->block, 1, buf->data);
         } else {
-            klog("bcache: Cant write to drive \"%s\"! Write unimplemented.\n", KLOG_FAILED, buf->drive->name);
+            klog("Cant write to drive \"%s\"! Write unimplemented.\n", KLOG_FAILED, "bcache", buf->drive->name);
         }
         buf->dirty = false;
     }

@@ -24,7 +24,7 @@ pmm_info_t pmm_info;
 
 static void pmm_bitmap_set(uint64_t page){
     if(page/8 > bitmapSize){
-        panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (A)", page);
+        panic("Bitmap bounds exceeded! Attempt to index physical page 0x%x (alloc)", "PMM", page);
         return;
     }
     pmm_info.usedPages++;
@@ -34,7 +34,7 @@ static void pmm_bitmap_set(uint64_t page){
 
 static void pmm_bitmap_clear(uint64_t page){
     if(page/8 > bitmapSize){
-        panic("PMM: Bitmap overflow! Attempt to index physical page 0x%x (D)", page);
+        panic("Bitmap bounds exceeded! Attempt to index physical page 0x%x (dealloc)", "PMM", page);
         return;
     }
     pmm_info.usedPages--;
@@ -84,12 +84,11 @@ retry:
         inChunk = false;
         i = 0;
         foundPages = 0;
-        kprintf("searching high");
         goto retry;
     }
 
     kerrno = ENOMEM;
-    panic("PMM: Out of Memory!");
+    panic("Out of Memory!", "PMM");
     return 0;
 }
 
@@ -124,7 +123,7 @@ static uint64_t pmm_find_free32(int npages){
     }
 
     kerrno = ENOMEM;
-    panic("PMM: Out of Memory! (32-bit Allocator)");
+    panic("Out of Memory! (32-bit Allocator)", "PMM");
     return 0;
 }
 
@@ -175,8 +174,8 @@ void pmm_init(){
         goto success;
     }
 
-    klog("PMM: Could not Initialise Physical Memory Allocator", KLOG_FAILED);
-    panic("PMM: Not enough free memory to allocate for bitmap.");
+    klog("Could not Initialise Physical Memory Allocator", KLOG_FAILED, "PMM");
+    panic("Not enough free memory to allocate for bitmap.", "PMM");
 
 success:
     memset(bitmap, 0xff, bitmapSize);
@@ -199,5 +198,5 @@ success:
         pmm_info.usablePages--;
     }
 
-    klog("PMM: Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, bitmap);
+    klog("Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, "PMM", bitmap);
 }

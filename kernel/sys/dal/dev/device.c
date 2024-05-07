@@ -31,13 +31,14 @@ void device_init(){
 void device_add(device_t* device){
     list_insert(deviceList, (void*)device);
     deviceCount++;
+    klog("New Device: %s.\n", KLOG_OK, "DAL", device->name);
     device_driver_attach(device);
 }
 
 int device_remove(device_t* device){
     if(device->node && device->node->loaded && device->node->driver->remove){
         if(!device->node->driver->remove(device)){
-            klog("DAL: Could not remove device \'%s\'! Driver returned false.\n", KLOG_FAILED, device->name);
+            klog("Could not remove device \'%s\'! Driver returned false.\n", KLOG_FAILED, "DAL", device->name);
             return -1;
         }
     }
@@ -68,6 +69,7 @@ device_t device_get_device(size_t i){
 
 bool device_attach_to_driver(driver_node_t* node){
     if(deviceCount == 0) return false;
+
     device_t* device;
     device_driver_t* driver;
     bool status;
@@ -102,6 +104,7 @@ bool device_attach_to_driver(driver_node_t* node){
 
                 }
                 if(status){
+                    klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
                     if(!node->loaded) elf_load_driver(node);
                     break;
                 }
@@ -116,13 +119,13 @@ bool device_attach_to_driver(driver_node_t* node){
             status = driver->probe(device);
             if(status){
                 device->node = node;
-                klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
+                klog("Found Driver for %s\n", KLOG_OK, "DAL", device->name);
                 status = driver->attach(device);
                 if(status){
                     releaseLock(&deviceManagerLock);
                     return true;
                 } else {
-                    klog("DAL: Failed to attach device %s to %s\n", KLOG_FAILED, device->name, node->path);
+                    klog("Failed to attach device %s to %s\n", KLOG_FAILED, "DAL", device->name, node->path);
                     device->node = NULL;
                 }
             }

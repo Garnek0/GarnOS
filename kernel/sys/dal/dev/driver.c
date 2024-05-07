@@ -46,7 +46,7 @@ int device_driver_register(const char* path){
     file_t* file = file_open(path, O_RDONLY, 0);
 
     if(!file){
-        klog("DAL: Failed to register driver \'%s\': %s!\n", KLOG_FAILED, path, kstrerror(kerrno));
+        klog("Failed to register driver \'%s\': %s!\n", KLOG_FAILED, "DAL", path, kstrerror(kerrno));
         return -1;
     }
 
@@ -55,12 +55,12 @@ int device_driver_register(const char* path){
 
     device_driver_t* driver = elf_find_symbol(elf, "driver_metadata");
     if(!driver){
-        klog("DAL: Failed to register driver \'%s\': Could not find \"driver_metadata\" structure!\n", KLOG_FAILED, path);
+        klog("Failed to register driver \'%s\': Could not find \"driver_metadata\" structure!\n", KLOG_FAILED, "DAL", path);
         goto fail;
     }
     device_id_t* driverIDs = elf_find_symbol(elf, "driver_ids");
     if(!driverIDs){
-        klog("DAL: Failed to register driver \'%s\': Could not find driver ID list!\n", KLOG_FAILED, path);
+        klog("Failed to register driver \'%s\': Could not find driver ID list!\n", KLOG_FAILED, "DAL", path);
         goto fail;
     }
 
@@ -68,7 +68,7 @@ int device_driver_register(const char* path){
     size_t idListSize = 0;
     while(driverIDs[idListSize] != 0) idListSize++;
     if(idListSize == 0){
-        klog("DAL: Failed to register driver \'%s\': No IDs in ID List!\n", KLOG_FAILED, path);
+        klog("Failed to register driver \'%s\': No IDs in ID List!\n", KLOG_FAILED, "DAL", path);
         goto fail;
     }
     idListSize++;
@@ -86,7 +86,7 @@ int device_driver_register(const char* path){
 
     device_driver_add(driverNode);
 
-    klog("DAL: Registered Driver \'%s\'.\n", KLOG_OK, path);
+    klog("Registered Driver \'%s\'.\n", KLOG_OK, "DAL", path);
     kmfree(elf);
     file_close(file);
 
@@ -102,11 +102,11 @@ fail:
 
 int device_driver_unregister_node(driver_node_t* node){
     if(node->loaded){
-        klog("DAL: Failed to unregister driver \'%s\'! Already Loaded.\n", KLOG_FAILED, node->path);
+        klog("Failed to unregister driver \'%s\'! Already Loaded.\n", KLOG_FAILED, "DAL", node->path);
         return -1;
     }
     if(list_remove(driverList, (void*)node) != 0) return -1;
-    klog("DAL: Unregistered Driver \'%s\'.\n", KLOG_OK, node->path);
+    klog("Unregistered Driver \'%s\'.\n", KLOG_OK, "DAL", node->path);
     kmfree(node);
     return 0;
 }
@@ -125,6 +125,7 @@ int device_driver_unregister(const char* path){
 //true - device attached, false - device not attached
 bool device_driver_attach(device_t* device){
     if(driverCount == 0) return false;
+
     device_driver_t* driver;
     driver_node_t* node;
     bool status;
@@ -159,6 +160,7 @@ bool device_driver_attach(device_t* device){
 
                 }
                 if(status){
+                    klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
                     if(!node->loaded) elf_load_driver(node);
                     break;
                 }
@@ -173,13 +175,13 @@ bool device_driver_attach(device_t* device){
             status = driver->probe(device);
             if(status){
                 device->node = node;
-                klog("DAL: Found Driver for %s\n", KLOG_OK, device->name);
+                klog("Found Driver for %s\n", KLOG_OK, "DAL", device->name);
                 status = driver->attach(device);
                 if(status){
                     releaseLock(&driverManagerLock);
                     return true;
                 } else {
-                    klog("DAL: Failed to attach device %s to %s\n", KLOG_FAILED, device->name, node->path);
+                    klog("Failed to attach device %s to %s\n", KLOG_FAILED, "DAL", device->name, node->path);
                     device->node = NULL;
                 }
             }
@@ -193,7 +195,7 @@ int device_driver_autoreg(const char* path){
     file_t* file = file_open(path, O_RDONLY, 0);
     
     if(!file){
-        klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, path);
+        klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, "DAL", path);
         return -1;
     }
 

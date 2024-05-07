@@ -12,7 +12,7 @@
 #include <cpu/interrupts/interrupts.h>
 #include <kstdio.h>
 
-void panic(const char* str, ...);
+void panic(const char* str, const char* component, ...);
 void panic_exception(const char* str, stack_frame_t* regs, ...);
 
 #endif //PANIC_H

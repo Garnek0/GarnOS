@@ -47,16 +47,6 @@ const char* kerrStr[] = {
     //TODO: Complete this list
 };
 
-void kperror(const char* str){
-    int err = kerrno;
-    kprintf("%s: %s", str, kerrStr[err-1]);
-}
-
-void kerrlog(const char* str, uint8_t loglevel){
-    int err = kerrno;
-    klog("%s: %s", loglevel, str, kerrStr[err-1]);
-}
-
 const char* kstrerror(int err){
     return kerrStr[err-1];
 }

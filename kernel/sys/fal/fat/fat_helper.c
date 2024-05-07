@@ -115,7 +115,7 @@ char* fat_parse_lfn(fat_lfn_t* lfn){
         LFNNewEntry = true;
         if(LFNWorkBuffer[255] != 0){
             //assume the name is corrupt
-            klog("FAT: corrupt LFN\n", KLOG_FAILED);
+            klog("corrupt LFN\n", KLOG_FAILED, "FAT");
             return false;
         }
         char* buf = kmalloc(256);

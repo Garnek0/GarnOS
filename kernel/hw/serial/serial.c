@@ -14,7 +14,8 @@
 
 #include <kstdio.h>
 
-static bool serialPresent = false;
+static bool serialPresent;
+static bool enableSerialLogs = false;
 
 spinlock_t serialLock;
 
@@ -41,34 +42,36 @@ int serial_init(){
     outb(COM_DATA, 0xAE);
     if(inb(COM_DATA) != 0xAE) {
         serialPresent = false;
-        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
 
     outb(COM_DATA, 0x56);
     if(inb(COM_DATA) != 0x56) {
         serialPresent = false;
-        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
 
     outb(COM_DATA, 0xA3);
     if(inb(COM_DATA) != 0xA3) {
         serialPresent = false;
-        klog("SerialConsole: Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED);
+        klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
  
     outb(COM_MODEM_CTRL, 0x0F);
 
-    serial_log("SerialConsole: Serial Initialised.\n\r");
-    klog("SerialConsole: Serial Console Initialised.\n", KLOG_OK);
+    serial_enable_logs();
+
+    serial_log("Serial initialised for logging.\n\r");
+    klog("Serial Console Initialised.\n", KLOG_OK, "Serial");
 
     return 0;
 }
 
 void serial_write(uint8_t data){
-    if(!serialPresent) return;
+    if(!serialPresent || !enableSerialLogs) return;
 
     lock(serialLock, {
         //poll bit 5 of the line status register
@@ -78,9 +81,17 @@ void serial_write(uint8_t data){
 }
 
 void serial_log(const char* str){
-    if(!serialPresent) return;
+    if(!serialPresent || !enableSerialLogs) return;
 
     for(uint32_t i = 0; i < strlen(str); i++){
         serial_write(str[i]);
     }
+}
+
+void serial_enable_logs(){
+    enableSerialLogs = true;
+}
+
+void serial_disable_logs(){
+    enableSerialLogs = false;
 }

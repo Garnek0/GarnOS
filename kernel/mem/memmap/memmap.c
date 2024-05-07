@@ -30,8 +30,9 @@ static volatile struct limine_memmap_request memmap_request = {
 
 void memmap_print(){
     struct limine_memmap_response* memmap = memmap_request.response;
+    klog("Printing memmap...\n", KLOG_INFO, "memmap");
     for(uint64_t i = 0; i < memmap->entry_count; i++){
-        kprintf("[0x%x->0x%x] %uB %s\n", memmap->entries[i]->base, memmap->entries[i]->base + memmap->entries[i]->length, memmap->entries[i]->length, memmap_type_strings[memmap->entries[i]->type]);
+        klog("[0x%x->0x%x] %uB %s\n", KLOG_INFO, "memmap", memmap->entries[i]->base, memmap->entries[i]->base + memmap->entries[i]->length, memmap->entries[i]->length, memmap_type_strings[memmap->entries[i]->type]);
     }
 }
 

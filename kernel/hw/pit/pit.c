@@ -17,11 +17,12 @@
 
 spinlock_t PITLock;
 
-pit_info PITInfo;
+volatile uint64_t pitTicksSinceOSBoot;
 
 void pit_handler(stack_frame_t* regs){
-    PITInfo.ticksSinceOSBoot++;
-    sched_preempt(regs);
+    pitTicksSinceOSBoot++;
+    //preempt every 10 ms
+    if(pitTicksSinceOSBoot%10 == 0) sched_preempt(regs);
     return;
 }
 
@@ -29,14 +30,14 @@ void pit_handler(stack_frame_t* regs){
 void pit_sleep(size_t ms){
     if(ms < 10) ms = 10;
     lock(PITLock, {
-        uint64_t finalTicks = PITInfo.ticksSinceOSBoot + (ms/10);
-        while(PITInfo.ticksSinceOSBoot < finalTicks){
+        uint64_t finalTicks = pitTicksSinceOSBoot + (ms/10);
+        while(pitTicksSinceOSBoot < finalTicks){
             asm volatile("nop");
         }
     });
 }
 
-void pit_set_divisor(uint16_t div){
+static void pit_set_divisor(uint16_t div){
     lock(PITLock, {
         outb(PIT_CHANNEL_0, (div & 0xff));
         io_wait();
@@ -45,17 +46,22 @@ void pit_set_divisor(uint16_t div){
     });
 }
 
-static void pit_set_frequency(uint32_t freq){
+void pit_set_frequency(uint32_t freq){
     pit_set_divisor(PIT_BASE_FREQUENCY / freq);
+    klog("Set Frequency to %uHz\n", KLOG_INFO, "PIT", freq);
+}
+
+uint64_t pit_get_ticks(){
+    return pitTicksSinceOSBoot;
 }
 
 void pit_init(){
 
     outb(PIT_MODE_OR_COMMAND, 0b00110100);
 
-    pit_set_frequency(100); //10ms per tick
+    pit_set_frequency(1000); //1ms per tick
 
     irq_add_handler(0, pit_handler);
 
-    klog("PIT: Timer Initialised.\n", KLOG_OK);
+    klog("Timer Initialised.\n", KLOG_OK, "PIT");
 }

@@ -91,7 +91,7 @@ int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, mo
 		} else {
 			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
 			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
-				klog("ML: Module %s not correctly aligned!\n", KLOG_WARNING, path);
+				klog("Module %s not correctly aligned!\n", KLOG_WARNING, "ML", path);
 			}
 		}
 	}
@@ -114,7 +114,7 @@ int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, mo
 				//look for the kernel symbol in the kernel symbol list.
 				symTable[sym].st_value = ksym_find(symNames + symTable[sym].st_name);
 				if((int64_t)symTable[sym].st_value == -1){
-					klog("ML: Kernel Module/Driver '%s' contains an invalid symbol (%s)! Unloading!\n", KLOG_FAILED, path, symNames + symTable[sym].st_name);
+					klog("Kernel Module/Driver '%s' contains an invalid symbol (%s)! Unloading!\n", KLOG_FAILED, "ML", path, symNames + symTable[sym].st_name);
 					kerrno = ENOEXEC;
 					return -1;
 				}
@@ -134,14 +134,14 @@ int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, mo
 
 	//if no metadata struct was found, call the module invalid (and unload).
 	if(modData && !*modData){
-		klog("ML: Module '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, path);
+		klog("Module '%s' has invalid metadata struct! Unloading!\n", KLOG_FAILED, "ML", path);
 		kerrno = ENOEXEC;
 		return -1;
 	}
 
 	//...
 	if(driverData && !*driverData){
-		klog("ML: Driver '%s' has invalid driverdata struct! Unloading!\n", KLOG_FAILED, path);
+		klog("Driver '%s' has invalid driverdata struct! Unloading!\n", KLOG_FAILED, "ML", path);
 		kerrno = ENOEXEC;
 		return -1;
 	}
@@ -178,8 +178,8 @@ int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, mo
 					break;
 				default:
 					kerrno = ENOEXEC;
-					if(driverData) klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, path, kstrerror(kerrno), KLOG_FAILED);
-					else klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, path, kstrerror(kerrno), KLOG_FAILED);
+					if(driverData) klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno), KLOG_FAILED);
+					else klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno), KLOG_FAILED);
 					return -1;
 					break;
 			}
@@ -204,7 +204,7 @@ int elf_load_module(char* modulePath){
 	err = kerrno;
 
 	if(!file){
-		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(err), KLOG_FAILED);
+		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(err), KLOG_FAILED);
 		return -1;
 	}
 
@@ -212,7 +212,7 @@ int elf_load_module(char* modulePath){
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
-		klog("ML: Could not load Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno), KLOG_FAILED);
 		return -1;
 	}
 
@@ -246,7 +246,7 @@ int elf_load_module(char* modulePath){
 				}
 			}
 			kerrno = EEXIST;
-			klog("ML: Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, modulePath, kstrerror(kerrno), KLOG_FAILED);
+			klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno), KLOG_FAILED);
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}
@@ -258,7 +258,7 @@ int elf_load_module(char* modulePath){
 
 	file_close(file);
 
-	klog("ML: Loaded Module \'%s\'\n", KLOG_OK, modulePath);
+	klog("Loaded Module \'%s\'\n", KLOG_OK, "ML", modulePath);
 
 	modData->init();
 
@@ -280,7 +280,7 @@ int elf_load_driver(driver_node_t* node){
 	err = kerrno;
 
 	if(!file){
-		klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(err), KLOG_FAILED);
+		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(err), KLOG_FAILED);
 		return -1;
 	}
 
@@ -288,7 +288,7 @@ int elf_load_driver(driver_node_t* node){
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
-		klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno), KLOG_FAILED);
 		return -1;
 	}
 
@@ -323,7 +323,7 @@ int elf_load_driver(driver_node_t* node){
 				}
 			}
 			kerrno = EEXIST;
-			klog("ML: Could not load Driver \'%s\': %s\n", KLOG_FAILED, node->path, kstrerror(kerrno), KLOG_FAILED);
+			klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno), KLOG_FAILED);
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}
@@ -341,7 +341,7 @@ int elf_load_driver(driver_node_t* node){
 
 	file_close(file);
 
-	klog("ML: Loaded Driver \'%s\'\n", KLOG_OK, node->path);
+	klog("Loaded Driver \'%s\'\n", KLOG_OK, "ML", node->path);
 
 	modData->init();
 
@@ -369,7 +369,7 @@ int elf_exec_load(process_t* process, char* path){
 
 	//TODO: handle ET_DYN
 	if(!elf_validate(h, ET_EXEC)){
-		klog("exec: Could not load executable %s! Executable is corrupt!\n", KLOG_FAILED, path);
+		klog("Could not load executable %s! Executable is corrupt!\n", KLOG_FAILED, "ELF", path);
 		return -1;
 	}
 	

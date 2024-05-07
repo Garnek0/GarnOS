@@ -468,6 +468,7 @@ void pcidev_init(){
                                 break;
                         }
 
+                        klog("Found device on Bus %d Slot %d Function %d: %s.\n", KLOG_INFO, "PCI", i, j, k, device->name);
                         device_add(device);
                         break;
                     case PCI_HEADER_PCI_TO_PCI:
@@ -502,6 +503,7 @@ void pcidev_init(){
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                         device->name = "PCI-to-PCI Bridge";
 
+                        klog("Found device on Bus %d Slot %d Function %d: %s.\n", KLOG_INFO, "PCI", i, j, k, device->name);
                         device_add(device);
                         break;
                     case PCI_HEADER_PCI_TO_CARDBUS:
@@ -511,13 +513,12 @@ void pcidev_init(){
                         device->data = (void*)pciToCardbus;
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                         device->name = "Cardbus Bridge";
+                        klog("Found device on Bus %d Slot %d Function %d: %s.\n", KLOG_INFO, "PCI", i, j, k, device->name);
                         device_add(device);
                         break;
                     default:
                         break;
-                }
-
-                
+                }        
             }
         }
     }

@@ -169,6 +169,7 @@ fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
     fd_t* newfd = (fd_t*)kmalloc(sizeof(fd_t)*newSize);
     memset(newfd, 0, sizeof(fd_t)*newSize);
     memcpy(newfd, fd, sizeof(fd_t)*prevSize);
+    kmfree(fd);
 
     return newfd;
 }
@@ -272,7 +273,8 @@ checkpath:
     return buf;
 }
 
-//TODO: sys_stat() syscalls;
+//TODO: sys_stat() syscall
+//TODO: sys_lseek() syscall
 
 int sys_open(stack_frame_t* regs, char* path, int flags, int mode){
     process_t* currentProcess = sched_get_current_process();

@@ -13,6 +13,7 @@
 #include <display/fb.h>
 #include <mem/kheap/kheap.h>
 #include <hw/ports.h>
+#include <hw/serial/serial.h>
 
 #include <mem/memutil/memutil.h>
 
@@ -61,6 +62,8 @@ void term_init(){
     tc.escape = tc.escapeCSI = false;
     tc.escapeOffset = 0;
     tc.enabled = true;
+
+    kernel_screen_output_enable();
 }
 
 void term_clear(){
@@ -118,6 +121,10 @@ void term_scroll(uint16_t pix){
 static void term_putchar_raw(char chr){
 
     if(!tc.enabled) return;
+
+    outb(0xE9, (uint8_t)chr);
+    serial_write((uint8_t)chr);
+    if(chr == '\n') serial_write((uint8_t)'\r');
 
     switch(chr){
         case '\n':
@@ -187,11 +194,13 @@ static void term_handle_esc(char chr){
 char term_putchar(char chr){
     if(chr == 0) return 0;
 
-    outb(0xE9, (uint8_t)chr);
-
     if(!tc.enabled) return;
 
     lock(tc.lock, {
+        outb(0xE9, (uint8_t)chr);
+        serial_write((uint8_t)chr);
+        if(chr == '\n') serial_write((uint8_t)'\r');
+
         if(tc.escape){
             tc.escapeOffset++;
             term_handle_esc(chr);
@@ -229,10 +238,28 @@ char term_putchar(char chr){
     return chr;
 }
 
+char term_putchar_dbg(char chr){
+    lock(tc.lock, {
+        outb(0xE9, (uint8_t)chr);
+        serial_write((uint8_t)chr);
+        if(chr == '\n') serial_write((uint8_t)'\r');
+    });
+    return chr;
+}
+
 int term_print(char* str){
     int chars = 0;
     for(int i = 0; i < (int)strlen(str); i++){
         term_putchar(str[i]);
+        chars++;
+    }
+    return chars;
+}
+
+int term_print_dbg(char* str){
+    int chars = 0;
+    for(int i = 0; i < (int)strlen(str); i++){
+        term_putchar_dbg(str[i]);
         chars++;
     }
     return chars;

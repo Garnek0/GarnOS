@@ -59,7 +59,10 @@ void exception_handler(stack_frame_t* regs){
         //If the last 2 bits of ds are 0b11, then the exception occured in userspace,
         //terminate the currently running process.
         process_t* currentProcess = sched_get_current_process();
+        //FIXME: MIGHT BREAK WITH MULTIPROCESSING
+        kernel_screen_output_enable();
         kprintf("PID %d (%s): Process terminated due to exception. (%s)\n", currentProcess->pid, currentProcess->name, exceptionMessages[regs->intn]);
+        kernel_screen_output_disable();
         process_terminate(currentProcess);
 
         asm volatile("sti");

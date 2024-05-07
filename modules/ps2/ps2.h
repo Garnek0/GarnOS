@@ -67,7 +67,7 @@ static inline void ps2_write(uint8_t port, uint8_t data){
     size_t timeout = TIMEOUT;
     while(timeout--) if(!(inb(PS2_COMMAND) & PS2_STATUS_WRITERDY)) break;
     if(!timeout){
-        klog("PS2: PS2 Write Access Timed Out.\n", KLOG_WARNING);
+        klog("PS2 Write Access Timed Out.\n", KLOG_WARNING, "PS/2");
     }
     outb(port, data);
 }
@@ -76,7 +76,7 @@ static inline uint8_t ps2_read(uint8_t port){
     size_t timeout = TIMEOUT;
     while(timeout--) if(inb(PS2_COMMAND) & PS2_STATUS_READRDY) break;
     if(!timeout){
-        klog("PS2: PS2 Read Access Timed Out.\n", KLOG_WARNING);
+        klog("PS2 Read Access Timed Out.\n", KLOG_WARNING, "PS/2");
     }
     return inb(port);
 }

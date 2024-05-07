@@ -30,7 +30,6 @@ void miscdev_init(){
         res = inb(0x60);
 
         if(res == 0x55) goto ps2_found;
-
     }
 
 ps2_found:

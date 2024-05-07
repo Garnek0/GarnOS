@@ -26,4 +26,7 @@ int serial_init();
 void serial_write(uint8_t data);
 void serial_log(const char* str);
 
+inline void serial_enable_logs();
+inline void serial_disable_logs();
+
 #endif //SERIAL_H

@@ -10,7 +10,12 @@
 #include "timer.h"
 #include <hw/pit/pit.h>
 
-//for now this is just a wrapper for the pit function
+//for now these are just wrappers for PIT functions
+
 void ksleep(uint64_t ms){
     pit_sleep(ms);
+}
+
+uint64_t timer_get_ticks(){
+    return pit_get_ticks();
 }

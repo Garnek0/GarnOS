@@ -28,8 +28,8 @@ void module_init(){
     //init should always be 0:
 
     if(device_driver_autoreg("0:/initreg.txt") != 0){
-        panic("initreg.txt not found on initrd!");
-    }
+        panic("initreg.txt not found on initrd!", "FAL");
+    } else
 
     moduleList = list_create();
 }

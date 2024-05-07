@@ -51,7 +51,11 @@ int kvprintf(char* fmt, va_list args){
                             dnum /= 10;
                         }
                         workBuffer[disNegative + dsize] = 0;
-                        chars += term_print(workBuffer);
+                        if(kernelScreenOut){
+                            chars += term_print(workBuffer);
+                        } else {
+                            chars += term_print_dbg(workBuffer);
+                        }
                         break;
                     case 'u':
                         //Unsigned decimal integer
@@ -69,7 +73,11 @@ int kvprintf(char* fmt, va_list args){
                             unum /= 10;
                         }
                         workBuffer[usize] = 0;
-                        chars += term_print(workBuffer);
+                        if(kernelScreenOut){
+                            chars += term_print(workBuffer);
+                        } else {
+                            chars += term_print_dbg(workBuffer);
+                        }
                         break;
                     case 'c':
                         //Character
@@ -80,7 +88,11 @@ int kvprintf(char* fmt, va_list args){
                     case 's':
                         //String
                         char* sstr = va_arg(args, char*);
-                        chars += term_print(sstr);
+                        if(kernelScreenOut){
+                            chars += term_print(sstr);
+                        } else {
+                            chars += term_print_dbg(sstr);
+                        }
                         break;
                     case 'x':
                     case 'p':
@@ -113,7 +125,11 @@ int kvprintf(char* fmt, va_list args){
                             workBuffer[xsize - (i * 2)] = xtmp + (xtmp > 9 ? 55 : '0');
                         }
                         workBuffer[xsize + 1] = 0;
-                        chars += term_print(workBuffer);
+                        if(kernelScreenOut){
+                            chars += term_print(workBuffer);
+                        } else {
+                            chars += term_print_dbg(workBuffer);
+                        }
                         break;
                     default:
                         break;

@@ -27,7 +27,6 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
 
     uint8_t* sectBuf = kmalloc(512);
     if(file->flags & O_DIRECTORY){
-
         int bufind = 0;
 
         bool isInLFN = false;

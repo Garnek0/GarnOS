@@ -28,7 +28,7 @@ void irq_remove_handler(uint8_t irq, void* handler){
 
 void irq_handler(stack_frame_t* regs){
     //for irqs, errCode stores the irq number
-    if(regs->errCode == 224) return; //This is an APIC Spurious Interrupt. Return without signaling EOI
+    if(regs->errCode == 224) return; //This is an APIC Spurious Interrupt. Return without signaling EOI.
     if(!irqHandlerLists[regs->errCode]) goto done;
     foreach(i, irqHandlerLists[regs->errCode]){
         void (*irq)(stack_frame_t* regs) = (void(*)(stack_frame_t* regs))i->value;
