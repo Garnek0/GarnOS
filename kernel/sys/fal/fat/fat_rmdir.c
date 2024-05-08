@@ -14,5 +14,5 @@
 #include <kstdio.h>
 
 int fat_rmdir(filesys_t* self, char* path){
-    ;
+    return 0;
 }

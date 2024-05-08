@@ -46,6 +46,8 @@
 #include <process/thread/thread.h>
 #include <process/process.h>
 
+struct _thread;
+
 typedef struct {
     bool present : 1;
     bool readWrite : 1;

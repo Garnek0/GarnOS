@@ -242,7 +242,7 @@ int elf_load_module(char* modulePath){
 			for(size_t i = 0; i < h->e_shnum; i++){
 				Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
 				if(sh->sh_type == SHT_NOBITS){
-					kmfree(sh->sh_addr);
+					kmfree((void*)sh->sh_addr);
 				}
 			}
 			kerrno = EEXIST;
@@ -319,7 +319,7 @@ int elf_load_driver(driver_node_t* node){
 			for(size_t i = 0; i < h->e_shnum; i++){
 				Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
 				if(sh->sh_type == SHT_NOBITS){
-					kmfree(sh->sh_addr);
+					kmfree((void*)sh->sh_addr);
 				}
 			}
 			kerrno = EEXIST;

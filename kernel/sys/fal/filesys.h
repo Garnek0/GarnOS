@@ -29,6 +29,8 @@
 
 #define PATH_MAX 4096
 
+struct _filesys; //Do this so that the compiler doesnt complain about incomplete types
+
 typedef struct _filesys_operations {
     struct _file* (*open)(struct _filesys* self, char* path, int flags, int mode);
     ssize_t (*read)(struct _filesys* self, struct _file* file, size_t size, void* buf, size_t offset);

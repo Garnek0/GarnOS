@@ -17,9 +17,9 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     kerrno = 0;
 
     fat_context_t* context = (fat_context_t*)self->context;
-    fat_directory_t* currentDir;
-    fat_lfn_t* currentLFN;
-    bcache_buf_t* buf;
+    fat_directory_t* currentDir = NULL;
+    fat_lfn_t* currentLFN = NULL;
+    bcache_buf_t* buf = NULL;
     bool hasEndSlash = false;
     char* pathTmp = kmalloc(strlen(path)+1);
     memcpy(pathTmp, path, strlen(path)+1);
@@ -31,14 +31,12 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     } else {
         fat32_ebpb_t* fat32ebpb = (fat32_ebpb_t*)context->ebpb;
         
-        char name[256]; //holds the filename of the opened file
         char dir[256]; //holds the filename of the current object
         bool isTargetObject = false;
         size_t strptr = 0; //used for getting filenames from the path string
 
         const size_t partitionOffset = self->drive->partitions[self->partition].startLBA; //must be added to read from the correct partition
         size_t currentSector = partitionOffset + context->firstRootDirSector;
-        size_t currentSectorIndex = 0; //needed to be able to tell when to read a new sector;
         uint32_t currentCluster = fat32ebpb->rootDirCluster;
 
         bool found;
@@ -86,15 +84,15 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
 
             //read next object
 
-            if(path[strptr] != NULL && path[strptr] != '/'){
+            if(path[strptr] != 0 && path[strptr] != '/'){
                 strptr++;
                 continue;
             }
 
-            for(int i = 0; i < strptr; i++){
+            for(size_t i = 0; i < strptr; i++){
                 dir[i] = path[0];
                 path++;
-                if(path[0] == NULL){
+                if(path[0] == 0){
                     isTargetObject = true;
                     break;
                 }
@@ -103,7 +101,7 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                     break;
                 }
             }
-            dir[strptr] = NULL;
+            dir[strptr] = 0;
             
             //search for the current object
 
@@ -111,9 +109,9 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
             isLFNDirectory = false;
             foundByLFN = false;
             for(;;){
-                for(int i = 0; i < context->sectorsPerCluster; i++){
+                for(size_t i = 0; i < context->sectorsPerCluster; i++){
                     buf = bcache_read(self->drive, currentSector);
-                    for(int j = 0; j < context->bytesPerSector; j+=sizeof(fat_directory_t)){
+                    for(size_t j = 0; j < context->bytesPerSector; j+=sizeof(fat_directory_t)){
                         currentDir = (fat_directory_t*)((uint64_t)buf->data + j);
                         if(currentDir->name[0] == 0) continue;
                         if(currentDir->attr == FAT_ATTR_LFN) {

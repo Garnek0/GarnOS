@@ -61,7 +61,7 @@ void gdt_init(size_t cpu){
     //user dataseg
     gdt_set_entry(&gdt[cpu].userData, 0xF2, 0xC);
     //tss
-    gdt_set_system_entry(&gdt[cpu].tss, 0xE9, 0x0, &tss[cpu], sizeof(tss_t));
+    gdt_set_system_entry(&gdt[cpu].tss, 0xE9, 0x0, (uint64_t)&tss[cpu], sizeof(tss_t));
 
     gdtr[cpu].offset = (uint64_t)&gdt[cpu];
     gdtr[cpu].size = sizeof(gdt_t) - 1;

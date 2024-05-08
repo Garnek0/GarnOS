@@ -61,6 +61,8 @@
 #define DEVICE_CREATE_ID_PCI(vid, did, cls, scls, progif) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8) | ((uint64_t)progif))
 //...
 
+struct _driver_node;
+
 typedef uint64_t device_id_t;
 
 typedef struct _device {

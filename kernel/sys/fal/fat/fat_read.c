@@ -21,7 +21,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
     size_t currentCluster = fsData->startCluster;
     size_t currentSector = partitionOffset + context->firstDataSector + context->sectorsPerCluster * (currentCluster - 2);
 
-    int j = 0, p = 0;
+    size_t j = 0, p = 0;
 
     if(offset >= file->size) return 0;
 
@@ -44,11 +44,11 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
 
         if(!strcmp(self->type, FILESYS_TYPE_FAT32)){
             while(currentCluster){
-                for(int i = 0; i < context->sectorsPerCluster; i++){
+                for(size_t i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);
-                    for(int k = 0; k < context->bytesPerSector;){
+                    for(size_t k = 0; k < context->bytesPerSector;){
                         if(trueOffset >= file->size) goto done;
-                        fat_directory_t* dir = sectBuf+k;
+                        fat_directory_t* dir = (fat_directory_t*)((uint64_t)sectBuf+k);
                         k+=sizeof(fat_directory_t);
 
                         if(recordOffset < trueOffset){
@@ -115,9 +115,9 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
                         dirent.offset = recordOffset;
                         dirent.type = recordType;
 
-                        memcpy(&buf[bufind], &dirent, sizeof(dirent_t)-1);
+                        memcpy(&((uint8_t*)buf)[bufind], &dirent, sizeof(dirent_t)-1);
                         bufind+=sizeof(dirent_t)-1;
-                        memcpy(&buf[bufind], str, strlen(str)+1);
+                        memcpy(&((uint8_t*)buf)[bufind], str, strlen(str)+1);
                         bufind+=strlen(str)+1;
 
                         recordOffset += sizeof(fat_directory_t);
@@ -137,9 +137,9 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
     } else {
         if(!strcmp(self->type, FILESYS_TYPE_FAT32)){
             while(p != size && currentCluster){
-                for(int i = 0; i < context->sectorsPerCluster; i++){
+                for(size_t i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);
-                    for(int k = 0; k < context->bytesPerSector; k++){
+                    for(size_t k = 0; k < context->bytesPerSector; k++){
                         if(j < offset){
                             j++;
                             continue;

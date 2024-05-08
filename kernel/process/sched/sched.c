@@ -14,6 +14,7 @@
 #include <cpu/msr.h>
 #include <cpu/user.h>
 #include <kstdio.h>
+#include <mem/kheap/kheap.h>
 
 list_t* threadList;
 list_node_t* currentThreadNode;
@@ -80,11 +81,11 @@ static void _sched_switch_context(stack_frame_t* regs){
 
     vaspace_switch(currentThread->process->pml4);
 
-    //wrmsr(0xC0000100, currentThread->fsbase);
+    wrmsr(0xC0000100, currentThread->fsbase);
 }
 
 int sys_set_fs_base(stack_frame_t* regs, void* pointer){
-    currentThread->fsbase = pointer;
+    currentThread->fsbase = (uint64_t)pointer;
     wrmsr(0xC0000100, (uint64_t)pointer);
     return 0;
 }
@@ -98,7 +99,7 @@ void sched_preempt(stack_frame_t* regs){
 
     _sched_get_next_thread();
 
-    tss_set_rsp(0, currentThread->kernelStack);
+    tss_set_rsp(0, (uint64_t)currentThread->kernelStack);
 
     _sched_switch_context(regs);
 }

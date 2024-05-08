@@ -11,6 +11,6 @@
 #include <types.h>
 
 void ksleep(uint64_t ms);
-inline uint64_t timer_get_ticks();
+uint64_t timer_get_ticks();
 
 #endif //TIMER_H

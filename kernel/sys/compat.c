@@ -21,7 +21,7 @@ enum {
 };
 
 void compat_check(){
-    uint32_t eax, ebx, ecx, edx;
+    uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
     __get_cpuid(0x1, &eax, &ebx, &ecx, &edx);
 
     if(!(edx & CPUID_FEAT_EDX_FPU)) panic("Unsupported CPU! (FPU Not Available)", "compat"); //check FPU availability

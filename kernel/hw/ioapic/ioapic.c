@@ -60,14 +60,13 @@ ioapic_redirection_entry_t ioapic_get_redirection(uint32_t entry){
     ioapic_redirection_entry_t red;
     memset(&red, 0, sizeof(ioapic_redirection_entry_t));
 
-    if(fallback) return;
-    uint64_t data;
+    if(fallback) return red;
     size_t ioapic;
 
     for(ioapic = 0; (ioapicGSIs[ioapic] + (ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOAPICVER) >> 16)) < entry; ioapic++);
 
     red.bits = ((uint64_t)ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry)) | 
-               (uint64_t)(ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry)+1) << 32));
+               (uint64_t)((uint64_t)ioapic_read_reg((uint64_t)ioapicAddresses[ioapic], IOREDTBL(entry)+1) << 32));
 
     return red;
 }
@@ -132,7 +131,7 @@ void ioapic_init(){
         vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
         ioapicCount++;
 
-        klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->ioapicID, ioapicRec->gsiBase, ((ioapic_read_reg(ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
+        klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->ioapicID, ioapicRec->gsiBase, ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
 
         i += hdr->recordLength;
         hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
@@ -244,7 +243,7 @@ void ioapic_init(){
             continue;
         }
 
-        nmiRec = (acpi_madt_record_source_override_t*)hdr;
+        nmiRec = (acpi_madt_record_nmi_source_t*)hdr;
 
         klog("Found I/O APIC NMI Source. (GSI: %u)\n", KLOG_INFO, "I/O APIC", nmiRec->GSI);
 

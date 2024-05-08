@@ -65,7 +65,7 @@ file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
             file->size = size;
 
             //the file is already in memory
-            fsData->startOffset = (void*)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
+            fsData->startOffset = (size_t)((uint64_t)h + ALIGN_UP(sizeof(initrd_tar_header_t), 512));
 
             return file;
         }

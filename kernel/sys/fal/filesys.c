@@ -21,6 +21,7 @@ static size_t _filesys_get_next_avail_index(){
     }
 
     panic("Too many filesystems mounted! Limit of %d Filesystems exceeded!", "FAL", MAX_FILESYSTEMS);
+    return (size_t)-1;
 }
 
 filesys_t* filesys_mount(filesys_t filesys){

@@ -11,6 +11,7 @@
 #include <kernel.h>
 #include <errno.h>
 #include <sys/fal/file.h>
+#include <mem/memutil/memutil.h>
 
 int sys_uname(stack_frame_t* regs, utsname_t* buf){
     if(!buf) return -EINVAL;
@@ -33,4 +34,5 @@ int sys_uname(stack_frame_t* regs, utsname_t* buf){
     
     memcpy(buf->machine, UNAME_MACHINE_X86_64, strlen(UNAME_MACHINE_X86_64)+1);
     memcpy(buf->domainname, UNAME_DEFAULT_NODE_NAME, strlen(UNAME_DEFAULT_NODE_NAME)+1);
+    return 0;
 }

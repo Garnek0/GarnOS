@@ -11,6 +11,8 @@
 #include <types.h>
 #include <sys/fal/fal.h>
 
+struct _filesys;
+
 extern file_t* tty;
 
 void tty_init();

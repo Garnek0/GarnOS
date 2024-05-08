@@ -63,7 +63,7 @@ int list_index_of(list_t* list, void* value){
 }
 
 void* list_index(list_t* list, size_t index){
-    int i = 0;
+    size_t i = 0;
 
     lock(list->lock, {
         foreach(node, list){
@@ -104,7 +104,7 @@ int list_remove(list_t* list, void* value){
 
 int list_remove_index(list_t* list, size_t index){
     list_node_t* prev = NULL;
-    int i = 0;
+    size_t i = 0;
     lock(list->lock, {
         foreach(node, list){
             if(i == index){

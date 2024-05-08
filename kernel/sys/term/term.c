@@ -110,7 +110,7 @@ void term_scroll(uint16_t pix){
 
         //zero out the last row of (framebuffer_info.pitch*pix) pixels
         memset((void*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress), 0xffffffff, framebuffer_info.pitch*pix);
-        for(int i = 0; i < framebuffer_info.width*pix; i++){
+        for(size_t i = 0; i < framebuffer_info.width*pix; i++){
             ((uint32_t*)(framebuffer_info.size-framebuffer_info.pitch*pix+(uint64_t)framebuffer_info.readAddress))[i] = tc.backgroundColour;
         }
 
@@ -194,7 +194,7 @@ static void term_handle_esc(char chr){
 char term_putchar(char chr){
     if(chr == 0) return 0;
 
-    if(!tc.enabled) return;
+    if(!tc.enabled) return 0;
 
     lock(tc.lock, {
         outb(0xE9, (uint8_t)chr);
@@ -223,10 +223,10 @@ char term_putchar(char chr){
                 cursor_backspace(&tc.cursor);
                 break;
             default:
-                for(int i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
-                    for(int j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
+                for(size_t i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
+                    for(size_t j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
                         fb_pixel(j, i, tc.backgroundColour);
-                        if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> j-tc.cursor.posX)){
+                        if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> (j-tc.cursor.posX))){
                             fb_pixel(j, i, tc.foregroundColour);
                         }
                     }

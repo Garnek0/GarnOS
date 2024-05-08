@@ -17,6 +17,7 @@
 
 size_t fat12_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
     //TODO: Do this
+    return 0;
 }
 
 size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){

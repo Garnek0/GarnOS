@@ -11,18 +11,19 @@
 #include <mem/kheap/kheap.h>
 #include <mem/memutil/memutil.h>
 #include <sys/term/term.h>
+#include <sys/fal/fal.h>
 #include <kerrno.h>
 
 file_t* tty;
 
-ssize_t tty_write(filesys_t* self, file_t* file, size_t size, void* buf){
+ssize_t tty_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
     for(size_t i = 0; i < size; i++){
         term_putchar(((char*)buf)[i]);
     }
     return size;
 }
 
-ssize_t tty_read(filesys_t* self, file_t* file, size_t size, void* buf){
+ssize_t tty_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
     return -EINVAL;
 }
 

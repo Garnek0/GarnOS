@@ -17,6 +17,7 @@
 #include <acpi/tables/tables.h>
 #include <kstdio.h>
 #include <sys/dal/dal.h>
+#include <exec/elf.h>
 
 spinlock_t deviceManagerLock;
 
@@ -31,7 +32,6 @@ void device_init(){
 void device_add(device_t* device){
     list_insert(deviceList, (void*)device);
     deviceCount++;
-    klog("New Device: %s.\n", KLOG_OK, "DAL", device->name);
     device_driver_attach(device);
 }
 
@@ -44,6 +44,7 @@ int device_remove(device_t* device){
     }
     if(list_remove(deviceList, device) != 0) return -1;
     deviceCount--;
+    return 0;
 }
 
 size_t device_get_device_count(){
@@ -51,7 +52,7 @@ size_t device_get_device_count(){
 }
 
 device_t device_get_device(size_t i){
-    device_t* device;
+    device_t* device = NULL;
     size_t count = 0;
 
     if(i >= deviceCount) i = deviceCount;

@@ -115,7 +115,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            memset(&filesys.name, "No Label", 9);
+            memcpy(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -141,7 +141,7 @@ bool fat_attach(drive_t* drive, size_t partition){
         filesys.context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            memset(&filesys.name, "No Label", 9);
+            memcpy(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -171,7 +171,7 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
         if(fat32ebpb->signature == 0x28){
-            memset(&filesys.name, "No Label", 9);
+            memcpy(&filesys.name, "No Label", 9);
 
             goto success;
         } else if(fat32ebpb->signature == 0x29){

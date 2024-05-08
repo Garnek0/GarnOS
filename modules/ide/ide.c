@@ -162,8 +162,8 @@ int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         //TODO: DMA
     } else {
         uint16_t* tmp = buf;
-        for(int i = 0; i < blocks; i++) {
-            if(err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true)) return;
+        for(size_t i = 0; i < blocks; i++) {
+            if((err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true))) return -1;
             for(int j = 0; j < 256; j++){
                 tmp[j + 256*i] = inw(channel->iobase + ATA_REG_DATA);
             }
@@ -179,7 +179,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
     ide_channel_t* channel = ideDrive->channel;
     uint16_t cyl;
-    uint8_t head, sect, err;
+    uint8_t head, sect;
 
     if(startLBA >= 0x100000){
         // LBA48:
@@ -244,7 +244,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         //TODO: DMA
     } else {
         uint16_t* tmp = buf;
-        for (int i = 0; i < blocks; i++) {
+        for (size_t i = 0; i < blocks; i++) {
             ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
             for(int j = 0; j < 256; j++){
                 outw(channel->iobase + ATA_REG_DATA, tmp[j + 256*i]);
@@ -252,19 +252,19 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         }
         ide_write(channel, ATA_REG_COMMAND, (char []){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
         ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
-
-        return 0;
     }
+
+    return 0;
 }
 
 //TODO: ATAPI
 
 int ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    ;
+    return 0;
 }
 
 int ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    ;
+    return 0;
 }
 
 void init(){
@@ -427,8 +427,8 @@ bool attach(device_t* device){
 
             error = false;
 
-            while(!ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_DRQ){
-                if(ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_ERR){
+            while(!(ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_DRQ)){
+                if((ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_ERR)){
                     ide_error(ide_read(currentChannel, ATA_REG_ERROR));
                     error = true;
                     break;
@@ -450,7 +450,7 @@ bool attach(device_t* device){
 
             currentDrive->size *= 512;
 
-            tmp = &currentDrive->idSpace.model;
+            tmp = (char*)&currentDrive->idSpace.model;
 
             for(uint8_t k = 0; k < 40; k+=2){
                 currentDrive->model[k] = tmp[k + 1];

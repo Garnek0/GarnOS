@@ -19,12 +19,12 @@ spinlock_t panicLock;
 void panic(const char* str, const char* component, ...){
     kernel_screen_output_enable();
     va_list args;
-    va_start(args, str);
+    va_start(args, component);
 
     lock(panicLock, {
         kputchar('\n');
         klog("Kernel Panic!\n\n", KLOG_CRITICAL, component);
-        kvprintf(str, args);
+        kvprintf((char*)str, args);
     });
 
     va_end(args);
@@ -40,7 +40,7 @@ void panic_exception(const char* str, stack_frame_t* regs, ...){
     asm("cli");
 
     va_list args;
-    va_start(args, str);
+    va_start(args, regs);
 
     uint64_t cr0, cr2, cr3, cr4;
 
@@ -61,7 +61,7 @@ void panic_exception(const char* str, stack_frame_t* regs, ...){
         kputchar('\n');
         klog("Kernel Panic!\n\n", KLOG_CRITICAL, "Exception Handler");
         kprintf("Exception: ");
-        kvprintf(str, args);
+        kvprintf((char*)str, args);
         kprintf("\n\n");
         kprintf("RAX=0x%x RBX=0x%x RCX=0x%x\n"
                 "RDX=0x%x RSI=0x%x RDI=0x%x\n"

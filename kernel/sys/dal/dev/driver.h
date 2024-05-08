@@ -11,6 +11,8 @@
 #include <types.h>
 #include "device.h"
 
+struct _device;
+
 typedef uint64_t device_id_t;
 
 typedef struct _device_driver {

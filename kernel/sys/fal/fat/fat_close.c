@@ -16,4 +16,5 @@
 int fat_close(filesys_t* self, file_t* file){
     if(file->fsData) kmfree(file->fsData);
     kmfree(file);
+    return 0;
 }

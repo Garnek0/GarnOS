@@ -22,11 +22,3 @@ char kputchar(char chr){
         return term_putchar_dbg(chr);
     }
 }
-
-void kernel_screen_output_disable(){
-    kernelScreenOut = false;
-}
-
-void kernel_screen_output_enable(){
-    kernelScreenOut = true;
-}

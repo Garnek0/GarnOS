@@ -70,6 +70,9 @@ typedef struct _dirent {
     char name[1];
 } __attribute__((packed)) dirent_t;
 
+void file_list_add(file_t* file);
+void file_list_remove(file_t* file);
+
 //open file
 file_t* file_open(char* path, int flags, int mode);
 

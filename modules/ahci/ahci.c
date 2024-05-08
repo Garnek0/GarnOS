@@ -74,10 +74,6 @@ static bool ahci_enable(ahci_mem_t* abar){
     else return true;
 }
 
-static void ahci_set_lba(ahci_drive_t* ahciDrive, fis_reg_h2d_t* fis, size_t lba, bool write){
-
-}
-
 int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     //prdtLength would never go over MAX_PRDS with this restriction
     if(blocks > 0xFFFF) return -EINVAL;
@@ -121,7 +117,7 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     int bufContOffset = 0;
     for(; i < cmdHeader->prdtLength-1; i++){
         if(!(abar->cap1 & AHCI_CAP_S64A)){
-            cmdTable->prdtEntries[i].dba = (uint32_t)bufContinuous + bufContOffset;
+            cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)bufContinuous + bufContOffset);
             cmdTable->prdtEntries[i].dbau = 0;
         } else {
             cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)(bufContinuous + bufContOffset) & 0x00000000FFFFFFFF);
@@ -134,7 +130,7 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     }
 
     if(!(abar->cap1 & AHCI_CAP_S64A)){
-        cmdTable->prdtEntries[i].dba = (uint32_t)bufContinuous + bufContOffset;
+        cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)bufContinuous + bufContOffset);
         cmdTable->prdtEntries[i].dbau = 0;
     } else {
         cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)(bufContinuous + bufContOffset) & 0x00000000FFFFFFFF);
@@ -258,7 +254,7 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     int bufContOffset = 0;
     for(; i < cmdHeader->prdtLength-1; i++){
         if(!(abar->cap1 & AHCI_CAP_S64A)){
-            cmdTable->prdtEntries[i].dba = (uint32_t)bufContinuous + bufContOffset;
+            cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)bufContinuous + bufContOffset);
             cmdTable->prdtEntries[i].dbau = 0;
         } else {
             cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)(bufContinuous + bufContOffset) & 0x00000000FFFFFFFF);
@@ -271,7 +267,7 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     }
 
     if(!(abar->cap1 & AHCI_CAP_S64A)){
-        cmdTable->prdtEntries[i].dba = (uint32_t)bufContinuous + bufContOffset;
+        cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)bufContinuous + bufContOffset);
         cmdTable->prdtEntries[i].dbau = 0;
     } else {
         cmdTable->prdtEntries[i].dba = (uint32_t)((uint64_t)(bufContinuous + bufContOffset) & 0x00000000FFFFFFFF);
@@ -354,11 +350,11 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
 }
 
 int ahci_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    ;
+    return 0;
 }
 
 int ahci_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    ;
+    return 0;
 }
 
 void init(){
@@ -388,7 +384,7 @@ bool attach(device_t* device){
 
     //Get ABAR and disable caching
 
-    ahci_mem_t* abar = (pciConfig->BAR5 & 0xFFFFFFF0) + bl_get_hhdm_offset();
+    ahci_mem_t* abar = (ahci_mem_t*)((pciConfig->BAR5 & 0xFFFFFFF0) + bl_get_hhdm_offset());
     vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar, VMM_PRESENT | VMM_RW | VMM_PCD);
 
     ahci_controller_t* ahciController = kmalloc(sizeof(ahci_controller_t));
@@ -447,29 +443,29 @@ bool attach(device_t* device){
 
             //Allocate Command list
             if(!(abar->cap1 & AHCI_CAP_S64A)){
-                abar->ports[i].clb = pmm_allocate32(1);
+                abar->ports[i].clb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].clbu = 0;
                 memset((void*)((uint64_t)abar->ports[i].clb + bl_get_hhdm_offset()) , 0, PAGE_SIZE);
                 vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].clb + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
             } else {
-                uint64_t addr = pmm_allocate(1);
+                uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].clb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].clbu = ((addr & 0xFFFFFFFF00000000) >> 32);
                 memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
                 vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
             }
 
-            ahci_command_header_t* commandList = (ahci_command_header_t*)((uint64_t)abar->ports[i].clb | ((uint64_t)abar->ports[i].clbu << 32) + bl_get_hhdm_offset());
+            ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)abar->ports[i].clb | ((uint64_t)abar->ports[i].clbu << 32)) + bl_get_hhdm_offset());
 
             //Allocate command tables
             for(int j = 0; j < ahciController->maxCommands; j++){
                 if(!(abar->cap1 & AHCI_CAP_S64A)){
-                    commandList[j].ctba = pmm_allocate32(1);
+                    commandList[j].ctba = (uint32_t)((uint64_t)pmm_allocate32(1));
                     commandList[j].ctbau = 0;
                     memset((void*)((uint64_t)commandList[j].ctba + bl_get_hhdm_offset()), 0, PAGE_SIZE);
                     vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)commandList[j].ctba + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
                 } else {
-                    uint64_t addr = pmm_allocate(1);
+                    uint64_t addr = (uint64_t)pmm_allocate(1);
                     commandList[j].ctba = (addr & 0x00000000FFFFFFFF);
                     commandList[j].ctbau = ((addr & 0xFFFFFFFF00000000) >> 32);
                     memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
@@ -479,12 +475,12 @@ bool attach(device_t* device){
 
             //Allocate Received FIS
             if(!(abar->cap1 & AHCI_CAP_S64A)){
-                abar->ports[i].fb = pmm_allocate32(1);
+                abar->ports[i].fb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].fbu = 0;
                 memset((void*)((uint64_t)abar->ports[i].fb + bl_get_hhdm_offset()) , 0, PAGE_SIZE);
                 vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].fb + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
             } else {
-                uint64_t addr = pmm_allocate(1);
+                uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].fb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].fbu = ((addr & 0xFFFFFFFF00000000) >> 32);
                 memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
@@ -532,7 +528,7 @@ bool attach(device_t* device){
 
                     if(!(abar->cap1 & AHCI_CAP_S64A)){
                         buf = pmm_allocate32(1);
-                        cmdTable->prdtEntries[0].dba = (uint32_t)buf;
+                        cmdTable->prdtEntries[0].dba = (uint32_t)((uint64_t)buf);
                         cmdTable->prdtEntries[0].dbau = 0;
                     } else {
                         buf = pmm_allocate(1);
@@ -580,7 +576,7 @@ bool attach(device_t* device){
 
                     memcpy((void*)&ahciDrive->idSpace, (void*)buf, 512);
 
-                    char* tmp = &ahciDrive->idSpace.model;
+                    char* tmp = (char*)&ahciDrive->idSpace.model;
 
                     for(uint8_t k = 0; k < 40; k+=2){
                         ahciDrive->model[k] = tmp[k + 1];

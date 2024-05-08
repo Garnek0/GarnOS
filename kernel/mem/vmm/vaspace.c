@@ -134,7 +134,7 @@ page_table_t* vaspace_clone(page_table_t* toClone){
                             for(int l = 0; l < 512; l++){
                                 if(PT->entries[l].present){
                                     page_table_entry_t* page = &PT->entries[l];
-                                    void* pagePhys = (void*)(page->addr << 12);
+                                    void* pagePhys = (void*)((uint64_t)(page->addr << 12));
                                     void* newPagePhys = pmm_allocate(1);
 
                                     memcpy((void*)((uint64_t)newPagePhys + bl_get_hhdm_offset()), (void*)((uint64_t)pagePhys + bl_get_hhdm_offset()), PAGE_SIZE);
@@ -174,20 +174,20 @@ void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, ui
 }
 
 void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int flags, int fd, uint64_t offset){
-    if(length == 0) return -EINVAL;
-    if((uint64_t)addr > VMM_USER_END) return -ENOMEM;
+    if(length == 0) return (void*)-EINVAL;
+    if((uint64_t)addr > VMM_USER_END) return (void*)-ENOMEM;
 
     //We dont support shared mappings yet
-    if(flags & MAP_SHARED) return -EINVAL;
-    if(!(flags & MAP_PRIVATE)) return -EINVAL;
+    if(flags & MAP_SHARED) return (void*)-EINVAL;
+    if(!(flags & MAP_PRIVATE)) return (void*)-EINVAL;
 
     //We also dont support file mappings yet
-    if(!(flags & MAP_ANONYMOUS)) return -EINVAL;
+    if(!(flags & MAP_ANONYMOUS)) return (void*)-EINVAL;
 
     process_t* currentProcess = sched_get_current_process();
 
     if(addr != NULL && (uint64_t)addr%PAGE_SIZE != 0) ALIGN_UP(addr, PAGE_SIZE);
-    if(addr == NULL) addr = 0x1000;
+    if(addr == NULL) addr = (void*)0x1000;
 
     if(length%PAGE_SIZE != 0) ALIGN_UP(length, PAGE_SIZE);
     length /= PAGE_SIZE;
@@ -257,7 +257,7 @@ found_addr:
         } else continue;
     }
 
-    return -ENOMEM;
+    return (void*)-ENOMEM;
 }
 
 int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
@@ -302,10 +302,12 @@ int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
         if(!currentEntry.present && currentEntry.addr == 0){
             return -EINVAL;
         } else {
-            pmm_free((void*)(currentEntry.addr << 12), 1);
+            pmm_free((void*)((uint64_t)(currentEntry.addr << 12)), 1);
             vmm_unmap(currentProcess->pml4, (uint64_t)addr);
         }
 
         addr += PAGE_SIZE;
     }
+
+    return -ENOMEM;
 }

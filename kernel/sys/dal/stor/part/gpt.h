@@ -11,6 +11,8 @@
 #include <types.h>
 #include <sys/dal/dal.h>
 
+struct _drive;
+
 typedef struct {
     char magic[8];
     uint32_t revision;

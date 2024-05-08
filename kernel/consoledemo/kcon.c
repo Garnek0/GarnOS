@@ -109,7 +109,7 @@ static void console_drives(){
             kprintf("   (Drive not Partitioned)\n");
             return;
         }
-        for(int j = 0; j < drives[i].partitionCount; j++){
+        for(size_t j = 0; j < drives[i].partitionCount; j++){
             kprintf("   Partition %d: Start LBA: 0x%x, End LBA: 0x%x, Size: %dKiB (%d Bytes)\n", j, drives[i].partitions[j].startLBA, drives[i].partitions[j].endLBA, drives[i].partitions[j].size/1024, drives[i].partitions[j].size);
         }
     }

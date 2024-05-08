@@ -17,6 +17,8 @@
 #include <cpu/interrupts/interrupts.h>
 #include <process/process.h>
 
+struct _thread;
+
 typedef struct _thread {
     int status;
 

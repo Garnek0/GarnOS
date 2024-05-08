@@ -21,8 +21,8 @@ input_kb_rb_entry_t* readRBPos;
 
 file_t* kbd;
 
-ssize_t input_rb_read(filesys_t* self, file_t* file, size_t size, void* buf){
-    int i = 0;
+ssize_t input_rb_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
+    size_t i = 0;
     while(writeRBPos != readRBPos && i != size){
         ((char*)buf)[i] = readRBPos->chr;
         readRBPos->chr = 0;

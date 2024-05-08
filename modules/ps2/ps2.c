@@ -12,6 +12,7 @@
 #include "ps2.h"
 #include <module/module.h>
 #include <cpu/interrupts/interrupts.h>
+#include <cpu/interrupts/irq.h>
 #include <mem/kheap/kheap.h>
 #include <sys/input.h>
 
@@ -164,7 +165,7 @@ bool attach(device_t* device){
     res = ps2_read(PS2_DATA);
     if(res != 0x55){
         klog("PS2 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, "PS/2", res);
-        return;
+        return false;
     }
 
     ps2_write(PS2_COMMAND, PS2_COMMAND_TEST_PORT1);

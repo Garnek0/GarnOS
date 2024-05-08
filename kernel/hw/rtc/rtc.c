@@ -10,6 +10,7 @@
 #include "rtc.h"
 #include <hw/ports.h>
 #include <cpu/interrupts/interrupts.h>
+#include <cpu/interrupts/irq.h>
 #include <kstdio.h>
 #include <cpu/multiproc/spinlock.h>
 

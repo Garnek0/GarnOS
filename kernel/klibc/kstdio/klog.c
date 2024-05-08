@@ -16,7 +16,7 @@ spinlock_t klogLock;
 
 void klog(char* fmt, uint8_t status, const char* component, ...){
     va_list args;
-    va_start(args, fmt);
+    va_start(args, component);
     uint16_t r, g, b;
 
     lock(klogLock, {

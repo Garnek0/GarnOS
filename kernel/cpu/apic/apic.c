@@ -65,7 +65,7 @@ void apic_eoi(){
 void apic_init(){
     //We only need to get the address once
     if(!LAPICAddress){
-        LAPICAddress = (void*)MADT->LAPICAddress;
+        LAPICAddress = (void*)((uint64_t)MADT->LAPICAddress);
 
         //Get LAPIC Address override (if it exists)
 
@@ -89,7 +89,7 @@ void apic_init(){
             hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
         }
 
-        vmm_map(vmm_get_kernel_pml4(), LAPICAddress, LAPICAddress + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
+        vmm_map(vmm_get_kernel_pml4(), (uint64_t)LAPICAddress, (uint64_t)(LAPICAddress + bl_get_hhdm_offset()), (VMM_PRESENT | VMM_RW | VMM_PCD));
         LAPICAddress = (void*)((uint64_t)LAPICAddress + bl_get_hhdm_offset());
     }
 

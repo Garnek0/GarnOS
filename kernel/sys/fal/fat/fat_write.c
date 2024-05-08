@@ -14,5 +14,5 @@
 #include <kstdio.h>
 
 ssize_t fat_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
-    ;
+    return 0;
 }

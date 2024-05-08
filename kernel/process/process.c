@@ -26,7 +26,7 @@
 #define PUSH(type,val,stack) do { \
 	stack -= sizeof(type); \
 	while(stack & (sizeof(type)-1)) stack--; \
-	*((type*)stack) = (val); \
+	*((type*)stack) = (type)(val); \
 } while(0)
 
 #define PUSHSTR(s,stack) do { \
@@ -45,49 +45,6 @@ process_t* initProc;
 static int _process_gen_pid(){
     static int pid = 1;
     return pid++;
-}
-
-void process_init(){
-    process_create_init();
-}
-
-void process_terminate(process_t* process){
-    process_t* prev = NULL;
-    for(process_t* proc = processList; proc != NULL; proc=proc->next){
-        if(proc == process){
-            proc->status = PROCESS_STATUS_ZOMBIE;
-            sched_remove_thread(proc->mainThread); //TODO: remove all associated threads
-            break;
-        }
-        prev = proc;
-    }
-}
-
-void process_free(process_t* process){
-    process_t* prev = NULL;
-    for(process_t* proc = processList; proc != NULL; proc=proc->next){
-        if(proc == process){
-            if(proc == processListLast) processListLast = prev;
-            if(proc == processList) processList = proc->next;
-            if(prev) prev->next = proc->next;
-
-            kmfree(proc->name); //name and other strings should be strduped
-            kmfree(proc->cwd);
-            for(int i = 0; i < proc->fdMax; i++){
-                if(proc->fdTable[i].file) proc->fdTable[i].file->refCount--;
-            }
-            vaspace_destroy(proc->pml4);
-
-            for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
-                if(childProc->parent == proc) childProc->parent = initProc;
-            }
-
-            kmfree(proc);
-
-            return;
-        }
-        prev = proc;
-    }
 }
 
 void process_create_init(){
@@ -162,8 +119,49 @@ void process_create_init(){
 
     sched_add_thread(initProcess->mainThread);
 
-    tss_set_rsp(0, initProcess->mainThread->kernelStack);
-    user_jump(initProcess->mainThread->regs.rip, initProcess->mainThread->regs.rsp);
+    tss_set_rsp(0, (uint64_t)initProcess->mainThread->kernelStack);
+    user_jump((void*)initProcess->mainThread->regs.rip, (void*)initProcess->mainThread->regs.rsp);
+}
+
+void process_init(){
+    process_create_init();
+}
+
+void process_terminate(process_t* process){
+    for(process_t* proc = processList; proc != NULL; proc=proc->next){
+        if(proc == process){
+            proc->status = PROCESS_STATUS_ZOMBIE;
+            sched_remove_thread(proc->mainThread); //TODO: remove all associated threads
+            break;
+        }
+    }
+}
+
+void process_free(process_t* process){
+    process_t* prev = NULL;
+    for(process_t* proc = processList; proc != NULL; proc=proc->next){
+        if(proc == process){
+            if(proc == processListLast) processListLast = prev;
+            if(proc == processList) processList = proc->next;
+            if(prev) prev->next = proc->next;
+
+            kmfree(proc->name); //name and other strings should be strduped
+            kmfree(proc->cwd);
+            for(size_t i = 0; i < proc->fdMax; i++){
+                if(proc->fdTable[i].file) proc->fdTable[i].file->refCount--;
+            }
+            vaspace_destroy(proc->pml4);
+
+            for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
+                if(childProc->parent == proc) childProc->parent = initProc;
+            }
+
+            kmfree(proc);
+
+            return;
+        }
+        prev = proc;
+    }
 }
 
 int sys_fork(stack_frame_t* regs){
@@ -182,7 +180,7 @@ int sys_fork(stack_frame_t* regs){
 
     newProcess->cwd = strdup(currentProcess->cwd);
 
-    for(int i = 0; i < currentProcess->fdMax; i++){
+    for(size_t i = 0; i < currentProcess->fdMax; i++){
         newProcess->fdTable[i] = currentProcess->fdTable[i];
         if(newProcess->fdTable[i].file) newProcess->fdTable[i].file->refCount++;
     }
@@ -252,7 +250,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     process_t* currentProcess = sched_get_current_process();
 
-    path = file_get_absolute_path(currentProcess->cwd, path);
+    path = file_get_absolute_path(currentProcess->cwd, (char*)path);
     if(!path) return -kerrno;
 
     currentProcess->name = strdup(path);
@@ -260,7 +258,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     //Check if 'path' is valid
 
-    file_t* file = file_open(path, O_RDONLY, 0);
+    file_t* file = file_open((char*)path, O_RDONLY, 0);
     if(!file) return -kerrno;
     file_close(file);
 
@@ -280,8 +278,8 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     char** newArgv = kmalloc((argc)*sizeof(char*));
     char** newEnvp = kmalloc((envc)*sizeof(char*));
-    for(size_t i = 0; i < argc; i++) newArgv[i] = argv[i];
-    for(size_t i = 0; i < envc; i++) newEnvp[i] = envp[i];
+    for(size_t i = 0; i < argc; i++) newArgv[i] = (char*)argv[i];
+    for(size_t i = 0; i < envc; i++) newEnvp[i] = (char*)envp[i];
 
     vaspace_clear(currentProcess->pml4);
 
@@ -294,13 +292,13 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     for(size_t i = 0; i < argc; i++){
         PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
         kmfree(newArgv[i]);
-        newArgv[i] = currentProcess->mainThread->regs.rsp;
+        newArgv[i] = (char*)currentProcess->mainThread->regs.rsp;
     }
 
     for(size_t i = 0; i < envc; i++){
         PUSHSTR(newEnvp[i], currentProcess->mainThread->regs.rsp);
         kmfree(newEnvp[i]);
-        newEnvp[i] = currentProcess->mainThread->regs.rsp;
+        newEnvp[i] = (char*)currentProcess->mainThread->regs.rsp;
     }
 
     //Create initial process stack
@@ -313,19 +311,19 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     //Load image and jump to entry point
 
-    if(elf_exec_load(currentProcess, path) != 0){
+    if(elf_exec_load(currentProcess, (char*)path) != 0){
         return -ENOENT;
     }
 
     vaspace_switch(currentProcess->pml4);
 
-    kmfree(path);
+    kmfree((void*)path);
     kmfree(newArgv);
     kmfree(newEnvp);
 
     *regs = currentProcess->mainThread->regs;
 
-    tss_set_rsp(0, currentProcess->mainThread->kernelStack);
+    tss_set_rsp(0, (uint64_t)currentProcess->mainThread->kernelStack);
     user_jump((void*)currentProcess->mainThread->regs.rip, (void*)currentProcess->mainThread->regs.rsp);
 
     return 0;

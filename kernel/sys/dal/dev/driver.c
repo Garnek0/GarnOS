@@ -43,7 +43,7 @@ int device_driver_register(const char* path){
         }
     }
 
-    file_t* file = file_open(path, O_RDONLY, 0);
+    file_t* file = file_open((char*)path, O_RDONLY, 0);
 
     if(!file){
         klog("Failed to register driver \'%s\': %s!\n", KLOG_FAILED, "DAL", path, kstrerror(kerrno));
@@ -192,7 +192,7 @@ bool device_driver_attach(device_t* device){
 }
 
 int device_driver_autoreg(const char* path){
-    file_t* file = file_open(path, O_RDONLY, 0);
+    file_t* file = file_open((char*)path, O_RDONLY, 0);
     
     if(!file){
         klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, "DAL", path);
@@ -212,7 +212,7 @@ int device_driver_autoreg(const char* path){
             str[ptr] = 0;
             regPath = kmalloc(256);
 
-            for(int j = 0; j < strlen(path); j++){
+            for(uint32_t j = 0; j < strlen(path); j++){
                 if(path[j] == '/'){
                     tempPtr = j+1;
                     break;
@@ -240,14 +240,14 @@ size_t device_driver_get_driver_count(){
 }
 
 device_driver_t device_driver_get_driver(size_t i){
-    device_driver_t* driver;
+    device_driver_t* driver = NULL;
     size_t count = 0;
 
     if(i >= driverCount) i = driverCount;
 
     lock(driverManagerLock, {
         foreach(item, driverList){
-            driver = (device_t*)item->value;
+            driver = (device_driver_t*)item->value;
             if(count == i) break;
             count++;
         }

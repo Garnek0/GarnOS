@@ -42,9 +42,9 @@ static void pmm_bitmap_clear(uint64_t page){
     bitmap[page/8] &= ~((0b10000000 >> (page%8)));
 }
 
-static bool pmm_bitmap_test(int page){
-    return bitmap[page/8] & ((0b10000000 >> (page%8)));
-}
+// static bool pmm_bitmap_test(int page){
+//     return bitmap[page/8] & ((0b10000000 >> (page%8)));
+// }
 
 static uint64_t pmm_find_free(int npages){
     int foundPages = 0;

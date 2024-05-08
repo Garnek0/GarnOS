@@ -28,7 +28,7 @@ bool gpt_validate_drive(drive_t* drive){
         partHeader = (gpt_header_t*)buf->data;
 
         uint64_t* bootDiskGUID = bl_get_gpt_system_disk_uuid();
-        if(!strcmp(partHeader->magic, "EFI PART") || !partHeader->entrySize > 512 || (partHeader->entrySize)%128 != 0 || partHeader->partCount > MAX_PARTITIONS){
+        if(!strcmp(partHeader->magic, "EFI PART") || !(partHeader->entrySize > 512) || (partHeader->entrySize)%128 != 0 || partHeader->partCount > MAX_PARTITIONS){
             if(bootDiskGUID[0] == partHeader->GUID[0] && bootDiskGUID[1] == partHeader->GUID[1]) drive->isSystemDrive = true;
             bcache_release(buf);
             releaseLock(&gptLock);
@@ -54,10 +54,10 @@ bool gpt_initialise_drive(drive_t* drive){
         if(!partHeader->gptArrayStartLBA) partHeader->gptArrayStartLBA = 2;
         
         uint64_t* bootPartGUID = bl_get_gpt_system_partition_uuid();
-        for(int i = 0; i < (partHeader->partCount/(512/(partHeader->entrySize))); i++){
+        for(size_t i = 0; i < (partHeader->partCount/(512/(partHeader->entrySize))); i++){
             buf = bcache_read(drive, partHeader->gptArrayStartLBA + i);
             partEntryChunk = buf->data;
-            for(int j = 0; j < 512/(partHeader->entrySize); j++){
+            for(size_t j = 0; j < 512/(partHeader->entrySize); j++){
                 currentEntry = (gpt_entry_t*)((uint64_t)partEntryChunk + (j*partHeader->entrySize));
                 if(!currentEntry->typeGUID[0] == 0 && !currentEntry->typeGUID[1] == 0){
                     drive->partitionCount++;
