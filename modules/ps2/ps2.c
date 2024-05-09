@@ -55,6 +55,8 @@ char keymapUppercase[] = {
 };
 
 void keyboard_handler(stack_frame_t* frame){
+    uint8_t status = ps2_read(PS2_COMMAND);
+    if(!(status & PS2_STATUS_READRDY)) return; //Interrupt likely didn't come from the ps2 controller
     uint8_t scancode = ps2_read(PS2_DATA);
     kb_input_t input;
     switch(scancode){
@@ -196,7 +198,7 @@ bool attach(device_t* device){
     ps2_write(PS2_DATA, 2);
     ps2_read(PS2_DATA);
 
-    irq_add_handler(1, keyboard_handler);
+    irq_add_handler(1, keyboard_handler, IRQ_SHARED);
     klog("Keyboard Initialised\n", KLOG_OK, "PS/2");
 
     asm volatile("sti");
@@ -207,7 +209,7 @@ bool attach(device_t* device){
 }
 
 bool remove(device_t* device){
-    irq_add_handler(1, NULL);
+    irq_remove_handler(1, keyboard_handler);
     return true;
 }
 

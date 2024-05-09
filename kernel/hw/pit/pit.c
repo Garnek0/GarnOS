@@ -47,8 +47,10 @@ static void pit_set_divisor(uint16_t div){
 }
 
 void pit_set_frequency(uint32_t freq){
-    pit_set_divisor(PIT_BASE_FREQUENCY / freq);
-    klog("Set Frequency to %uHz\n", KLOG_INFO, "PIT", freq);
+    uint32_t div = PIT_BASE_FREQUENCY / freq;
+
+    pit_set_divisor(div);
+    klog("Set Frequency to %uHz\n", KLOG_INFO, "PIT", PIT_BASE_FREQUENCY / div);
 }
 
 uint64_t pit_get_ticks(){
@@ -61,7 +63,7 @@ void pit_init(){
 
     pit_set_frequency(1000); //1ms per tick
 
-    irq_add_handler(0, pit_handler);
+    irq_add_handler(0, pit_handler, 0);
 
     klog("Timer Initialised.\n", KLOG_OK, "PIT");
 }
