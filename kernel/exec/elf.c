@@ -402,5 +402,7 @@ int elf_exec_load(process_t* process, char* path){
 	kmfree(elfExec);
 	kmfree(h);
 
+	klog("Program '%s' Loaded.\n", KLOG_OK, "exec", path);
+
 	return 0;
 }

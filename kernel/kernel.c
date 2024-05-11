@@ -94,8 +94,6 @@ void _start(void) {
 
     rtc_init(); //initialise realtime clock //Move to DAL
 
-    pit_init(); //initialise the PIT //Move to DAL
-
     input_init(); //initialise keyboard ringbuffer
 
     dal_init(); //initialise Device Abstraction Layer
@@ -107,6 +105,9 @@ void _start(void) {
     //init_kcon(); //start demo console
 
     sched_init(); //initialise thread scheduler
-
+    
+    //Something went very wrong if execution reaches this
+    panic("Scheduler is broken!", "kernel");
+    
     halt(); //halt
 }

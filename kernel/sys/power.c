@@ -54,7 +54,7 @@ static int _power_shutdown_default(){
     for(;;){
         asm volatile("hlt");
     }
-    return -1;
+    __builtin_unreachable();
 }
 
 static int _power_restart_default(){
@@ -63,7 +63,7 @@ static int _power_restart_default(){
     for(;;){
         asm volatile("hlt");
     }
-    return -1;
+    __builtin_unreachable();
 }
 
 void power_init(){

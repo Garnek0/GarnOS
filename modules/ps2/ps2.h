@@ -61,24 +61,6 @@
 #define ENTER 0x1C
 #define BACKSPACE 0x0E
 #define CAPSLOCK 0x3A
-#define EX_SCANCODE 0xE0
-
-static inline void ps2_write(uint8_t port, uint8_t data){
-    size_t timeout = TIMEOUT;
-    while(timeout--) if(!(inb(PS2_COMMAND) & PS2_STATUS_WRITERDY)) break;
-    if(!timeout){
-        klog("PS2 Write Access Timed Out.\n", KLOG_WARNING, "PS/2");
-    }
-    outb(port, data);
-}
-
-static inline uint8_t ps2_read(uint8_t port){
-    size_t timeout = TIMEOUT;
-    while(timeout--) if(inb(PS2_COMMAND) & PS2_STATUS_READRDY) break;
-    if(!timeout){
-        klog("PS2 Read Access Timed Out.\n", KLOG_WARNING, "PS/2");
-    }
-    return inb(port);
-}
+#define EX_SCANCODE 0xE0y
 
 #endif //PS2_MODULE_H

@@ -28,9 +28,8 @@ void pit_handler(stack_frame_t* regs){
 
 //TODO: Make it so that this can be used by multiple processors at once
 void pit_sleep(size_t ms){
-    if(ms < 10) ms = 10;
     lock(PITLock, {
-        uint64_t finalTicks = pitTicksSinceOSBoot + (ms/10);
+        uint64_t finalTicks = pitTicksSinceOSBoot + ms;
         while(pitTicksSinceOSBoot < finalTicks){
             asm volatile("nop");
         }

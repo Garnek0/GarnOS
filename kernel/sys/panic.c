@@ -18,6 +18,8 @@ spinlock_t panicLock;
 
 void panic(const char* str, const char* component, ...){
     kernel_screen_output_enable();
+    asm("cli");
+
     va_list args;
     va_start(args, component);
 
@@ -29,10 +31,11 @@ void panic(const char* str, const char* component, ...){
 
     va_end(args);
 
-    asm("cli");
     while(true){
         asm("hlt");
     }
+
+    __builtin_unreachable();
 }
 
 void panic_exception(const char* str, stack_frame_t* regs, ...){
@@ -78,4 +81,6 @@ void panic_exception(const char* str, stack_frame_t* regs, ...){
     while(true){
         asm("hlt");
     }
+
+    __builtin_unreachable();
 }

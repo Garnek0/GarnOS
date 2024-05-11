@@ -218,6 +218,15 @@ global irq12
 global irq13
 global irq14
 global irq15
+global irq16
+global irq17
+global irq18
+global irq19
+global irq20
+global irq21
+global irq22
+global irq23
+
 global irq223
 global irq224
 
@@ -491,6 +500,46 @@ irq14:
 irq15:
     push 15
     push 47
+    jmp irq_common
+
+irq16:
+    push 16
+    push 48
+    jmp irq_common
+
+irq17:
+    push 17
+    push 49
+    jmp irq_common
+
+irq18:
+    push 18
+    push 50
+    jmp irq_common
+
+irq19:
+    push 19
+    push 51
+    jmp irq_common
+
+irq20:
+    push 20
+    push 52
+    jmp irq_common
+
+irq21:
+    push 21
+    push 53
+    jmp irq_common
+
+irq22:
+    push 22
+    push 54
+    jmp irq_common
+
+irq23:
+    push 23
+    push 55
     jmp irq_common
 
 irq223:

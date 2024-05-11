@@ -130,6 +130,7 @@ void process_init(){
 void process_terminate(process_t* process){
     for(process_t* proc = processList; proc != NULL; proc=proc->next){
         if(proc == process){
+            klog("Terminating process '%s'...\n", KLOG_INFO, "proc", proc->name);
             proc->status = PROCESS_STATUS_ZOMBIE;
             sched_remove_thread(proc->mainThread); //TODO: remove all associated threads
             break;
@@ -141,6 +142,7 @@ void process_free(process_t* process){
     process_t* prev = NULL;
     for(process_t* proc = processList; proc != NULL; proc=proc->next){
         if(proc == process){
+            klog("Freeing process structure for '%s'...\n", KLOG_INFO, "proc", proc->name);
             if(proc == processListLast) processListLast = prev;
             if(proc == processList) processList = proc->next;
             if(prev) prev->next = proc->next;
@@ -171,7 +173,9 @@ int sys_fork(stack_frame_t* regs){
 
     newProcess->pid = _process_gen_pid();
     newProcess->parent = currentProcess;
-    newProcess->name = strdup("procfork");
+    newProcess->name = kmalloc(strlen(currentProcess->name)+8);
+    memcpy((void*)newProcess->name, currentProcess->name, strlen(currentProcess->name));
+    memcpy((void*)&newProcess->name[strlen(currentProcess->name)], " (fork)", 8);
     newProcess->exitStatus = 0;
     newProcess->status = PROCESS_STATUS_RUNNING;
 
@@ -200,6 +204,8 @@ int sys_fork(stack_frame_t* regs){
     processListLast->next = newProcess;
     processListLast = newProcess;
 
+    klog("Forked Process from '%s'.\n", KLOG_OK, "proc", currentProcess->name);
+
     sched_add_thread(newProcess->mainThread);
 
     newProcess->mainThread->regs.rax = 0;
@@ -214,6 +220,8 @@ void sys_exit(stack_frame_t* regs, int status){
     process_terminate(currentProcess);
 
     while(1) asm volatile("nop"); //wait for reschedule
+
+    __builtin_unreachable();
 }
 
 //TODO: Make this block the process
@@ -249,6 +257,8 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     if(argv == NULL || envp == NULL) return -EFAULT;
 
     process_t* currentProcess = sched_get_current_process();
+
+    klog("execveing Process '%s'...\n", KLOG_INFO, "proc", currentProcess->name);
 
     path = file_get_absolute_path(currentProcess->cwd, (char*)path);
     if(!path) return -kerrno;
@@ -323,8 +333,12 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     *regs = currentProcess->mainThread->regs;
 
+    klog("execve'd Process '%s'. Jumping to entry point...\n", KLOG_OK, "proc", currentProcess->name);
+
     tss_set_rsp(0, (uint64_t)currentProcess->mainThread->kernelStack);
     user_jump((void*)currentProcess->mainThread->regs.rip, (void*)currentProcess->mainThread->regs.rsp);
+
+    __builtin_unreachable();
 
     return 0;
 }

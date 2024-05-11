@@ -10,6 +10,7 @@
 
 #include "dal.h"
 #include <sys/panic.h>
+#include <hw/pit/pit.h>
 
 void dal_init(){
     device_init(); //initialise device manager
@@ -19,6 +20,8 @@ void dal_init(){
     bcache_init(); //Initialise buffer cache
 
     multiproc_init(); //initialize CPUs
+
+    pit_init();
 
     driver_init(); //initialise device driver manager
     module_init(); //initialise module manager

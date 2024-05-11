@@ -116,6 +116,14 @@ void ioapic_init(){
     acpi_madt_record_hdr_t* hdr = MADT->records;
     acpi_madt_record_ioapic_t* ioapicRec;
 
+    ioapic_redirection_entry_t red;
+    red.fields.delvMode = 0;
+    red.fields.destMode = 0;
+    red.fields.pinPolarity = 0;
+    red.fields.triggerMode = 0;
+    red.fields.mask = 0;
+    red.fields.destination = 0;
+
     for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
         if(hdr->entryType != ACPI_MADT_IOAPIC){
             i += hdr->recordLength;
@@ -132,6 +140,11 @@ void ioapic_init(){
         ioapicCount++;
 
         klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->ioapicID, ioapicRec->gsiBase, ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
+
+        for(int j = 0; j < ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1; j++){
+            red.fields.vector = 32 + ioapicRec->gsiBase + j;
+            ioapic_redirect(red, ioapicRec->gsiBase + j);
+        }
 
         i += hdr->recordLength;
         hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
@@ -156,47 +169,6 @@ void ioapic_init(){
 
         return;
     }
-
-    ioapic_redirection_entry_t red;
-    red.fields.delvMode = 0;
-    red.fields.destMode = 0;
-    red.fields.pinPolarity = 0;
-    red.fields.triggerMode = 0;
-    red.fields.mask = 0;
-    red.fields.destination = 0;
-
-    red.fields.vector = 32;
-    ioapic_redirect(red, 0);
-    red.fields.vector = 33;
-    ioapic_redirect(red, 1);
-    red.fields.vector = 34;
-    ioapic_redirect(red, 2); 
-    red.fields.vector = 35;
-    ioapic_redirect(red, 3);
-    red.fields.vector = 36;
-    ioapic_redirect(red, 4);
-    red.fields.vector = 37;
-    ioapic_redirect(red, 5);
-    red.fields.vector = 38;
-    ioapic_redirect(red, 6);
-    red.fields.vector = 39;
-    ioapic_redirect(red, 7);
-    red.fields.vector = 40;
-    ioapic_redirect(red, 8);
-    red.fields.vector = 41;
-    ioapic_redirect(red, 9);
-    red.fields.vector = 42;
-    ioapic_redirect(red, 10);
-    red.fields.vector = 43;
-    ioapic_redirect(red, 11);
-    red.fields.vector = 44;
-    ioapic_redirect(red, 12);
-    red.fields.vector = 45;
-    ioapic_redirect(red, 13);
-    red.fields.vector = 46;
-    ioapic_redirect(red, 14);
-    red.fields.vector = 47;
-    ioapic_redirect(red, 15);
 
     //Get Interrupt source overrides
 

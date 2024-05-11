@@ -27,6 +27,7 @@ page_table_t* vaspace_new(){
     page_table_t* pml4 = (page_table_t*)((uint64_t)pmm_allocate(1) + bl_get_hhdm_offset());
     memcpy(pml4, vmm_get_kernel_pml4(), sizeof(page_table_t));
     memset(pml4, 0, (sizeof(page_table_t)/2));
+    klog("New Address Space created. Page tables at 0x%x.\n", KLOG_OK, "VMM", (void*)pml4);
     return pml4;
 }
 
@@ -62,6 +63,7 @@ void vaspace_destroy(page_table_t* pml4){
         }
     }
     pmm_free((void*)((uint64_t)pml4 - bl_get_hhdm_offset()), 1);
+    klog("Page tables at 0x%x destroyed.\n", KLOG_OK, "VMM", (void*)pml4);
 }
 
 void vaspace_clear(page_table_t* pml4){
@@ -103,6 +105,7 @@ void vaspace_clear(page_table_t* pml4){
             pmm_free((void*)((uint64_t)PDP - bl_get_hhdm_offset()), 1);
         }
     }
+    klog("Page tables at 0x%x cleared.\n", KLOG_INFO, "VMM", (void*)pml4);
 }
 
 page_table_t* vaspace_clone(page_table_t* toClone){
@@ -148,7 +151,7 @@ page_table_t* vaspace_clone(page_table_t* toClone){
             }
         }
     }
-
+    klog("Page tables at 0x%x cloned.\n", KLOG_OK, "VMM", (void*)toClone);
     return clone;
 }
 
