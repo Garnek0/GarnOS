@@ -13,12 +13,14 @@
 #include <types.h>
 #include <cpu/multiproc/spinlock.h>
 
-typedef struct _list_node {
+typedef struct list_node_t;
+
+#define foreach(i, list) for (list_node_t* i = (list)->head; i != NULL; i = i->next)
+
+typedef struct {
     struct _list_node* next;
     void* value;
 } list_node_t;
-
-#define foreach(i, list) for (list_node_t* i = (list)->head; i != NULL; i = i->next)
 
 typedef struct {
     list_node_t* head;

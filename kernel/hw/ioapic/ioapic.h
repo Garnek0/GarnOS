@@ -56,7 +56,11 @@ typedef union {
         uint8_t destination;
     } fields;
     uint64_t bits;
-}__attribute__((packed)) ioapic_redirection_entry_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+ioapic_redirection_entry_t;
 
 void ioapic_init();
 

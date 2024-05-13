@@ -107,7 +107,6 @@ toolchain: libc
 	mv hosttools/lib/librt.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 	mv hosttools/lib/libutil.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 
-
 $(IMAGE_NAME).iso: sysroot limine kernel modules programs
 	rm -rf iso_root
 	mkdir -p iso_root

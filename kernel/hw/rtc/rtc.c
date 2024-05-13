@@ -23,26 +23,23 @@ spinlock_t rtcLock;
 
 static uint8_t rtc_read_register(uint8_t reg){
     lock(rtcLock, {
-        //disable interrupts and NMIs. It takes just one
-        //interrupt to put the CMOS in a dodgy state.
+        //disable NMIs. It takes just one
+        //interrupt to put the CMOS in a dodgy state. (Interrupts should already be disabled
+        //by the init function/irq handler)
         //Not a problem for VMs but a huge pain for real hardware
-        asm volatile("cli");
         //select the desired register
         outb(RTC_ADDRESS, reg | 0x80);
     });
 
     return inb(RTC_DATA);
-    asm volatile("sti");
 }
 
 static void rtc_write_register(uint8_t reg, uint8_t data){
     lock(rtcLock, {
-        //disable interrupts and NMIs.
-        asm volatile("cli");
+        //disable NMIs.
         //select the desired register
         outb(RTC_ADDRESS, reg | 0x80);
         outb(RTC_DATA, data);
-        asm volatile("sti");
     });
 }
 
@@ -86,6 +83,9 @@ void rtc_handler(stack_frame_t* regs){
 
 //initialise the rtc
 void rtc_init(){
+
+    asm volatile("cli");
+
     //get Status Register B and fill in binary and hourMode accordingly
     uint8_t statb = rtc_read_register(RTC_STATUS_B);
     if(statb & RTC_BINARY) binary = true;
@@ -99,6 +99,8 @@ void rtc_init(){
     //This needs to be here on real hardware for the RTC to function.
     //I dont know why, but RTC interrupts won't work otherwise.
     rtc_read_register(RTC_STATUS_C);
+
+    asm volatile("sti");
 
     klog("RTC Initialised Successfully.\n", KLOG_OK, "RTC");
 }

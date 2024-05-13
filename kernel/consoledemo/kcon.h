@@ -1,5 +1,5 @@
 /*  
-*   File: kcon.c
+*   File: kcon.h
 *
 *   Author: Garnek
 */

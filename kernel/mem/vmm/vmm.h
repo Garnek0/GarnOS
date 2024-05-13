@@ -60,11 +60,20 @@ typedef struct {
     uint8_t avl1 : 4;
     uint64_t addr : 51;
     bool nx : 1;
-}__attribute__((packed)) page_table_entry_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+page_table_entry_t;
 
 typedef struct _page_table {
     page_table_entry_t entries[512];
-}__attribute__((packed)) __attribute__((aligned(0x1000))) page_table_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+__attribute__((aligned(0x1000)))
+#endif
+page_table_t;
 
 //vmm
 

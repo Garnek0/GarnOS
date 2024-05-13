@@ -68,7 +68,11 @@ typedef struct _dirent {
     uint16_t reclen;
     uint8_t type;
     char name[1];
-} __attribute__((packed)) dirent_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+dirent_t;
 
 void file_list_add(file_t* file);
 void file_list_remove(file_t* file);

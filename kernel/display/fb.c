@@ -3,7 +3,7 @@
 *
 *   Author: Garnek
 *   
-*   Description: Framebuffer
+*   Description: Framebuffer Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -19,13 +19,12 @@ framebuffer_info_t framebuffer_info;
 
 spinlock_t fbLock;
 
-//(Having this in bootloader.c seems to limine crash randomly...)
+//(Having this in bootloader.c seems to crash limine randomly...)
 static volatile struct limine_framebuffer_request framebuffer_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
     .revision = 0
 };
 
-//put a single pixel on the screen
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour){
     lock(fbLock, {
         uint32_t* fbPtr = framebuffer_info.address;
@@ -35,7 +34,6 @@ void fb_pixel(uint32_t x, uint32_t y, uint32_t colour){
     });
 }
 
-//clear the screen with a solid colour
 void fb_clear(uint32_t colour){
     lock(fbLock, {
         uint32_t* fbPtr = framebuffer_info.address;

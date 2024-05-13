@@ -33,7 +33,11 @@ typedef struct {
     uint16_t headCount;
     uint32_t hiddenSectorCount;
     uint32_t totalSects32;
-}__attribute__((packed)) fat_bpb_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+fat_bpb_t;
 
 typedef struct {
     fat_bpb_t bpb;
@@ -43,7 +47,11 @@ typedef struct {
     uint32_t volSerial;
     char volLabel[11];
     char systemID[8];
-}__attribute__((packed)) fat12_16_ebpb_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+fat12_16_ebpb_t;
 
 typedef struct {
     fat_bpb_t bpb;
@@ -60,7 +68,11 @@ typedef struct {
     uint32_t volSerial;
     char volLabel[11];
     char systemID[8];
-}__attribute__((packed)) fat32_ebpb_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+fat32_ebpb_t;
 
 typedef struct {
     void* ebpb;
@@ -90,7 +102,11 @@ typedef struct {
     uint16_t wrtDate;
     uint16_t clusterLow;
     uint32_t size;
-}__attribute__((packed)) fat_directory_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+fat_directory_t;
 
 typedef struct {
     uint8_t ord;
@@ -101,7 +117,11 @@ typedef struct {
     uint16_t name2[6];
     uint16_t clusterLow;
     uint16_t name3[2];
-}__attribute__((packed)) fat_lfn_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+fat_lfn_t;
 
 typedef struct {
     size_t startCluster;

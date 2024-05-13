@@ -11,17 +11,13 @@
 #include <types.h>
 #include <cpu/multiproc/spinlock.h>
 
-typedef struct {
-    size_t freePages;
-    size_t usedPages;
-    size_t usablePages;
-    spinlock_t lock;
-} pmm_info_t;
-extern pmm_info_t pmm_info;
-
 void pmm_init();
 void* pmm_allocate(int npages);
 void* pmm_allocate32(int npages);
 void pmm_free(void* base, int npages);
+
+size_t pmm_get_usable_pages_count();
+size_t pmm_get_used_pages_count();
+size_t pmm_get_free_pages_count();
 
 #endif //PMM_H

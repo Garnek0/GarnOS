@@ -96,15 +96,6 @@ void apic_init(){
     //This only works for xAPIC
     uint32_t lapicID = apic_read_register(APIC_ID) >> 24;
 
-    //This basically turns on the APIC
-    apic_write_register(APIC_SPURIOUS_INT_VECT, 255 | 0x100);
-
-    //APIC Error
-    irq_add_handler(223, apic_error_handler, 0);
-    apic_write_register(APIC_LVT_ERROR, 254);
-
-    apic_write_register(APIC_TPR, 0);
-
     //Get the LAPIC NMI Input
 
     //First, find the current APIC in the MADT
@@ -168,4 +159,13 @@ void apic_init(){
         i += hdr->recordLength;
         hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
     }
+
+    //This basically turns on the APIC
+    apic_write_register(APIC_SPURIOUS_INT_VECT, 255 | 0x100);
+
+    //APIC Error
+    irq_add_handler(223, apic_error_handler, 0);
+    apic_write_register(APIC_LVT_ERROR, 254);
+
+    apic_write_register(APIC_TPR, 0);
 }

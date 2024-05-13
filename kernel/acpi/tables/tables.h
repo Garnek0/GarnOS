@@ -27,7 +27,12 @@ typedef struct {
     uint64_t XSDTAddress;
     uint8_t exChecksum;
     uint8_t reserved[3];
-}__attribute__((packed)) acpi_rsdp_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_rsdp_t;
+
 extern acpi_rsdp_t* RSDP;
 
 //SDT Header Structure
@@ -42,14 +47,22 @@ typedef struct {
     uint32_t OEMRevision;
     uint32_t creatorID;
     uint32_t creatorRevision;
-}__attribute__((packed)) acpi_sdt_hdr_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_sdt_hdr_t;
 
 //XSDT
 
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t tableArea[];
-}__attribute__((packed)) acpi_xsdt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_xsdt_t;
 extern acpi_xsdt_t* XSDT;
 
 //GAS Structure
@@ -60,7 +73,11 @@ typedef struct {
   uint8_t BitOffset;
   uint8_t AccessSize;
   uint64_t Address;
-}__attribute__((packed)) acpi_gas_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_gas_t;
 
 //FADT
 
@@ -71,7 +88,7 @@ typedef struct {
     uint32_t firmwareCtrl;
     uint32_t DSDT;
  
-    // field used in ACPI 1.0; no longer in use, for compatibility only
+    //field used in ACPI 1.0; no longer in use, for compatibility only
     uint8_t  reserved0;
  
     uint8_t preferredPowerManagementProfile;
@@ -130,7 +147,11 @@ typedef struct {
     acpi_gas_t X_PMTimerBlock;
     acpi_gas_t X_GPE0Block;
     acpi_gas_t X_GPE1Block;
-}__attribute__((packed)) acpi_fadt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_fadt_t;
 extern acpi_fadt_t* FADT;
 
 //MADT
@@ -145,14 +166,22 @@ extern acpi_fadt_t* FADT;
 typedef struct {
     uint8_t entryType;
     uint8_t recordLength;
-}__attribute__((packed)) acpi_madt_record_hdr_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_hdr_t;
 
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t LAPICAddress;
     uint32_t flags;
     acpi_madt_record_hdr_t records[];
-}__attribute__((packed)) acpi_madt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_t;
 extern acpi_madt_t* MADT;
 
 typedef struct {
@@ -160,7 +189,11 @@ typedef struct {
     uint8_t acpiID;
     uint8_t apicID;
     uint32_t flags;
-}__attribute__((packed)) acpi_madt_record_lapic_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_lapic_t;
 
 typedef struct {
     acpi_madt_record_hdr_t hdr;
@@ -168,7 +201,11 @@ typedef struct {
     uint8_t reserved;
     uint32_t ioapicAddress;
     uint32_t gsiBase;
-}__attribute__((packed)) acpi_madt_record_ioapic_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_ioapic_t;
 
 typedef struct {
     acpi_madt_record_hdr_t hdr;
@@ -176,26 +213,42 @@ typedef struct {
     uint8_t IRQSource;
     uint32_t GSI;
     uint16_t flags;
-}__attribute__((packed)) acpi_madt_record_source_override_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_source_override_t;
 
 typedef struct {
     acpi_madt_record_hdr_t hdr;
     uint16_t flags;
     uint32_t GSI;
-}__attribute__((packed)) acpi_madt_record_nmi_source_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_nmi_source_t;
 
 typedef struct {
     acpi_madt_record_hdr_t hdr;
     uint8_t acpiID;
     uint16_t flags;
     uint8_t pinNumber;
-}__attribute__((packed)) acpi_madt_record_lapic_nmi_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_lapic_nmi_t;
 
 typedef struct {
     acpi_madt_record_hdr_t hdr;
     uint16_t reserved;
     uint64_t addr;
-}__attribute__((packed)) acpi_madt_record_lapic_addr_override_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_madt_record_lapic_addr_override_t;
 
 //BGRT
 
@@ -207,7 +260,11 @@ typedef struct {
     uint64_t imageAddress;
     uint32_t imageYOffset;
     uint32_t imageXOffset;
-}__attribute__((packed)) acpi_bgrt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_bgrt_t;
 extern acpi_bgrt_t* BGRT;
 
 //BERT
@@ -216,7 +273,11 @@ typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t bootErrorRegionLength;
     uint64_t bootErrorRegionAddr;
-}__attribute__((packed)) acpi_bert_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_bert_t;
 extern acpi_bert_t* BERT;
 
 //DSDT
@@ -224,7 +285,11 @@ extern acpi_bert_t* BERT;
 typedef struct {
     acpi_sdt_hdr_t header;
     uint8_t definitionBlock[];
-}__attribute__((packed)) acpi_dsdt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_dsdt_t;
 extern acpi_dsdt_t* DSDT;
 
 //FACS
@@ -241,7 +306,11 @@ typedef struct {
     uint8_t reserved0[3];
     uint32_t OSPMFlags;
     uint64_t reserved1[3];
-}__attribute__((packed)) acpi_facs_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_facs_t;
 extern acpi_facs_t* FACS;
 
 //HPET
@@ -258,7 +327,11 @@ typedef struct {
     uint8_t HPETNumber;
     uint16_t minTick;
     uint8_t pageProtection;
-}__attribute__((packed)) acpi_hpet_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_hpet_t;
 extern acpi_hpet_t* HPET;
 
 //SBST
@@ -268,7 +341,11 @@ typedef struct {
     uint32_t warningEnergyLevel;
     uint32_t lowEnergyLevel;
     uint32_t criticalEnergyLevel;
-}__attribute__((packed)) acpi_sbst_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_sbst_t;
 extern acpi_sbst_t* SBST;
 
 //MCFG
@@ -279,15 +356,23 @@ typedef struct {
     uint8_t startPCIBus;
     uint8_t endPCIBus;
     uint32_t reserved;
-}__attribute__((packed)) acpi_mcfg_config_space_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_mcfg_config_space_t;
 
 typedef struct {
     acpi_sdt_hdr_t header;
     uint64_t reserved;
     acpi_mcfg_config_space_t configSpaces[];
-}__attribute__((packed)) acpi_mcfg_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+acpi_mcfg_t;
 extern acpi_mcfg_t* MCFG;
 
-void acpi_tables_parse();
+void acpi_tables_init();
 
 #endif //ACPI_TABLES_H

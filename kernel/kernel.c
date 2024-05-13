@@ -61,9 +61,8 @@ static void halt(void) {
     }
 }
 
-// If renaming _start() to something else, make sure to change the
-// linker script accordingly.
-void _start(void) {
+// If you want to rename _start(), make sure to change the linker script accordingly.
+void _start(){
     fb_init(); //initialise framebuffer
 
     term_init(); //initialise terminal emulator
@@ -88,11 +87,9 @@ void _start(void) {
 
     power_init(); //initialise system power management
 
-    acpi_tables_parse(); //Parse ACPI Tables
+    acpi_tables_init(); //Parse ACPI Tables
 
     ksym_init(); //initialise kernel symbol table
-
-    rtc_init(); //initialise realtime clock //Move to DAL
 
     input_init(); //initialise keyboard ringbuffer
 

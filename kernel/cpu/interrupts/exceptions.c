@@ -72,7 +72,6 @@ void exception_handler(stack_frame_t* regs){
     }
 }
 
-//initialise exception handler
 void exceptions_init(){
     //set up the isrs
     idt_set_entry(0, isr0, INT_GATE);

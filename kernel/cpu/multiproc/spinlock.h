@@ -19,11 +19,12 @@ typedef uint64_t spinlock_t;
     releaseLock(&l);   \
 }
 
-void releaseLock(spinlock_t *locker);
-void acquireLock(spinlock_t *locker);
+void releaseLock(spinlock_t *lock);
+void acquireLock(spinlock_t *lock);
 
-static inline void pause(){
-    asm volatile("pause");
-}
+#define pause()             \
+{                           \
+    asm volatile("pause");  \
+}                           \
 
 #endif //SPINLOCK_H

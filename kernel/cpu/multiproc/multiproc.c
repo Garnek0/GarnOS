@@ -3,7 +3,7 @@
 *
 *   Author: Garnek
 *   
-*   Description: Symmetric Multiprocessing support
+*   Description: Multiprocessing Code
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -24,7 +24,6 @@
 #include <cpuid.h>
 #include <kerrno.h>
 
-//Create a CPU device
 static void multiproc_configure_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
     cpuDevice->bus = DEVICE_BUS_NONE;
@@ -64,11 +63,10 @@ static void multiproc_configure_cpu_device(){
     device_add(cpuDevice);
 }
 
-//Keep track of how many CPUs finished initialisation
 volatile size_t CPUInitCount;
 spinlock_t InitCountLock;
 
-void _ready_cpus(struct limine_smp_info* cpuinfo){
+void ready_cpus(struct limine_smp_info* cpuinfo){
     //boot the other cpus
 
     //GDT and TSS
@@ -112,7 +110,7 @@ void multiproc_init(){
     struct limine_smp_info* cpuinfo;
     for(size_t i = 0; i < bl_get_cpu_count(); i++){
         cpuinfo = bl_get_cpu_info(i);
-        cpuinfo->goto_address = _ready_cpus;
+        cpuinfo->goto_address = ready_cpus;
     }
 
     size_t CPUCount = bl_get_cpu_count();

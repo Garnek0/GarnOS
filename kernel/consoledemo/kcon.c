@@ -3,18 +3,17 @@
 *
 *   Author: Garnek
 *   
-*   Description: Demo Kernel Console
+*   Description: Demo test console running in kernel mode (kcon)
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "kcon.h"
 #include <kstdio.h>
-#include <mem/pmm/pmm.h>
 #include <mem/kheap/kheap.h>
+#include <mem/pmm/pmm.h>
 #include <mem/memutil/memutil.h>
 #include <kernel.h>
 #include <hw/rtc/rtc.h>
-#include <display/fb.h>
 #include <sys/term/term.h>
 #include <sys/dal/dal.h>
 #include <ds/list.h>
@@ -45,9 +44,12 @@ static void console_clear(){
 }
 
 static void console_mm(){
+    size_t usablePages = pmm_get_usable_pages_count();
+    size_t usedPages = pmm_get_used_pages_count();
+    size_t freePages = pmm_get_free_pages_count();
     kprintf("available pages: %d (%uKiB free memory)\n"
             "used pages: %d (%uKiB used memory)\n"
-            "kheap size: %uKiB\n", pmm_info.usablePages, (pmm_info.usablePages*PAGE_SIZE/1024), pmm_info.usedPages, (pmm_info.usedPages*PAGE_SIZE/1024), (kheap_get_size()/1024));
+            "kheap size: %uKiB\n", usablePages, (usablePages*PAGE_SIZE/1024), usedPages, (usedPages*PAGE_SIZE/1024), (kheap_get_size()/1024));
 }
 
 static void console_ver(){
@@ -116,8 +118,7 @@ static void console_drives(){
 }
 
 static void console_user(){
-    fb_clear(0x00000000);
-    cursor_set(&tc.cursor, 0, 0);
+    term_clear();
     exit = true;
 }
 
@@ -135,8 +136,7 @@ void kcon_add_command(char* cmd, void* function){
 }
 
 void init_kcon(){
-    fb_clear(0x00000000);
-    cursor_set(&tc.cursor, 0, 0);
+    term_clear();
 
     commandList = list_create();
 

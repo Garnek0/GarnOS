@@ -3,7 +3,7 @@
 *
 *   Author: Garnek
 *   
-*   Description: typedefs for the gdt and gdtr structures
+*   Description: typedefs for the GDT and GDTR structures
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -15,7 +15,11 @@
 typedef struct {
     uint16_t size;
     uint64_t offset;
-} __attribute__((packed)) gdtr_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+gdtr_t;
 
 typedef struct {
     uint16_t limit0;
@@ -25,7 +29,11 @@ typedef struct {
     uint8_t limit1 : 4;
     uint8_t flags : 4;
     uint8_t base2;
-} __attribute__((packed)) gdt_entry_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+gdt_entry_t;
 
 typedef struct {
     uint16_t limit0;
@@ -37,7 +45,11 @@ typedef struct {
     uint8_t base2;
     uint32_t base3;
     uint32_t reserved;
-} __attribute__((packed)) gdt_system_entry_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+gdt_system_entry_t;
 
 typedef struct {
     gdt_entry_t null;
@@ -46,7 +58,11 @@ typedef struct {
     gdt_entry_t userCode;
     gdt_entry_t userData;
     gdt_system_entry_t tss;
-} __attribute__((packed)) gdt_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+gdt_t;
 
 typedef struct {
     uint32_t reserved0;
@@ -56,7 +72,11 @@ typedef struct {
     uint64_t reserved2;
     uint16_t reserved3;
     uint16_t iomapBase;
-} __attribute__((packed)) tss_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+tss_t;
 
 void gdt_init(size_t cpu);
 void tss_set_rsp(size_t cpu, uint64_t rsp);

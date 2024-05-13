@@ -20,15 +20,18 @@
 static uint8_t* bitmap;
 size_t bitmapSize;
 
-pmm_info_t pmm_info;
+size_t freePages;
+size_t usedPages;
+size_t usablePages;
+spinlock_t lock;
 
 static void pmm_bitmap_set(uint64_t page){
     if(page/8 > bitmapSize){
         panic("Bitmap bounds exceeded! Attempt to index physical page 0x%x (alloc)", "PMM", page);
         return;
     }
-    pmm_info.usedPages++;
-    pmm_info.freePages--;
+    usedPages++;
+    freePages--;
     bitmap[page/8] |= (0b10000000 >> (page%8));
 }
 
@@ -37,8 +40,8 @@ static void pmm_bitmap_clear(uint64_t page){
         panic("Bitmap bounds exceeded! Attempt to index physical page 0x%x (dealloc)", "PMM", page);
         return;
     }
-    pmm_info.usedPages--;
-    pmm_info.freePages++;
+    usedPages--;
+    freePages++;
     bitmap[page/8] &= ~((0b10000000 >> (page%8)));
 }
 
@@ -129,7 +132,7 @@ static uint64_t pmm_find_free32(int npages){
 
 void* pmm_allocate(int npages){
     uint64_t base;
-    lock(pmm_info.lock, {
+    lock(lock, {
         base = pmm_find_free(npages);
         for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
             pmm_bitmap_set(i);
@@ -140,7 +143,7 @@ void* pmm_allocate(int npages){
 
 void* pmm_allocate32(int npages){
     uint64_t base;
-    lock(pmm_info.lock, {
+    lock(lock, {
         base = pmm_find_free32(npages);
         for(uint64_t i = (base >> 12); i < (base >> 12)+npages; i++){
             pmm_bitmap_set(i);
@@ -150,7 +153,7 @@ void* pmm_allocate32(int npages){
 }
 
 void pmm_free(void* base, int npages){
-    lock(pmm_info.lock, {
+    lock(lock, {
         for(uint64_t i = ((uint64_t)base >> 12); i < ((uint64_t)base >> 12)+npages; i++){
             memset((void*)((uint64_t)base+((npages-1)*PAGE_SIZE)+bl_get_hhdm_offset()), 0xff, PAGE_SIZE);
             pmm_bitmap_clear(i);
@@ -161,7 +164,7 @@ void pmm_free(void* base, int npages){
 
 void pmm_init(){
     bitmapSize = ALIGN_UP(memmap_get_highest_usable_address(), PAGE_SIZE) / PAGE_SIZE / 8;
-    pmm_info.usedPages = bitmapSize*8;
+    usedPages = bitmapSize*8;
 
     memmap_entry_t current_entry;
     for(int i = 0; i < memmap_get_entry_count(); i++){
@@ -187,7 +190,7 @@ success:
 
         for(uint64_t j = (current_entry.base >> 12); j < ((current_entry.base + current_entry.length) >> 12); j++){
             pmm_bitmap_clear(j);
-            pmm_info.usablePages++;
+            usablePages++;
         }
     }
 
@@ -195,8 +198,20 @@ success:
 
     for(uint64_t i = bitmapNoHHDM; i <= bitmapNoHHDM + bitmapSize; i+=PAGE_SIZE){
         pmm_bitmap_set(i/PAGE_SIZE);
-        pmm_info.usablePages--;
+        usablePages--;
     }
 
     klog("Initialised Physical Memory Allocator (Bitmap base: 0x%p)\n", KLOG_OK, "PMM", bitmap);
+}
+
+size_t pmm_get_usable_pages_count(){
+    return usablePages;
+}
+
+size_t pmm_get_used_pages_count(){
+    return usedPages;
+}
+
+size_t pmm_get_free_pages_count(){
+    return freePages;
 }

@@ -8,15 +8,14 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "gdt.h"
+#include <cpu/multiproc/multiproc.h>
 
-gdt_t gdt[256];
-tss_t tss[256];
-gdtr_t gdtr[256];
+gdt_t gdt[MAX_CPUS];
+tss_t tss[MAX_CPUS];
+gdtr_t gdtr[MAX_CPUS];
 
-//This is implemented in assembly
 extern void gdt_load(gdtr_t* gdtr);
 
-//set a GDT entry
 static void gdt_set_entry(gdt_entry_t* entry, uint8_t access, uint8_t flags){
 
     //base and limit are ignored in long mode because paging is used
@@ -48,7 +47,6 @@ void tss_set_rsp(size_t cpu, uint64_t rsp){
 
 extern void tss_flush();
 
-//initialise gdt
 void gdt_init(size_t cpu){
     //nullseg
     gdt_set_entry(&gdt[cpu].null, 0, 0);

@@ -3,7 +3,7 @@
 *
 *   Author: Garnek
 *   
-*   Description: utils for loading and managing ELF
+*   Description: Utils for loading and managing ELFs
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -77,7 +77,8 @@ bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype){
 	return true;
 }
 
-int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, module_t** modData, device_driver_t** driverData){
+//Common between elf_load_module() and elf_load_driver().
+static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, module_t** modData, device_driver_t** driverData){
 	kerrno = 0;
 
 	//allocate SHT_NOBITS sections and fill in sh_addr fields to have

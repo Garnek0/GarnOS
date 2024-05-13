@@ -21,7 +21,11 @@ typedef struct {
     char mTime[12];
     char checksum[8];
     char typeFlag[1];
-}__attribute__((packed)) initrd_tar_header_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+initrd_tar_header_t;
 
 typedef struct {
     size_t startOffset;

@@ -19,7 +19,11 @@
 typedef struct {
     uint16_t size;
     uint64_t offset;
-} __attribute__((packed)) idtr_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+idtr_t;
 
 typedef struct {
     uint16_t offset0;
@@ -29,7 +33,11 @@ typedef struct {
     uint16_t offset1;
     uint32_t offset2;
     uint32_t reserved;
-} __attribute__((packed)) idt_entry_t;
+}
+#ifndef DOXYGEN
+__attribute__((packed))
+#endif
+idt_entry_t;
 
 void idt_init();
 void idt_set_entry(uint8_t entry, void* isr, uint8_t PDPLGateType);

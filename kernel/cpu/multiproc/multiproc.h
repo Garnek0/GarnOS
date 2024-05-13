@@ -10,6 +10,8 @@
 
 #include <types.h>
 
+#define MAX_CPUS 256
+
 void multiproc_init();
 
 #endif //SMP_H

@@ -11,23 +11,26 @@
 #include "dal.h"
 #include <sys/panic.h>
 #include <hw/pit/pit.h>
+#include <hw/rtc/rtc.h>
 
 void dal_init(){
-    device_init(); //initialise device manager
+    device_init(); //Initialise device manager
 
     klog("DAL Initialised\n", KLOG_OK, "DAL");
 
     bcache_init(); //Initialise buffer cache
 
-    multiproc_init(); //initialize CPUs
+    multiproc_init(); //Initialize CPUs
 
-    pit_init();
+    pit_init(); //Initialise PIT Timer
 
-    driver_init(); //initialise device driver manager
-    module_init(); //initialise module manager
+    rtc_init(); //Initialise realtime clock
 
-    pcidev_init(); //detect pci devices
-    miscdev_init(); //detect misc devices
+    driver_init(); //Initialise device driver manager
+    module_init(); //Initialise module manager
+
+    pcidev_init(); //Detect pci devices
+    miscdev_init(); //Detect misc devices
 
     if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
 }
