@@ -10,7 +10,7 @@
 #ifndef IDT_H
 #define IDT_H
 
-#include <types.h>
+#include <garn/types.h>
 
 #define INT_GATE 0x8E
 #define INT_USER_GATE 0xEE

@@ -8,7 +8,7 @@
 #ifndef RTC_H
 #define RTC_H
 
-#include <types.h>
+#include <garn/types.h>
 
 #define RTC_ADDRESS 0x70
 #define RTC_DATA 0x71

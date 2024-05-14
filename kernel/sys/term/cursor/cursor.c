@@ -9,8 +9,8 @@
 
 #include "cursor.h"
 
-#include <sys/term/term.h>
-#include <display/fb.h>
+#include <garn/term.h>
+#include <garn/fb.h>
 
 void cursor_advance(cursor_t* cursor){
     if(cursor->posX+GLYPH_X >= framebuffer_info.width){

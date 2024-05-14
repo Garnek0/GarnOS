@@ -10,16 +10,15 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ide.h"
-#include <module/module.h>
-#include <hw/pci/pci.h>
-#include <kstdio.h>
-#include <sys/fal/fal.h>
-#include <mem/kheap/kheap.h>
-#include <hw/ports.h>
-#include <mem/memutil/memutil.h>
-#include <sys/timer.h>
-#include <sys/bootloader.h>
-#include <cpu/interrupts/irq.h>
+#include <garn/module.h>
+#include <garn/hw/pci.h>
+#include <garn/kstdio.h>
+#include <garn/fal/file.h>
+#include <garn/hw/ports.h>
+#include <garn/mm.h>
+#include <garn/timer.h>
+#include <garn/irq.h>
+#include <garn/module.h>
 
 //BUG: Something weird happens with larger size drives. I have a feeling its due to this driver, but it could also be the FS driver
 

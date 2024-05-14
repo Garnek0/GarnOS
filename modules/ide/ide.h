@@ -10,8 +10,9 @@
 #ifndef IDE_MODULE_H
 #define IDE_MODULE_H
 
-#include <types.h>
-#include <sys/dal/dal.h>
+#include <garn/types.h>
+#include <garn/dal/dal.h>
+#include <garn/module.h>
 
 #define ATA_SR_BSY     0x80    // Busy
 #define ATA_SR_DRDY    0x40    // Drive ready

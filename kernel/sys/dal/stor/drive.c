@@ -7,11 +7,11 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "drive.h"
-#include <mem/memutil/memutil.h>
-#include <mem/kheap/kheap.h>
-#include <sys/panic.h>
-#include <sys/fal/fal.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/mm.h>
+#include <garn/panic.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
 
 drive_t drives[MAX_DRIVES];
 size_t driveCount;

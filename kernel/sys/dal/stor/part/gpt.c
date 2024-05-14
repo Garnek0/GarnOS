@@ -8,11 +8,13 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "gpt.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <cpu/multiproc/spinlock.h>
+#include <garn/mm.h>
+#include <garn/spinlock.h>
 #include <sys/bootloader.h>
-#include <sys/fal/fal.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <garn/kstdio.h>
+#include <garn/dal/bcache.h>
 
 spinlock_t gptLock;
 

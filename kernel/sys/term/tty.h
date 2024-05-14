@@ -8,8 +8,9 @@
 #ifndef TTY_H
 #define TTY_H
 
-#include <types.h>
-#include <sys/fal/fal.h>
+#include <garn/types.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
 
 struct _filesys;
 

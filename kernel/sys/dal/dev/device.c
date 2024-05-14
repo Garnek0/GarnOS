@@ -7,16 +7,14 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "device.h"
-#include "pcidev.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <hw/pci/pci.h>
-#include <cpu/multiproc/spinlock.h>
-#include <ds/list.h>
-#include <acpi/tables/tables.h>
-#include <kstdio.h>
-#include <sys/dal/dal.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/mm.h>
+#include <garn/hw/pci.h>
+#include <garn/spinlock.h>
+#include <garn/ds/list.h>
+#include <garn/acpi/acpi-tables.h>
+#include <garn/kstdio.h>
+#include <garn/dal/dal.h>
 #include <exec/elf.h>
 
 spinlock_t deviceManagerLock;

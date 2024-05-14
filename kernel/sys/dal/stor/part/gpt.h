@@ -8,8 +8,8 @@
 #ifndef GPT_H
 #define GPT_H
 
-#include <types.h>
-#include <sys/dal/dal.h>
+#include <garn/types.h>
+#include <garn/dal/dal.h>
 
 struct _drive;
 

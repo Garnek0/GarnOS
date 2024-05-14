@@ -8,9 +8,9 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "memmap.h"
+#include <mem/mm-internals.h>
 #include <limine.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 static char* memmap_type_strings[] = {
     "USABLE",

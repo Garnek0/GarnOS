@@ -9,12 +9,12 @@
 
 #include "sched.h"
 #include <process/process.h>
-#include <ds/list.h>
+#include <garn/ds/list.h>
 #include <cpu/gdt/gdt.h>
-#include <cpu/msr.h>
+#include <garn/msr.h>
 #include <cpu/user.h>
-#include <kstdio.h>
-#include <mem/kheap/kheap.h>
+#include <garn/kstdio.h>
+#include <mem/mm-internals.h>
 
 list_t* threadList;
 list_node_t* currentThreadNode;

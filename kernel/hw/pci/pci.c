@@ -7,13 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "pci.h"
-#include <hw/ports.h>
-#include <kstdio.h>
+#include <garn/hw/pci.h>
+#include <garn/hw/ports.h>
+#include <garn/kstdio.h>
 #include <exec/elf.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <sys/dal/dal.h>
+#include <garn/mm.h>
+#include <garn/dal/dal.h>
 
 uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
     uint32_t address;

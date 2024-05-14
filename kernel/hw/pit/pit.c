@@ -8,12 +8,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "pit.h"
-#include <cpu/interrupts/interrupts.h>
-#include <cpu/interrupts/irq.h>
-#include <hw/ports.h>
-#include <cpu/multiproc/spinlock.h>
+#include <garn/irq.h>
+#include <garn/irq.h>
+#include <garn/hw/ports.h>
+#include <garn/spinlock.h>
 #include <process/sched/sched.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 spinlock_t PITLock;
 

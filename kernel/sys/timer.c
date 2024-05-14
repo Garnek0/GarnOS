@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "timer.h"
+#include <garn/timer.h>
 #include <hw/pit/pit.h>
 
 //for now these are just wrappers for PIT functions

@@ -7,13 +7,11 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "vmm.h"
-#include <mem/pmm/pmm.h>
-#include <mem/memutil/memutil.h>
+#include <mem/mm-internals.h>
 #include <sys/bootloader.h>
 #include <process/sched/sched.h>
-#include <kerrno.h>
-#include <kstdio.h>
+#include <garn/kerrno.h>
+#include <garn/kstdio.h>
 
 void vaspace_switch(page_table_t* pml4){
     uint64_t hhdm = bl_get_hhdm_offset();

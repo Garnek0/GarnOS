@@ -15,7 +15,7 @@
 
 #define PIT_BASE_FREQUENCY 1193182
 
-#include <types.h>
+#include <garn/types.h>
 
 void pit_init();
 void pit_sleep(size_t ms);

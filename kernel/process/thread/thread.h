@@ -13,8 +13,8 @@
 #define THREAD_STATUS_BLOCKED 2
 #define THREAD_STATUS_DESTROYED 3
 
-#include <types.h>
-#include <cpu/interrupts/interrupts.h>
+#include <garn/types.h>
+#include <garn/irq.h>
 #include <process/process.h>
 
 struct _thread;

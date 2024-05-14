@@ -7,11 +7,11 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <kstdio.h>
-#include <sys/term/term.h>
-#include <mem/kheap/kheap.h>
-#include <sys/input.h>
-#include <kerrno.h>
+#include <garn/kstdio.h>
+#include <garn/term.h>
+#include <garn/mm.h>
+#include <garn/input.h>
+#include <garn/kerrno.h>
 
 spinlock_t kreadlineLock;
 

@@ -7,6 +7,6 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <kerrno.h>
+#include <garn/kerrno.h>
 
 int kerrno;

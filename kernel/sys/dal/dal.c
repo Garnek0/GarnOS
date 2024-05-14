@@ -8,8 +8,8 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "dal.h"
-#include <sys/panic.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/panic.h>
 #include <hw/pit/pit.h>
 #include <hw/rtc/rtc.h>
 

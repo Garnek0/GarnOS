@@ -8,12 +8,11 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ioapic.h"
-#include <kstdio.h>
-#include <mem/memutil/memutil.h>
-#include <hw/ports.h>
-#include <acpi/tables/tables.h>
-#include <cpu/multiproc/multiproc.h>
-#include <mem/vmm/vmm.h>
+#include <garn/kstdio.h>
+#include <garn/hw/ports.h>
+#include <garn/acpi/acpi-tables.h>
+#include <cpu/multiproc/multiproc-internals.h>
+#include <garn/mm.h>
 #include <sys/bootloader.h>
 #include <cpu/apic/apic.h>
 

@@ -7,13 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "fb.h"
+#include <garn/fb.h>
+#include "fb-internals.h"
 #include <limine.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <sys/term/term.h>
-#include <cpu/multiproc/spinlock.h>
-#include <sys/term/term.h>
+#include <garn/mm.h>
+#include <garn/term.h>
+#include <garn/spinlock.h>
+#include <garn/term.h>
 
 framebuffer_info_t framebuffer_info;
 

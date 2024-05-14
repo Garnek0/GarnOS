@@ -9,16 +9,20 @@
 
 #include "syscall.h"
 
-#include <sys/uname.h>
-#include <sys/dal/dal.h>
-#include <sys/fal/fal.h>
-#include <mem/vmm/vmm.h>
+#include <sys/uname-internals.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/dal/dal.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <mem/mm-internals.h>
 #include <process/process.h>
 #include <process/sched/sched.h>
+#include <sys/fal/fal-internals.h>
 
-#include <cpu/interrupts/interrupts.h>
+#include <garn/irq.h>
+#include <cpu/interrupts/interrupt-internals.h>
 #include <cpu/interrupts/idt.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 void* syscallTable[SYSCALL_MAX];
 void* gsysSyscallTable[SYSCALL_MAX];

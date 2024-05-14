@@ -8,8 +8,8 @@
 #ifndef SCHED_H
 #define SCHED_H
 
-#include <types.h>
-#include <cpu/interrupts/interrupts.h>
+#include <garn/types.h>
+#include <garn/irq.h>
 #include <process/thread/thread.h>
 
 void sched_preempt(stack_frame_t* regs);

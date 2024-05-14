@@ -8,19 +8,17 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "process.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
+#include <mem/mm-internals.h>
 #include <process/thread/thread.h>
 #include <sys/term/tty.h>
 #include <process/sched/sched.h>
-#include <sys/fal/fal.h>
-#include <sys/input.h>
+#include <garn/input.h>
 #include <cpu/gdt/gdt.h>
 #include <cpu/user.h>
 #include <exec/elf.h>
-#include <kstdio.h>
-#include <kerrno.h>
-#include <kernel.h>
+#include <garn/kstdio.h>
+#include <garn/kerrno.h>
+#include <garn/kernel.h>
 
 
 #define PUSH(type,val,stack) do { \

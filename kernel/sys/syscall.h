@@ -10,7 +10,7 @@
 
 #define SYSCALL_MAX 255
 
-#include <types.h>
+#include <garn/types.h>
 
 void syscall_init();
 

@@ -8,10 +8,9 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "fat.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <kerrno.h>
-#include <kstdio.h>
+#include <garn/mm.h>
+#include <garn/kerrno.h>
+#include <garn/kstdio.h>
 
 file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     kerrno = 0;

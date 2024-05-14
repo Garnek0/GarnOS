@@ -7,11 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "file.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <kstdio.h>
-#include <kerrno.h>
+#include "fal-internals.h"
+
+#include <garn/fal/file.h>
+#include <garn/mm.h>
+#include <garn/kstdio.h>
+#include <garn/kerrno.h>
 #include <process/sched/sched.h>
 
 file_t* openFiles;

@@ -8,7 +8,7 @@
 #ifndef INITRD_H
 #define INITRD_H
 
-#include <types.h>
+#include <garn/types.h>
 
 #define INITRD_FILENAME "initrd.grd"
 

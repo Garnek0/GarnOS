@@ -10,9 +10,9 @@
 #ifndef PS2_MODULE_H
 #define PS2_MODULE_H
 
-#include <hw/ports.h>
-#include <kstdio.h>
-#include <sys/dal/dal.h>
+#include <garn/hw/ports.h>
+#include <garn/kstdio.h>
+#include <garn/dal/dal.h>
 
 #define TIMEOUT 100000
 

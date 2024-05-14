@@ -7,12 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "irq.h"
-#include <hw/ports.h>
+#include "interrupt-internals.h"
+#include <garn/hw/ports.h>
 #include <cpu/apic/apic.h>
-#include <mem/kheap/kheap.h>
+#include <garn/mm.h>
 #include <cpu/interrupts/idt.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 list_t* irqHandlerLists[224];
 uint32_t irqFlags[224];

@@ -7,14 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "pcidev.h"
-#include <hw/pci/pci.h>
-#include <hw/ports.h>
-#include <kstdio.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/hw/pci.h>
+#include <garn/hw/ports.h>
+#include <garn/kstdio.h>
 #include <exec/elf.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <sys/dal/dal.h>
+#include <garn/mm.h>
+#include <garn/dal/dal.h>
 
 pci_config_header_t hdr;
 pci_config_device_t* pciDevice;

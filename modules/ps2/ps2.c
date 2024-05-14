@@ -10,11 +10,13 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ps2.h"
-#include <module/module.h>
-#include <cpu/interrupts/interrupts.h>
-#include <cpu/interrupts/irq.h>
-#include <mem/kheap/kheap.h>
-#include <sys/input.h>
+#include <garn/module.h>
+#include <garn/irq.h>
+#include <garn/irq.h>
+#include <garn/mm.h>
+#include <garn/input.h>
+#include <garn/kstdio.h>
+#include <garn/module.h>
 
 device_driver_t driver_metadata;
 

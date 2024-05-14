@@ -7,9 +7,9 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "panic.h"
-#include <kstdio.h>
-#include <cpu/multiproc/spinlock.h>
+#include <garn/panic.h>
+#include <garn/kstdio.h>
+#include <garn/spinlock.h>
 #include <sys/bootloader.h>
 
 spinlock_t panicLock;

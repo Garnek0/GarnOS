@@ -8,15 +8,14 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "elf.h"
-#include <sys/fal/fal.h>
-#include <sys/panic.h>
-#include <sys/ksym.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <module/module.h>
-#include <cpu/multiproc/spinlock.h>
-#include <kstdio.h>
-#include <kerrno.h>
+#include <garn/fal/file.h>
+#include <garn/panic.h>
+#include <garn/ksym.h>
+#include <mem/mm-internals.h>
+#include <module/module-internals.h>
+#include <garn/spinlock.h>
+#include <garn/kstdio.h>
+#include <garn/kerrno.h>
 
 spinlock_t moduleLoaderLock;
 

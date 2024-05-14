@@ -11,10 +11,11 @@
 #define PROCESS_INIT_FD 128
 #define PROCESS_MAX_FD 2048
 
-#include <types.h>
+#include <garn/types.h>
 #include <process/thread/thread.h>
-#include <sys/fal/fal.h>
-#include <mem/vmm/vmm.h>
+#include <sys/fal/fal-internals.h>
+#include <garn/fal/file.h>
+#include <garn/mm.h>
 
 #define PROCESS_STATUS_RUNNING 0
 #define PROCESS_STATUS_ZOMBIE 1

@@ -7,15 +7,14 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "driver.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <hw/pci/pci.h>
-#include <cpu/multiproc/spinlock.h>
-#include <ds/list.h>
-#include <kstdio.h>
-#include <kerrno.h>
-#include <sys/fal/fal.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/mm.h>
+#include <garn/hw/pci.h>
+#include <garn/spinlock.h>
+#include <garn/ds/list.h>
+#include <garn/kstdio.h>
+#include <garn/kerrno.h>
+#include <garn/fal/file.h>
 #include <exec/elf.h>
 
 spinlock_t driverManagerLock;

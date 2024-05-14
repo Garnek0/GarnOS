@@ -10,15 +10,14 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ahci.h"
-#include <sys/dal/dal.h>
-#include <hw/pci/pci.h>
-#include <sys/bootloader.h>
-#include <mem/vmm/vmm.h> 
-#include <mem/pmm/pmm.h>
-#include <mem/memutil/memutil.h>
-#include <mem/kheap/kheap.h>
-#include <sys/timer.h>
-#include <kerrno.h>
+#include <garn/kernel.h>
+#include <garn/dal/dal.h>
+#include <garn/hw/pci.h>
+#include <garn/mm.h>
+#include <garn/timer.h>
+#include <garn/kerrno.h>
+#include <garn/kstdio.h>
+#include <garn/module.h>
 
 //Note to future self: DONT FORGET TO REMOVE THE BREAKPOINT IN kernel.c!!!
 
@@ -91,10 +90,10 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     int freeCMDSlot = ahci_find_cmd_slot(ahciController, port);
     if(freeCMDSlot < 0) return -1;
 
-    ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)port->clb | (uint64_t)port->clbu << 32) + bl_get_hhdm_offset());
+    ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)port->clb | (uint64_t)port->clbu << 32) + hhdmOffset);
 
     ahci_command_header_t* cmdHeader = &commandList[freeCMDSlot];
-    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + bl_get_hhdm_offset());
+    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + hhdmOffset);
 
     cmdHeader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);
     cmdHeader->c = 1;
@@ -204,7 +203,7 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
 
     while(port->ci != 0) asm volatile("nop");
 
-    memcpy(buf, (void*)((uint64_t)bufContinuous + bl_get_hhdm_offset()), count*512);
+    memcpy(buf, (void*)((uint64_t)bufContinuous + hhdmOffset), count*512);
 
     pmm_free(bufContinuous, (count*512/PAGE_SIZE)+1);
 
@@ -228,10 +227,10 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
     int freeCMDSlot = ahci_find_cmd_slot(ahciController, port);
     if(freeCMDSlot < 0) return -1;
 
-    ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)port->clb | (uint64_t)port->clbu << 32) + bl_get_hhdm_offset());
+    ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)port->clb | (uint64_t)port->clbu << 32) + hhdmOffset);
 
     ahci_command_header_t* cmdHeader = &commandList[freeCMDSlot];
-    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + bl_get_hhdm_offset());
+    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + hhdmOffset);
 
     cmdHeader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);
     cmdHeader->c = 1;
@@ -342,7 +341,7 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
 
     while(port->ci != 0) asm volatile("nop");
 
-    memcpy(buf, (void*)((uint64_t)bufContinuous + bl_get_hhdm_offset()), count*512);
+    memcpy(buf, (void*)((uint64_t)bufContinuous + hhdmOffset), count*512);
 
     pmm_free(bufContinuous, (count*512/PAGE_SIZE)+1);
 
@@ -384,7 +383,7 @@ bool attach(device_t* device){
 
     //Get ABAR and disable caching
 
-    ahci_mem_t* abar = (ahci_mem_t*)((pciConfig->BAR5 & 0xFFFFFFF0) + bl_get_hhdm_offset());
+    ahci_mem_t* abar = (ahci_mem_t*)((pciConfig->BAR5 & 0xFFFFFFF0) + hhdmOffset);
     vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar, VMM_PRESENT | VMM_RW | VMM_PCD);
 
     ahci_controller_t* ahciController = kmalloc(sizeof(ahci_controller_t));
@@ -445,31 +444,31 @@ bool attach(device_t* device){
             if(!(abar->cap1 & AHCI_CAP_S64A)){
                 abar->ports[i].clb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].clbu = 0;
-                memset((void*)((uint64_t)abar->ports[i].clb + bl_get_hhdm_offset()) , 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].clb + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                memset((void*)((uint64_t)abar->ports[i].clb + hhdmOffset) , 0, PAGE_SIZE);
+                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].clb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
             } else {
                 uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].clb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].clbu = ((addr & 0xFFFFFFFF00000000) >> 32);
-                memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
+                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
             }
 
-            ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)abar->ports[i].clb | ((uint64_t)abar->ports[i].clbu << 32)) + bl_get_hhdm_offset());
+            ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)abar->ports[i].clb | ((uint64_t)abar->ports[i].clbu << 32)) + hhdmOffset);
 
             //Allocate command tables
             for(int j = 0; j < ahciController->maxCommands; j++){
                 if(!(abar->cap1 & AHCI_CAP_S64A)){
                     commandList[j].ctba = (uint32_t)((uint64_t)pmm_allocate32(1));
                     commandList[j].ctbau = 0;
-                    memset((void*)((uint64_t)commandList[j].ctba + bl_get_hhdm_offset()), 0, PAGE_SIZE);
-                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)commandList[j].ctba + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                    memset((void*)((uint64_t)commandList[j].ctba + hhdmOffset), 0, PAGE_SIZE);
+                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)commandList[j].ctba + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
                 } else {
                     uint64_t addr = (uint64_t)pmm_allocate(1);
                     commandList[j].ctba = (addr & 0x00000000FFFFFFFF);
                     commandList[j].ctbau = ((addr & 0xFFFFFFFF00000000) >> 32);
-                    memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
-                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                    memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
+                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
                 }
             }
 
@@ -477,14 +476,14 @@ bool attach(device_t* device){
             if(!(abar->cap1 & AHCI_CAP_S64A)){
                 abar->ports[i].fb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].fbu = 0;
-                memset((void*)((uint64_t)abar->ports[i].fb + bl_get_hhdm_offset()) , 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].fb + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                memset((void*)((uint64_t)abar->ports[i].fb + hhdmOffset) , 0, PAGE_SIZE);
+                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].fb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
             } else {
                 uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].fb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].fbu = ((addr & 0xFFFFFFFF00000000) >> 32);
-                memset((void*)((uint64_t)addr + bl_get_hhdm_offset()), 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + bl_get_hhdm_offset(), VMM_PRESENT | VMM_RW | VMM_PCD);
+                memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
+                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
             }
 
             //Check device presence and type
@@ -517,7 +516,7 @@ bool attach(device_t* device){
                     int freeCMDSlot = ahci_find_cmd_slot(ahciController, &abar->ports[i]);
                     
                     ahci_command_header_t* cmdHeader = &commandList[freeCMDSlot];
-                    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + bl_get_hhdm_offset());
+                    ahci_cmd_table_t* cmdTable = (ahci_cmd_table_t*)(((uint64_t)cmdHeader->ctba | (uint64_t)cmdHeader->ctbau << 32) + hhdmOffset);
 
                     cmdHeader->cfl = sizeof(fis_reg_h2d_t)/sizeof(uint32_t);
                     cmdHeader->c = 1;

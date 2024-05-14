@@ -7,9 +7,9 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "list.h"
-#include <mem/kheap/kheap.h>
-#include <kstdio.h>
+#include <garn/ds/list.h>
+#include <garn/mm.h>
+#include <garn/kstdio.h>
 
 //Singly linked list data structure
 

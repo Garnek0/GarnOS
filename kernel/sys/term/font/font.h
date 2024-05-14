@@ -10,7 +10,7 @@
 #ifndef FONT_H
 #define FONT_H
 
-#include <types.h>
+#include <garn/types.h>
 
 extern uint8_t font[];
 

@@ -7,15 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "pmm.h"
-#include <kstdio.h>
+#include <mem/mm-internals.h>
+#include <garn/kstdio.h>
 #include <limine.h>
-#include <sys/panic.h>
-#include <mem/memmap/memmap.h>
-#include <mem/memutil/memutil.h>
-#include <hw/serial/serial.h>
+#include <garn/panic.h>
+#include <garn/hw/serial.h>
 #include <sys/bootloader.h>
-#include <kerrno.h>
+#include <garn/kerrno.h>
 
 static uint8_t* bitmap;
 size_t bitmapSize;

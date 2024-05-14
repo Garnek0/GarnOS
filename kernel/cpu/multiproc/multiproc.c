@@ -1,5 +1,5 @@
 /*  
-*   File: smp.c
+*   File: multiproc.c
 *
 *   Author: Garnek
 *   
@@ -7,22 +7,21 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "multiproc.h"
+#include "multiproc-internals.h"
 #include <sys/bootloader.h>
-#include <kstdio.h>
-#include <sys/dal/dal.h>
+#include <garn/kstdio.h>
+#include <garn/dal/dal.h>
+#include <garn/dal/device-types.h>
 #include <cpu/apic/apic.h>
 #include <hw/ioapic/ioapic.h>
 
-#include <sys/term/term.h>
+#include <garn/term.h>
 
 #include <cpu/gdt/gdt.h>
-#include <cpu/interrupts/interrupts.h>
-#include <mem/vmm/vmm.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
+#include <garn/irq.h>
+#include <garn/mm.h>
 #include <cpuid.h>
-#include <kerrno.h>
+#include <garn/kerrno.h>
 
 static void multiproc_configure_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));

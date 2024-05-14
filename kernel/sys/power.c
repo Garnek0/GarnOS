@@ -7,8 +7,10 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "power.h"
-#include <kstdio.h>
+#include "power-internals.h"
+
+#include <garn/power.h>
+#include <garn/kstdio.h>
 
 power_t power;
 

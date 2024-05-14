@@ -8,7 +8,7 @@
 #ifndef COMPAT_CHECK_H
 #define COMPAT_CHECK_H
 
-#include <types.h>
+#include <garn/types.h>
 
 void compat_check();
 

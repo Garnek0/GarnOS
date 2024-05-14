@@ -7,11 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "uname.h"
-#include <kernel.h>
+#include "uname-internals.h"
+
+#include <garn/uname.h>
+#include <garn/kernel.h>
 #include <errno.h>
-#include <sys/fal/file.h>
-#include <mem/memutil/memutil.h>
+#include <garn/fal/file.h>
+#include <garn/mm.h>
 
 int sys_uname(stack_frame_t* regs, utsname_t* buf){
     if(!buf) return -EINVAL;

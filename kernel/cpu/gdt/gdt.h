@@ -10,7 +10,7 @@
 #ifndef GDT_H
 #define GDT_H
 
-#include <types.h>
+#include <garn/types.h>
 
 typedef struct {
     uint16_t size;

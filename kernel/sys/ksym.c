@@ -8,13 +8,14 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "ksym.h"
-#include <kstdio.h>
+#include "ksym-internals.h"
+
+#include <garn/ksym.h>
+#include <garn/kstdio.h>
 #include <sys/bootloader.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <cpu/multiproc/spinlock.h>
-#include <ds/list.h>
+#include <garn/mm.h>
+#include <garn/spinlock.h>
+#include <garn/ds/list.h>
 
 list_t* ksymList;
 

@@ -1,0 +1,51 @@
+/*  
+*   File: dal-internals.h
+*
+*   Author: Garnek
+*/
+// SPDX-License-Identifier: BSD-2-Clause
+
+#ifndef DAL_INTERNALS_H
+#define DAL_INTERNALS_H
+
+#include <garn/types.h>
+#include <module/module-internals.h>
+#include <garn/kstdio.h>
+
+#include <garn/spinlock.h>
+#include <garn/panic.h>
+#include <garn/dal/dal.h>
+#include <garn/dal/device-types.h>
+#include <garn/dal/bcache.h>
+
+//device
+
+void device_init();
+
+//driver
+
+void driver_init();
+
+//miscdev
+
+void miscdev_init();
+
+//pcidev
+
+void pcidev_init();
+
+//checksysfs
+
+bool checksysfs_check();
+
+//bcache
+
+void bcache_init();
+
+//DAL
+
+void dal_init();
+
+int sys_sync(stack_frame_t* regs);
+
+#endif //DAL_INTERNALS_H

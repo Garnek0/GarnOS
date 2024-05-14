@@ -7,11 +7,11 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "miscdev.h"
-#include <sys/dal/dal.h>
-#include <acpi/tables/tables.h>
-#include <mem/kheap/kheap.h>
-#include <hw/ports.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/dal/dal.h>
+#include <garn/acpi/acpi-tables.h>
+#include <garn/mm.h>
+#include <garn/hw/ports.h>
 
 void miscdev_init(){
     //Detect PS/2 Controller

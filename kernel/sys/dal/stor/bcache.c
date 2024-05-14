@@ -7,10 +7,10 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "bcache.h"
-#include <mem/kheap/kheap.h>
-#include <sys/panic.h>
-#include <kstdio.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/mm.h>
+#include <garn/panic.h>
+#include <garn/kstdio.h>
 
 bcache_t bcache;
 

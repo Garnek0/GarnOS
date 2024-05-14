@@ -8,9 +8,9 @@
 #ifndef ELF_H
 #define ELF_H
 
-#include <types.h>
+#include <garn/types.h>
 #include "elfabi.h"
-#include <sys/dal/dal.h>
+#include <garn/dal/dal.h>
 #include <process/process.h>
 
 int elf_load_module(char* modulePath);

@@ -7,11 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "input.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <kerrno.h>
-#include <kstdio.h>
+#include "input-internals.h"
+
+#include <garn/input.h>
+#include <garn/mm.h>
+#include <garn/kerrno.h>
+#include <garn/kstdio.h>
 
 kb_state_t keyboardState;
 

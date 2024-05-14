@@ -7,15 +7,15 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "term.h"
-#include "kernel.h"
+#include <garn/term.h>
+#include <garn/kernel.h>
+#include <garn/fb.h>
+#include <garn/mm.h>
+#include <garn/hw/ports.h>
+#include <garn/hw/serial.h>
+#include <garn/kstdio.h>
 
-#include <display/fb.h>
-#include <mem/kheap/kheap.h>
-#include <hw/ports.h>
-#include <hw/serial/serial.h>
-
-#include <mem/memutil/memutil.h>
+#include "term-internals.h"
 
 term_context_t tc;
 

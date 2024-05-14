@@ -7,10 +7,10 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <kstdio.h>
-#include <sys/term/term.h>
-#include <hw/serial/serial.h>
-#include <sys/timer.h>
+#include <garn/kstdio.h>
+#include <garn/term.h>
+#include <garn/hw/serial.h>
+#include <garn/timer.h>
 
 spinlock_t klogLock;
 

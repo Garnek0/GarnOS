@@ -76,7 +76,7 @@
 #define APIC_ESR_ILLEGAL_VECTOR_RECEIVE (1 << 6)
 #define APIC_ESR_ILLEGAL_VREG_ADDR (1 << 7)
 
-#include <types.h>
+#include <garn/types.h>
 
 void apic_init();
 void apic_eoi();

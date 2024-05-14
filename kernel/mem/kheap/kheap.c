@@ -10,11 +10,9 @@
 //TODO: This kernel heap implementation has some massive flaws. I think, at this point, the only
 //Reasonable choice is to rewrite the entire thing from scratch.
 
-#include "kheap.h"
-#include <mem/pmm/pmm.h>
-#include <mem/memutil/memutil.h>
-#include <kstdio.h>
-#include <sys/panic.h>
+#include <mem/mm-internals.h>
+#include <garn/kstdio.h>
+#include <garn/panic.h>
 #include <sys/bootloader.h>
 
 kheap_block_header_t* start;

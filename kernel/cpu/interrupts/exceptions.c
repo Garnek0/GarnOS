@@ -7,17 +7,17 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "exceptions.h"
+#include "interrupt-internals.h"
 #include <cpu/interrupts/idt.h>
-#include <cpu/interrupts/interrupts.h>
+#include <garn/irq.h>
 
-#include <hw/serial/serial.h>
+#include <garn/hw/serial.h>
 
 #include <process/process.h>
 #include <process/sched/sched.h>
 
-#include <sys/panic.h>
-#include <kstdio.h>
+#include <garn/panic.h>
+#include <garn/kstdio.h>
 
 char* exceptionMessages[] = {
     "Divide Error",

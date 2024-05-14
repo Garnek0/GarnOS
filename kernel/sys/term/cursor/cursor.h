@@ -10,7 +10,7 @@
 #ifndef CURSOR_H
 #define CURSOR_H
 
-#include <types.h>
+#include <garn/types.h>
 
 typedef struct {
     uint32_t posX;

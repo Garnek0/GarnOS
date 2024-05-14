@@ -8,15 +8,14 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "apic.h"
-#include <kstdio.h>
-#include <module/module.h>
+#include <garn/kstdio.h>
 #include <sys/bootloader.h>
-#include <mem/vmm/vmm.h>
-#include <acpi/tables/tables.h>
-#include <cpu/multiproc/multiproc.h>
-#include <cpu/interrupts/irq.h>
-#include <hw/ports.h>
-#include <acpi/tables/tables.h>
+#include <garn/mm.h>
+#include <garn/acpi/acpi-tables.h>
+#include <cpu/multiproc/multiproc-internals.h>
+#include <garn/irq.h>
+#include <garn/hw/ports.h>
+#include <garn/acpi/acpi-tables.h>
 
 static const char* apicErrorStrings[] = {
     "Send Checksum Error",

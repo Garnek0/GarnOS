@@ -7,8 +7,8 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <kstdio.h>
-#include <kerrno.h>
+#include <garn/kstdio.h>
+#include <garn/kerrno.h>
 
 const char* kerrStr[] = {
     "Not administrator",

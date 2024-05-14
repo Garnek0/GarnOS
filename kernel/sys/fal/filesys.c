@@ -7,10 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "filesys.h"
-#include <cpu/multiproc/spinlock.h>
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
+#include "fal-internals.h"
+
+#include <garn/fal/filesys.h>
+#include <garn/spinlock.h>
+#include <garn/mm.h>
+#include <garn/kstdio.h>
 
 filesys_t filesystems[MAX_FILESYSTEMS];
 size_t nextAvailFSIndex;

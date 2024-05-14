@@ -7,9 +7,10 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "checksysfs.h"
-#include <sys/fal/fal.h>
-#include <kstdio.h>
+#include <sys/dal/dal-internals.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <garn/kstdio.h>
 
 bool checksysfs_check(){
     filesys_t* sysfs = filesys_get(0);

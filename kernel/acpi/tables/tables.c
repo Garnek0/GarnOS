@@ -7,12 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "tables.h"
+#include <acpi/acpi-internals.h>
+#include <garn/acpi/acpi-tables.h>
 #include <limine.h>
-#include <sys/panic.h>
-#include <mem/memutil/memutil.h>
+#include <garn/panic.h>
+#include <garn/mm.h>
 #include <sys/bootloader.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 uint8_t ACPIVer;
 acpi_rsdp_t* RSDP;

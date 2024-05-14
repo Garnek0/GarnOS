@@ -8,11 +8,11 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "rtc.h"
-#include <hw/ports.h>
-#include <cpu/interrupts/interrupts.h>
-#include <cpu/interrupts/irq.h>
-#include <kstdio.h>
-#include <cpu/multiproc/spinlock.h>
+#include <garn/hw/ports.h>
+#include <garn/irq.h>
+#include <garn/irq.h>
+#include <garn/kstdio.h>
+#include <garn/spinlock.h>
 
 rtc_t rtc;
 

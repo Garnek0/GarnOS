@@ -7,13 +7,12 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "interrupts.h"
+#include "interrupt-internals.h"
 #include <cpu/interrupts/idt.h>
 #include <sys/syscall.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
-#include <cpu/interrupts/exceptions.h>
-#include <cpu/interrupts/irq.h>
+#include <garn/irq.h>
 #include <sys/syscall.h>
 
 //initialise interrupts

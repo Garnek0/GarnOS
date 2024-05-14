@@ -8,7 +8,7 @@
 #ifndef AHCI_MODULE_H
 #define AHCI_MODULE_H
 
-#include <types.h>
+#include <garn/types.h>
 
 #define FIS_TYPE_REG_H2D 0x27
 #define FIS_TYPE_REG_D2H 0x34

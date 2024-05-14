@@ -7,17 +7,16 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "module.h"
+#include <module/module-internals.h>
 #include <exec/elf.h>
-#include <mem/memutil/memutil.h>
-#include <mem/kheap/kheap.h>
-#include <hw/ports.h>
+#include <garn/mm.h>
+#include <garn/hw/ports.h>
 #include <sys/fal/initrd/initrd.h>
-#include <sys/fal/fal.h>
-#include <acpi/tables/tables.h>
-#include <cpu/multiproc/spinlock.h>
-#include <ds/list.h>
-#include <kstdio.h>
+#include <garn/fal/file.h>
+#include <garn/acpi/acpi-tables.h>
+#include <garn/spinlock.h>
+#include <garn/ds/list.h>
+#include <garn/kstdio.h>
 
 list_t* moduleList;
 

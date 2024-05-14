@@ -7,12 +7,13 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "serial.h"
-#include <hw/ports.h>
-#include <mem/memutil/memutil.h>
-#include <cpu/multiproc/spinlock.h>
+#include <garn/hw/serial.h>
+#include "serial-internals.h"
+#include <garn/hw/ports.h>
+#include <garn/mm.h>
+#include <garn/spinlock.h>
 
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 static bool serialPresent;
 static bool enableSerialLogs = false;

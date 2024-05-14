@@ -8,7 +8,7 @@
 #ifndef BOOTLOADER_IF_H
 #define BOOTLOADER_IF_H
 
-#include <types.h>
+#include <garn/types.h>
 #include <limine.h>
 
 void* bl_get_kernel_file_address();

@@ -8,17 +8,15 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "kcon.h"
-#include <kstdio.h>
-#include <mem/kheap/kheap.h>
-#include <mem/pmm/pmm.h>
-#include <mem/memutil/memutil.h>
-#include <kernel.h>
+#include <garn/kstdio.h>
+#include <garn/mm.h>
+#include <garn/kernel.h>
 #include <hw/rtc/rtc.h>
-#include <sys/term/term.h>
-#include <sys/dal/dal.h>
-#include <ds/list.h>
-#include <sys/fal/fal.h>
-#include <sys/power.h>
+#include <garn/term.h>
+#include <garn/dal/dal.h>
+#include <garn/ds/list.h>
+#include <garn/fal/filesys.h>
+#include <garn/power.h>
 
 list_t* commandList;
 bool exit = false;

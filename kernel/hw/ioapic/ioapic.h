@@ -40,7 +40,7 @@
 #define ICW4_BUF_MASTER	0x0C
 #define ICW4_SFNM 0x10
 
-#include <types.h>
+#include <garn/types.h>
 
 typedef union {
     struct {

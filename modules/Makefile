@@ -22,8 +22,7 @@ override CFLAGS += \
 
 override CPPFLAGS := \
     -I. \
-    -I../kernel \
-    -I../kernel/klibc/include \
+    -I../include \
     $(CPPFLAGS) \
     -MMD \
     -MP

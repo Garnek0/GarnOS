@@ -7,8 +7,10 @@
 #ifndef FAT_H
 #define FAT_H
 
-#include <sys/fal/fal.h>
-#include <sys/dal/dal.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <garn/dal/dal.h>
+#include <garn/dal/bcache.h>
 
 #define FAT_ATTR_READ_ONLY 0x01
 #define FAT_ATTR_HIDDEN 0x02

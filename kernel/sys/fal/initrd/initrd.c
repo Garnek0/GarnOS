@@ -8,14 +8,14 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "initrd.h"
-#include <sys/fal/fal.h>
-#include <kstdio.h>
-#include <sys/panic.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <garn/kstdio.h>
+#include <garn/panic.h>
 #include <sys/bootloader.h>
-#include <mem/memutil/memutil.h>
-#include <mem/kheap/kheap.h>
+#include <garn/mm.h>
 #include <limine.h>
-#include <kerrno.h>
+#include <garn/kerrno.h>
 
 static volatile struct limine_module_request module_request = {
     .id = LIMINE_MODULE_REQUEST,

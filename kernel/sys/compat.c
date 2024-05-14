@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "compat.h"
-#include <sys/panic.h>
+#include <garn/panic.h>
 #include <cpuid.h>
 
 enum {

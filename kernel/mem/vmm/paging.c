@@ -7,13 +7,10 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "vmm.h"
-#include <mem/pmm/pmm.h>
-#include <mem/memutil/memutil.h>
-#include <mem/memmap/memmap.h>
+#include <mem/mm-internals.h>
 #include <sys/bootloader.h>
 #include <limine.h>
-#include <kstdio.h>
+#include <garn/kstdio.h>
 
 page_table_t* PML4;
 page_table_t* kernelPML4;

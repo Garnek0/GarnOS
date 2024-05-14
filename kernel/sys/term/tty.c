@@ -8,11 +8,11 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "tty.h"
-#include <mem/kheap/kheap.h>
-#include <mem/memutil/memutil.h>
-#include <sys/term/term.h>
-#include <sys/fal/fal.h>
-#include <kerrno.h>
+#include <garn/mm.h>
+#include <garn/term.h>
+#include <garn/fal/file.h>
+#include <garn/fal/filesys.h>
+#include <garn/kerrno.h>
 
 file_t* tty;
 
