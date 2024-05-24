@@ -12,9 +12,7 @@
 
 #include <garn/types.h>
 
-#include <sys/term/font/font.h>
-#include <sys/term/cursor/cursor.h>
-#include <sys/term/tty.h>
+#include <garn/term/cursor.h>
 #include <garn/spinlock.h>
 
 #define GLYPH_X 8
@@ -38,6 +36,7 @@ typedef struct {
 extern term_context_t tc;
 
 void term_clear();
+void term_char(char chr);
 char term_putchar(char chr);
 char term_putchar_dbg(char chr);
 void term_scroll(uint16_t pix);

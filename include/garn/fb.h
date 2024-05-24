@@ -1,3 +1,11 @@
+/** @file fb.h
+ * @brief Framebuffer Access
+ * 
+ * @author Garnek
+ * @date 2024
+ */
+
+
 /*  
 *   File: fb.h
 *
@@ -10,6 +18,30 @@
 
 #include <garn/types.h>
 
+/** @struct framebuffer_info_t
+ * @brief Framebuffer information structure
+ * 
+ * @var framebuffer_info_t::address
+ * Framebuffer base address
+ * 
+ * @var framebuffer_info_t::readAddress
+ * Read Framebuffer base address
+ * 
+ * @var framebuffer_info_t::pitch
+ * Framebuffer pitch (bytes per row)
+ * 
+ * @var framebuffer_info_t::width
+ * Framebuffer width (in pixels)
+ * 
+ * @var framebuffer_info_t::heigth
+ * Framebuffer height (in pixels)
+ * 
+ * @var framebuffer_info_t::bpp
+ * Bytes per pixel
+ * 
+ * @var framebuffer_info_t::size
+ * Framebuffer size (in bytes)
+ */
 typedef struct {
     uint32_t* address;
     uint32_t* readAddress;
@@ -19,17 +51,27 @@ typedef struct {
     uint16_t bpp;
     size_t size;
 } framebuffer_info_t;
+
+/**
+ * @brief Default framebuffer info structure
+ * 
+ */
 extern framebuffer_info_t framebuffer_info;
 
+/**
+ * @brief Writes a sigle pixel to the framebuffer
+ * 
+ * @param x X offset
+ * @param y Y offset
+ * @param colour Pixel colour
+ */
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour);
+
+/**
+ * @brief Clears the framebuffer
+ * 
+ * @param colour Clear colour
+ */
 void fb_clear(uint32_t colour);
-
-inline framebuffer_info_t fb_get_info(){
-    return framebuffer_info;
-}
-
-inline void fb_set_info(framebuffer_info_t fbinfo){
-    framebuffer_info = fbinfo;
-}
 
 #endif //FB_H

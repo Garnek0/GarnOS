@@ -35,7 +35,7 @@ const char* probeOEMIDs[PROBE_OEMID_COUNT] = {
 bool fat_probe(drive_t* drive, size_t partition){
     fat_bpb_t* probeBPB;
 
-    bcache_buf_t* buf = bcache_read(drive, drive->partitions[partition].startLBA);
+    bcache_buf_t* buf = bcache_get(drive, drive->partitions[partition].startLBA);
 
     probeBPB = (fat_bpb_t*)buf->data;
 
@@ -67,7 +67,7 @@ bool fat_attach(drive_t* drive, size_t partition){
     fat12_16_ebpb_t* fat12_16ebpb;
     fat32_ebpb_t* fat32ebpb;
 
-    buf = bcache_read(drive, drive->partitions[partition].startLBA);
+    buf = bcache_get(drive, drive->partitions[partition].startLBA);
     bpb = kmalloc(sizeof(fat_bpb_t));
     fat12_16ebpb = kmalloc(sizeof(fat12_16_ebpb_t));
     fat32ebpb = kmalloc(sizeof(fat32_ebpb_t));

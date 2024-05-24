@@ -16,7 +16,7 @@
 #include <garn/hw/serial.h>
 #include <garn/acpi/acpi-tables.h>
 #include <garn/dal/dal.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/input.h>
 #include <garn/fal/file.h>
 #include <garn/fal/filesys.h>

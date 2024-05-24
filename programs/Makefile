@@ -17,7 +17,10 @@ override EXEC := $(CFILES:.c=.elf)
 
 override HEADER_DEPS := $(CFILES:.c=.d)
 
-all: $(EXEC)
+all: bin_dir $(EXEC)
+
+bin_dir:
+	mkdir -p ../sysroot/bin
 
 %.elf: %.c
 	$(CC) $(CFLAGS) $< -o $@

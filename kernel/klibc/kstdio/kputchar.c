@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <garn/kstdio.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 
 //this is just a wrapper, it doesnt need a lock as
 //the wrapped function (term_putchar) already has one

@@ -38,7 +38,7 @@ filesys_t* filesys_mount(filesys_t filesys){
 
         klog("Mounted system FS %d:/ (%s).\n", KLOG_OK, "FAL", filesystems[0].mountNumber, filesystems[0].name);
 
-        if(device_driver_autoreg("0:/autoreg.txt") != 0){
+        if(device_driver_autoreg("0:/drv/autoreg.txt") != 0){
             panic("autoreg.txt not found on system fs!", "FAL");
         }
 

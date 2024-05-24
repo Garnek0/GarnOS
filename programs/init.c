@@ -16,20 +16,16 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
-#include <abi-bits/utsname.h>
 
 #define SHELL_PATH "/bin/shell.elf"
 
 int main(int argc, char** argv){
-    printf("Welcome to GarnOS!\n\n");
+
+    //Terminal foreground colour
+
+    printf("Welcome to GarnOS!\n");
 
     int status;
-
-    struct utsname name;
-
-    uname(&name);
-
-    printf("Kernel: %s\nKernel Release: %s\nOS Release: %s\n\n", name.sysname, name.release, name.version);
     
     if(!fork()){
         char* argv[] = {SHELL_PATH, NULL};

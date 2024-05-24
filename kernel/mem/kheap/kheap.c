@@ -102,6 +102,7 @@ void* kmalloc(size_t size){
 }
 
 void kmfree(void* ptr){
+    if(ptr == NULL) return;
     kheap_block_header_t* h;
     h = (kheap_block_header_t*)((uint64_t)ptr - sizeof(kheap_block_header_t));
 

@@ -69,7 +69,6 @@ sysroot:
 	rm -rf sysroot
 
 	mkdir -p sysroot
-	mkdir -p sysroot/bin
 	mkdir sysroot/efi
 	mkdir sysroot/efi/boot
 
@@ -136,9 +135,13 @@ $(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 	sudo losetup -d `cat loopback_dev`
 	rm -rf loopback_dev img_mount
 
+.PHONY: kernel-docs
+kernel-docs:
+	cd include; doxygen
+
 .PHONY: clean
 clean:
-	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
+	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd docs/html
 	$(MAKE) -C kernel clean
 	$(MAKE) -C modules clean
 	$(MAKE) -C programs clean

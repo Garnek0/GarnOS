@@ -109,7 +109,7 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
             foundByLFN = false;
             for(;;){
                 for(size_t i = 0; i < context->sectorsPerCluster; i++){
-                    buf = bcache_read(self->drive, currentSector);
+                    buf = bcache_get(self->drive, currentSector);
                     for(size_t j = 0; j < context->bytesPerSector; j+=sizeof(fat_directory_t)){
                         currentDir = (fat_directory_t*)((uint64_t)buf->data + j);
                         if(currentDir->name[0] == 0) continue;

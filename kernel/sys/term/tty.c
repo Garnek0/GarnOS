@@ -9,7 +9,7 @@
 
 #include "tty.h"
 #include <garn/mm.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/fal/file.h>
 #include <garn/fal/filesys.h>
 #include <garn/kerrno.h>

@@ -1,3 +1,10 @@
+/** @file device-types.h
+ * @brief Device types
+ * 
+ * @author Garnek
+ * @date 2024
+ */
+
 /*  
 *   File: device-types.h
 *

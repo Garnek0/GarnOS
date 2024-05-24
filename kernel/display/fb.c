@@ -11,9 +11,9 @@
 #include "fb-internals.h"
 #include <limine.h>
 #include <garn/mm.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/spinlock.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 
 framebuffer_info_t framebuffer_info;
 
@@ -26,6 +26,7 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
 };
 
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour){
+    if(x >= framebuffer_info.width || y >= framebuffer_info.height) return;
     lock(fbLock, {
         uint32_t* fbPtr = framebuffer_info.address;
         uint32_t* fbReadPtr = framebuffer_info.readAddress;

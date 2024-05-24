@@ -11,6 +11,7 @@
 #include <garn/mm.h>
 #include <garn/panic.h>
 #include <garn/kstdio.h>
+#include <garn/kerrno.h>
 
 bcache_t bcache;
 
@@ -43,8 +44,9 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
                 i->refCount++;
                 i->block = block;
                 i->drive = drive;
-                i->valid = false;
+                i->valid = true;
                 i->dirty = false;
+                bcache_read(i);
                 releaseLock(&bcache.spinlock);
                 return i;
             }
@@ -54,29 +56,39 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
     return NULL;
 }
 
-bcache_buf_t* bcache_read(drive_t* drive, size_t block){
-    bcache_buf_t* buf = bcache_get(drive, block);
-    if(!buf->valid){
-        if(drive->read){
-            drive->read(drive, block, 1, buf->data);
+int bcache_read(bcache_buf_t* buf){
+    lock(buf->lock, {
+        if(buf->drive->read){
+            buf->drive->read(buf->drive, buf->block, 1, buf->data);
         } else {
-            klog("Cant read from drive \"%s\"! Read unimplemented.\n", KLOG_FAILED, "bcache", drive->name);
+            klog("Cant read from drive \"%s\"! Read unimplemented.\n", KLOG_FAILED, "bcache", buf->drive->name);
+            kerrno = ENOSYS;
+            releaseLock(&buf->lock);
+            return -1;
+
         }
-        buf->valid = true;
-    }
-    return buf;
+    });
+
+    return 0;
 }
 
-void bcache_write(bcache_buf_t* buf){
-    if(buf->dirty){
-        buf->drive->write(buf->drive, buf->block, 1, buf->data);
-        if(buf->drive->write){
+int bcache_write(bcache_buf_t* buf){
+    lock(buf->lock, {
+        if(buf->dirty){
             buf->drive->write(buf->drive, buf->block, 1, buf->data);
-        } else {
-            klog("Cant write to drive \"%s\"! Write unimplemented.\n", KLOG_FAILED, "bcache", buf->drive->name);
+            if(buf->drive->write){
+                buf->drive->write(buf->drive, buf->block, 1, buf->data);
+                buf->dirty = false;
+            } else {
+                klog("Cant write to drive \"%s\"! Write unimplemented.\n", KLOG_FAILED, "bcache", buf->drive->name);
+                kerrno = ENOSYS;
+                releaseLock(&buf->lock);
+                return -1;
+            }
         }
-        buf->dirty = false;
-    }
+    });
+
+    return 0;
 }
 
 void bcache_release(bcache_buf_t* buf){

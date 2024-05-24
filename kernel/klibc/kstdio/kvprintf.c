@@ -9,7 +9,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <garn/kstdio.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/mm.h>
 
 spinlock_t kvprintfLock;

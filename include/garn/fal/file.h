@@ -34,8 +34,9 @@
 #define S_IWOTH 0x0002
 #define S_IXOTH 0x0001
 
-#define DT_DIR 0
+#define DT_UNKNOWN 0
 #define DT_REG 1
+#define DT_DIR 2
 
 #include <garn/types.h>
 #include <garn/spinlock.h>

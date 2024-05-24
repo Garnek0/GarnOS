@@ -7,9 +7,9 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "cursor.h"
+#include <garn/term/cursor.h>
 
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/fb.h>
 
 void cursor_advance(cursor_t* cursor){
@@ -34,14 +34,12 @@ void cursor_set(cursor_t* cursor, uint32_t x, uint32_t y){
 void cursor_backspace(cursor_t* cursor){
     if((int32_t)cursor->posX - GLYPH_X >= 0){
         cursor->posX -= GLYPH_X;
-        term_putchar(' ');
-        cursor->posX -= GLYPH_X;
+        term_char(' ');
     } else {
         cursor->posX = framebuffer_info.width;
         cursor->posY -= GLYPH_Y;
         cursor->posX -= GLYPH_X;
-        term_putchar(' ');
-        cursor->posX -= GLYPH_X;
+        term_char(' ');
         cursor->posX = framebuffer_info.width;
         cursor->posY -= GLYPH_Y;
         cursor->posX -= GLYPH_X;

@@ -18,6 +18,14 @@
 #include <garn/dal/device-types.h>
 #include <garn/dal/bcache.h>
 
+typedef struct {
+    bcache_buf_t* head;
+    bcache_buf_t* tail;
+    bcache_buf_t buf[BCACHE_BUF_COUNT];
+
+    spinlock_t spinlock;
+} bcache_t;
+
 //device
 
 void device_init();

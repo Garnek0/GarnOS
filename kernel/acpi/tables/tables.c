@@ -50,7 +50,7 @@ static bool acpi_tables_validate_checksum(void* ptr, size_t length){
     else return true;
 }
 
-static uint64_t acpi_tables_find(const char* sig){
+void* acpi_tables_find(const char* sig){
     //calculate number of entries using a little trick to determine the correct divisor
     //depending on wether the system is ACPI 1.0 compliant or ACPI 2.0+ compliant.
     int entries = (XSDT->header.length - sizeof(XSDT->header)) / (4 * ACPIVer);
@@ -59,9 +59,9 @@ static uint64_t acpi_tables_find(const char* sig){
     //but since ACPI 2.0's XSDT uses 64-bit pointers, we need to increment the index by two each time)
     for(int i = 0; i < entries; i++){
         acpi_sdt_hdr_t* h = (acpi_sdt_hdr_t*)((XSDT->tableArea)[i*ACPIVer] + bl_get_hhdm_offset());
-        if(!strncmp(h->signature, sig, 4)) return (uint64_t)h;
+        if(!strncmp(h->signature, sig, 4)) return (void*)h;
     }
-    return 0;
+    return NULL;
 }
 
 char OEMIDBuf[6];

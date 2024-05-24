@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/kernel.h>
 #include <garn/fb.h>
 #include <garn/mm.h>
@@ -98,6 +98,8 @@ static void term_sgr(){
         default:
             break;
     }
+
+    term_char((char)219);
 }
 
 void term_scroll(uint16_t pix){
@@ -118,6 +120,17 @@ void term_scroll(uint16_t pix){
         memcpy((void*)framebuffer_info.address, (void*)framebuffer_info.readAddress, framebuffer_info.size);
 }
 
+void term_char(char chr){
+    for(uint32_t i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
+        for(uint32_t j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
+            fb_pixel(j, i, tc.backgroundColour);
+            if(font[(uint8_t)chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> (j-tc.cursor.posX))){
+                fb_pixel(j, i, tc.foregroundColour);
+            }
+        }
+    }
+}
+
 static void term_putchar_raw(char chr){
 
     if(!tc.enabled) return;
@@ -128,21 +141,17 @@ static void term_putchar_raw(char chr){
 
     switch(chr){
         case '\n':
+            term_char((char)0);
             cursor_newline(&tc.cursor);
             // fall through
         case '\r':
             cursor_return(&tc.cursor);
+            term_char((char)219);
             break;
         default:
-            for(uint32_t i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
-                for(uint32_t j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
-                    fb_pixel(j, i, tc.backgroundColour);
-                    if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> (j-tc.cursor.posX))){
-                        fb_pixel(j, i, tc.foregroundColour);
-                    }
-                }
-            }
+            term_char(chr);
             cursor_advance(&tc.cursor);
+            term_char((char)219);
             break;
     }
 }
@@ -210,28 +219,26 @@ char term_putchar(char chr){
 
         switch(chr){
             case '\n':
+                term_char((char)0);
                 cursor_newline(&tc.cursor);
                 // fall through
             case '\r':
                 cursor_return(&tc.cursor);
+                term_char((char)219);
                 break;
             case '\e':
                 tc.escape = true;
                 break;
             case '\b':
+                term_char((char)0);
                 releaseLock(&tc.lock);
                 cursor_backspace(&tc.cursor);
+                term_char((char)219);
                 break;
             default:
-                for(size_t i = tc.cursor.posY; i < tc.cursor.posY+GLYPH_Y; i++){
-                    for(size_t j = tc.cursor.posX; j < tc.cursor.posX+GLYPH_X; j++){
-                        fb_pixel(j, i, tc.backgroundColour);
-                        if(font[chr*GLYPH_Y+i-tc.cursor.posY] & (0b10000000 >> (j-tc.cursor.posX))){
-                            fb_pixel(j, i, tc.foregroundColour);
-                        }
-                    }
-                }
+                term_char(chr);
                 cursor_advance(&tc.cursor);
+                term_char((char)219);
                 break;
         }
     });

@@ -15,7 +15,7 @@
 #include <cpu/apic/apic.h>
 #include <hw/ioapic/ioapic.h>
 
-#include <garn/term.h>
+#include <garn/term/term.h>
 
 #include <cpu/gdt/gdt.h>
 #include <garn/irq.h>

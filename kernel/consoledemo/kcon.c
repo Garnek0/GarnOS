@@ -12,7 +12,7 @@
 #include <garn/mm.h>
 #include <garn/kernel.h>
 #include <hw/rtc/rtc.h>
-#include <garn/term.h>
+#include <garn/term/term.h>
 #include <garn/dal/dal.h>
 #include <garn/ds/list.h>
 #include <garn/fal/filesys.h>

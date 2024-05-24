@@ -22,7 +22,7 @@ size_t fat12_next_cluster(filesys_t* filesys, fat_context_t* context, size_t clu
 size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
     size_t sectorOffset = cluster/256;
 
-    bcache_buf_t* buf = bcache_read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+    bcache_buf_t* buf = bcache_get(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
 
     uint16_t* fatBuf = (uint16_t*)buf->data;
 
@@ -37,7 +37,7 @@ size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t clu
 size_t fat32_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
     size_t sectorOffset = cluster/128;
 
-    bcache_buf_t* buf = bcache_read(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+    bcache_buf_t* buf = bcache_get(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
 
     uint32_t* fatBuf = (uint32_t*)buf->data;
 

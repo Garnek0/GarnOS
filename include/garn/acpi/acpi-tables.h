@@ -1,9 +1,16 @@
+/** @file acpi-tables.h
+ * @brief Contains typedefs for table structs and the actual table pointers.
+ * 
+ * @author Garnek
+ * @date 2024
+ */
+
 /*  
 *   File: acpi-tables.h
 *
 *   Author: Garnek
 *   
-*   Description: Contains typedefs of table structs and the actual table pointers.
+*   Description: Contains typedefs for table structs and the actual table pointers.
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -14,9 +21,22 @@
 
 //RSDP
 
+/**
+ * @brief ACPI 1.0 RSDP size
+ * 
+ */
 #define ACPI_RSDP_1_SZ 20
+
+/**
+ * @brief ACPI 2.0 RSDP size minus ACPI 1.0 RSDP size
+ * 
+ */
 #define ACPI_RSDP_2_SZ 16
 
+/**
+ * @brief ACPI RSDP Table Structure
+ * 
+ */
 typedef struct {
     char signature[8];
     uint8_t checksum;
@@ -32,10 +52,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_rsdp_t;
+/**
+ * @brief ACPI RSDP Pointer provided by the kernel
+ * 
+ */
 extern acpi_rsdp_t* RSDP;
 
 //SDT Header Structure
 
+/**
+ * @brief ACPI SDT Header
+ * 
+ */
 typedef struct {
     char signature[4];
     uint32_t length;
@@ -54,6 +82,10 @@ acpi_sdt_hdr_t;
 
 //XSDT
 
+/**
+ * @brief ACPI XSDT (or RSDT) Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t tableArea[];
@@ -62,10 +94,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_xsdt_t;
+/**
+ * @brief ACPI XSDT (or RSDT) Pointer provided by the kernel
+ * 
+ */
 extern acpi_xsdt_t* XSDT;
 
 //GAS Structure
 
+/**
+ * @brief ACPI Generic Addres Space Structure
+ * 
+ */
 typedef struct {
   uint8_t AddressSpace;
   uint8_t BitWidth;
@@ -82,6 +122,10 @@ acpi_gas_t;
 
 #define HARDWARE_REDUCED_ACPI (1 << 20)
 
+/**
+ * @brief ACPI FADT Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t firmwareCtrl;
@@ -151,6 +195,10 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_fadt_t;
+/**
+ * @brief ACPI FADT Pointer provided by the kernel
+ * 
+ */
 extern acpi_fadt_t* FADT;
 
 //MADT
@@ -171,6 +219,10 @@ __attribute__((packed))
 #endif
 acpi_madt_record_hdr_t;
 
+/**
+ * @brief ACPI MADT Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t LAPICAddress;
@@ -181,6 +233,10 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_madt_t;
+/**
+ * @brief ACPI MADT Pointer provided by the kernel
+ * 
+ */
 extern acpi_madt_t* MADT;
 
 typedef struct {
@@ -251,6 +307,10 @@ acpi_madt_record_lapic_addr_override_t;
 
 //BGRT
 
+/**
+ * @brief ACPI BGRT Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint16_t versionID;
@@ -264,10 +324,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_bgrt_t;
+/**
+ * @brief ACPI BGRT Pointer provided by the kernel
+ * 
+ */
 extern acpi_bgrt_t* BGRT;
 
 //BERT
 
+/**
+ * @brief ACPI BERT Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t bootErrorRegionLength;
@@ -277,10 +345,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_bert_t;
+/**
+ * @brief ACPI BERT Pointer provided by the kernel
+ * 
+ */
 extern acpi_bert_t* BERT;
 
 //DSDT
 
+/**
+ * @brief ACPI DSDT Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint8_t definitionBlock[];
@@ -289,10 +365,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_dsdt_t;
+/**
+ * @brief ACPI DSDT Pointer provided by the kernel
+ * 
+ */
 extern acpi_dsdt_t* DSDT;
 
 //FACS
 
+/**
+ * @brief ACPI FACS Table Structure
+ * 
+ */
 typedef struct {
     char signature[4];
     uint32_t length;
@@ -310,10 +394,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_facs_t;
+/**
+ * @brief ACPI FACS Pointer provided by the kernel
+ * 
+ */
 extern acpi_facs_t* FACS;
 
 //HPET
 
+/**
+ * @brief ACPI HPET Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint8_t hardwareRevisionID;
@@ -331,10 +423,18 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_hpet_t;
+/**
+ * @brief ACPI HPET Table Pointer provided by the kernel
+ * 
+ */
 extern acpi_hpet_t* HPET;
 
 //SBST
 
+/**
+ * @brief ACPI SBST Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint32_t warningEnergyLevel;
@@ -345,6 +445,10 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_sbst_t;
+/**
+ * @brief ACPI SBST Pointer provided by the kernel
+ * 
+ */
 extern acpi_sbst_t* SBST;
 
 //MCFG
@@ -361,6 +465,10 @@ __attribute__((packed))
 #endif
 acpi_mcfg_config_space_t;
 
+/**
+ * @brief ACPI MCFG Table Structure
+ * 
+ */
 typedef struct {
     acpi_sdt_hdr_t header;
     uint64_t reserved;
@@ -370,6 +478,20 @@ typedef struct {
 __attribute__((packed))
 #endif
 acpi_mcfg_t;
+/**
+ * @brief ACPI MCFG Pointer provided by the kernel
+ * 
+ */
 extern acpi_mcfg_t* MCFG;
+
+/**
+ * @brief Looks for an ACPI table in the XSDT/RSDT table area
+ * 
+ * @param sig Table signature
+ * 
+ * @retval NULL Table not found
+ * @retval !NULL Higher half address of the ACPI Table
+ */
+void* acpi_tables_find(const char* sig);
 
 #endif //ACPI_TABLES_H

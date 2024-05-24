@@ -22,6 +22,8 @@
 
 char cmd[MAX_CMD];
 
+bool statusSuccess = true;
+
 void get_command(){
     int p = 0;
     int backspaces = 0;
@@ -117,6 +119,9 @@ gettoken:
         int status;
         waitpid(-1, &status, 0);
 
+        if(status != 0) statusSuccess = false;
+        else statusSuccess = true;
+
         for(int i = 0; i < argc; i++){
             free(argv[i]);
         }
@@ -126,15 +131,21 @@ gettoken:
 int main(){
     char cwd[MAX_PATH];
 
-    printf("GarnOS Shell. Welcome to Userspace!\n\n");
-
     for(;;){
         getcwd(cwd, MAX_PATH);
-        printf("%s>", cwd);
+        if(statusSuccess){
+            printf("(\e[38;2;0;255;0m%c\e[38;2;255;255;255m) ", 0xFB);
+        } else {
+            printf("(\e[38;2;255;0;0m%c\e[38;2;255;255;255m) ", 'X');
+        }
+        printf("\e[38;2;255;89;0mroot\e[38;2;255;255;255m:\e[38;2;0;0;255m%s\e[38;2;255;255;255m >>> ", cwd);
 
         get_command();
 
-        if(cmd[0] == 0) continue;
+        if(cmd[0] == 0){
+            statusSuccess = true;
+            continue;
+        }
 
         if(!strncmp("cd ", cmd, 3) || !strcmp("cd", cmd)){
             if(strlen(cmd) <= 3) continue;
@@ -143,6 +154,9 @@ int main(){
             if(status != 0){
                 fprintf(stderr, "shell: cd: %s: ", &cmd[3]);
                 perror(NULL);
+                statusSuccess = false;
+            } else {
+                statusSuccess = true;
             }
         } else {
             run_program();

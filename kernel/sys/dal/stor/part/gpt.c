@@ -26,7 +26,7 @@ bool gpt_validate_drive(drive_t* drive){
     gpt_header_t* partHeader;
 
     lock(gptLock, {
-        buf = bcache_read(drive, 1);
+        buf = bcache_get(drive, 1);
         partHeader = (gpt_header_t*)buf->data;
 
         uint64_t* bootDiskGUID = bl_get_gpt_system_disk_uuid();
@@ -49,7 +49,7 @@ bool gpt_initialise_drive(drive_t* drive){
     gpt_entry_t* currentEntry;
 
     lock(gptLock, {
-        buf = bcache_read(drive, 1);
+        buf = bcache_get(drive, 1);
         memcpy(partHeader, buf->data, sizeof(gpt_header_t));
         bcache_release(buf);    
 
@@ -57,7 +57,7 @@ bool gpt_initialise_drive(drive_t* drive){
         
         uint64_t* bootPartGUID = bl_get_gpt_system_partition_uuid();
         for(size_t i = 0; i < (partHeader->partCount/(512/(partHeader->entrySize))); i++){
-            buf = bcache_read(drive, partHeader->gptArrayStartLBA + i);
+            buf = bcache_get(drive, partHeader->gptArrayStartLBA + i);
             partEntryChunk = buf->data;
             for(size_t j = 0; j < 512/(partHeader->entrySize); j++){
                 currentEntry = (gpt_entry_t*)((uint64_t)partEntryChunk + (j*partHeader->entrySize));
