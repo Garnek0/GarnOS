@@ -102,12 +102,15 @@ void* kmalloc(size_t size){
 }
 
 void kmfree(void* ptr){
-    if(ptr == NULL) return;
+    if(ptr == NULL){
+        klog("kheap free operation with NULL pointer!", KLOG_WARNING, "kheap");
+        return;
+    }
     kheap_block_header_t* h;
     h = (kheap_block_header_t*)((uint64_t)ptr - sizeof(kheap_block_header_t));
 
     if(h->flags & KHEAP_FLAGS_FREE)
-        klog("Invalid kheap free operation", KLOG_WARNING, "kheap");
+        klog("Invalid kheap free operation!", KLOG_WARNING, "kheap");
 
     lock(kheapLock, {
         h->flags |= KHEAP_FLAGS_FREE;
