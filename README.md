@@ -4,13 +4,14 @@
 
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
-IMPORTANT: I have been very busy lately due to school and things are probably not going to get easier any time soon. I have been trying to allocate my very limited time in such a way that I would be able to release at least one version per week, but now even that isn't going to work anymore. I'll do my best to keep this project alive.
+The main goals of GarnOS are support and modularity.
 
 ## Notable Features
 
 - Terminal Emulator
 - Module Loader
 - Userspace
+- Device Manager
 
 # Building & Running
 
@@ -76,7 +77,6 @@ See LICENSE for details.
 - APIC implementation doesn't work properly on some systems.
 - Disk access doesnt work properly on "large" drives (> ~512 MiB).
 - Disk access is EXTREMELY slow. It's so slow it takes 2-4 seconds to load a simple program such as `ls`.
-- Programs sometimes refuse to start.
 
 ## Support
 
@@ -85,3 +85,5 @@ See LICENSE for details.
 **Storage**: IDE, AHCI \
 **File Systems**: FAT32 \
 **Graphics**: Standard Graphics
+
+<img src="shell.png">

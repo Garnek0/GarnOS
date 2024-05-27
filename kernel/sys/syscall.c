@@ -24,14 +24,16 @@
 #include <cpu/interrupts/idt.h>
 #include <garn/kstdio.h>
 
+#include <garn/syscall.h>
+
 void* syscallTable[SYSCALL_MAX];
 void* gsysSyscallTable[SYSCALL_MAX];
 
-inline void syscall_register(size_t num, void* addr){
+void syscall_register(size_t num, void* addr){
     syscallTable[num] = addr;
 }
 
-inline void gsys_syscall_register(size_t num, void* addr){
+void gsys_syscall_register(size_t num, void* addr){
     gsysSyscallTable[num] = addr;
 }
 

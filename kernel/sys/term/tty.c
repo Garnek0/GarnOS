@@ -41,6 +41,8 @@ void tty_init(){
     ttyfs->fsOperations.read = tty_read;
     ttyfs->fsOperations.close = tty_close;
 
+    ttyfs->mountNumber = 0;
+
     tty = kmalloc(sizeof(file_t));
     memset(tty, 0, sizeof(file_t));
     tty->size = 0;

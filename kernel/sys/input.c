@@ -54,6 +54,8 @@ void input_init(){
     kbdfs->fsOperations.read = input_rb_read;
     kbdfs->fsOperations.close = input_rb_close;
 
+    kbdfs->mountNumber = 0;
+
     kbd = kmalloc(sizeof(file_t));
     memset(kbd, 0, sizeof(file_t));
     kbd->size = 0;
