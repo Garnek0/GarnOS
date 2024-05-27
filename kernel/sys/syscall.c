@@ -57,7 +57,7 @@ void syscall_init(){
     syscall_register(80, sys_chdir);
     syscall_register(162, sys_sync);
 
-    // > 0x80000000
+    // Garn Syscalls (> 0x80000000)
 
     gsys_syscall_register(0x80000000 - 0x80000000, sys_set_fs_base);
 
