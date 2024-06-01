@@ -2,6 +2,8 @@
 
 ![](https://tokei.rs/b1/github/Garnek0/GarnOS)
 
+<img src="GarnOS.png">
+
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
 The main goals of GarnOS are support and modularity.
