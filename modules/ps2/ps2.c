@@ -18,8 +18,6 @@
 #include <garn/kstdio.h>
 #include <garn/module.h>
 
-device_driver_t driver_metadata;
-
 char keymap[] = {
      0,  '\e', '1', '2',
     '3', '4', '5', '6',

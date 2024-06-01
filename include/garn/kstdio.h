@@ -28,13 +28,7 @@ char kputchar(char chr);
 void klog(char* fmt, uint8_t status, const char* component, ...);
 char* kreadline(char* prompt);
 const char* kstrerror(int err);
-
-inline void kernel_screen_output_disable(){
-    kernelScreenOut = false;
-}
-
-inline void kernel_screen_output_enable(){
-    kernelScreenOut = true;
-}
+void kernel_screen_output_disable();
+void kernel_screen_output_enable();
 
 #endif //KSTDIO_H

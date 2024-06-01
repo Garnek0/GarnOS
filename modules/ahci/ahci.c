@@ -19,8 +19,6 @@
 #include <garn/kstdio.h>
 #include <garn/module.h>
 
-//Note to future self: DONT FORGET TO REMOVE THE BREAKPOINT IN kernel.c!!!
-
 /*TODO:
 - [x] Finish attach() and add a metadata struct to be stored in the drive_t struct.
 - [x] Add ahci_ata_read() and ahci_ata_write().

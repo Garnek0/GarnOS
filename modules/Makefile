@@ -1,7 +1,7 @@
 
 INITRD_FILENAME = initrd.grd
 
-override CFLAGS += \
+CFLAGS := \
     -Wall \
     -Wextra \
     -std=gnu11 \
@@ -18,26 +18,27 @@ override CFLAGS += \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -mno-red-zone
+    -mno-red-zone \
+	-O2
 
-override CPPFLAGS := \
+CPPFLAGS := \
     -I. \
     -I../include \
     $(CPPFLAGS) \
     -MMD \
     -MP
 
-override CC = gcc
+CC = gcc
 
-override CFILES := $(shell find -L . -type f -name '*.c')
-override MOD_OBJ := $(CFILES:.c=.sys)
-override MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
+CFILES := $(shell find -L . -type f -name '*.c')
+MOD_OBJ := $(CFILES:.c=.sys)
+MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-override INITRD_MODS := ide.sys ahci.sys
-override INITRD_AUTOREG := initreg.txt
-override AUTOREG := autoreg.txt
+INITRD_MODS := ide.sys ahci.sys
+INITRD_AUTOREG := initreg.txt
+AUTOREG := autoreg.txt
 
-override HEADER_DEPS := $(CFILES:.c=.d)
+HEADER_DEPS := $(CFILES:.c=.d)
 
 .PHONY: all
 all: $(MOD_OBJ) initrd drv_dir autoreg sysroot_cpy

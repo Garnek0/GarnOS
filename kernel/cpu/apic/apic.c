@@ -16,6 +16,7 @@
 #include <garn/irq.h>
 #include <garn/hw/ports.h>
 #include <garn/acpi/acpi-tables.h>
+#include <garn/kernel.h>
 
 static const char* apicErrorStrings[] = {
     "Send Checksum Error",
@@ -88,7 +89,7 @@ void apic_init(){
             hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
         }
 
-        vmm_map(vmm_get_kernel_pml4(), (uint64_t)LAPICAddress, (uint64_t)(LAPICAddress + bl_get_hhdm_offset()), (VMM_PRESENT | VMM_RW | VMM_PCD));
+        vmm_map(vmm_get_kernel_pml4(), (uint64_t)LAPICAddress, (uint64_t)((uint64_t)LAPICAddress + bl_get_hhdm_offset()), (VMM_PRESENT | VMM_RW | VMM_PCD));
         LAPICAddress = (void*)((uint64_t)LAPICAddress + bl_get_hhdm_offset());
     }
 

@@ -47,6 +47,8 @@ to run the hdd image.
 
 You can also run GarnOS in an EFI environment by appending `-uefi` to the commands showed above
 
+For debugging, it is recommended to append `CFLAGS="-fsanitize=undefined -g -O2"` to whatever make command you're using.
+
 # License
 See LICENSE for details.
 

@@ -31,6 +31,8 @@ filesys_t* filesys_mount(filesys_t filesys){
     
     filesys_t* fsAddr;
 
+    filesys.lock = 0;
+
     if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
         filesystems[0] = filesys;
         filesystems[0].mountNumber = 0;

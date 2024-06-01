@@ -63,7 +63,6 @@ int device_driver_register(const char* path){
         goto fail;
     }
 
-    //BUG: This gives a Stack Segment Fault when compiling the modules with O1 and greater
     size_t idListSize = 0;
     while(driverIDs[idListSize] != 0) idListSize++;
     if(idListSize == 0){

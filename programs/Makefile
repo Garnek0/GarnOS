@@ -1,4 +1,4 @@
-override CFLAGS += \
+CFLAGS := \
     -Wall \
     -Wextra \
     -fno-lto \
@@ -9,13 +9,13 @@ override CFLAGS += \
     -mno-sse \
     -mno-sse2
 
-override CC = ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
-override LD = ../hosttools/bin/x86_64-pc-garn-mlibc-ld
+CC = ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
+LD = ../hosttools/bin/x86_64-pc-garn-mlibc-ld
 
-override CFILES := $(shell find -L . -type f -name '*.c')
-override EXEC := $(CFILES:.c=.elf)
+CFILES := $(shell find -L . -type f -name '*.c')
+EXEC := $(CFILES:.c=.elf)
 
-override HEADER_DEPS := $(CFILES:.c=.d)
+HEADER_DEPS := $(CFILES:.c=.d)
 
 all: bin_dir $(EXEC)
 

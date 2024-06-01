@@ -16,6 +16,7 @@
 #include <garn/spinlock.h>
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
+#include <garn/kernel.h>
 
 spinlock_t moduleLoaderLock;
 
@@ -37,7 +38,7 @@ void* elf_find_symbol(void* elf, const char* symbol){
 			Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
 
 			for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
-				if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
+				if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE && symTable[sym].st_value < hhdmOffset) {
 					Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
 					symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
 				}
@@ -160,21 +161,22 @@ static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* p
 
 #define S (symbolTable[ELF64_R_SYM(table[rela].r_info)].st_value)
 #define A (table[rela].r_addend)
-#define T32 (*(uint32_t*)target)
-#define T64 (*(uint64_t*)target)
-#define P  (target)
+#define P  ((uint64_t)target)
 
 		for (size_t rela = 0; rela < sh->sh_size / sizeof(Elf64_Rela); rela++) {
-			size_t target = table[rela].r_offset + targetSection->sh_addr;
+			void* target = (void*)(table[rela].r_offset + targetSection->sh_addr);
+			uint64_t Relx86_64_64 = S + A;
+			uint32_t Relx86_64_32 = S + A;
+			uint32_t Relx86_64_PC32 = S + A - P;
 			switch (ELF64_R_TYPE(table[rela].r_info)) {
 				case R_X86_64_64:
-					T64 = S + A;
+					memcpy(target, &Relx86_64_64, sizeof(uint64_t));
 					break;
 				case R_X86_64_32:
-					T32 = S + A;
+					memcpy(target, &Relx86_64_32, sizeof(uint32_t));
 					break;
 				case R_X86_64_PC32:
-					T32 = S + A - P;
+					memcpy(target, &Relx86_64_PC32, sizeof(uint32_t));
 					break;
 				default:
 					kerrno = ENOEXEC;
@@ -188,8 +190,6 @@ static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* p
 
 #undef S
 #undef A
-#undef T32
-#undef T64
 #undef P
 
 	return 0;
@@ -205,6 +205,7 @@ int elf_load_module(char* modulePath){
 
 	if(!file){
 		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(err), KLOG_FAILED);
+		kmfree(h);
 		return -1;
 	}
 
@@ -213,6 +214,7 @@ int elf_load_module(char* modulePath){
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
 		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno), KLOG_FAILED);
+		kmfree(h);
 		return -1;
 	}
 
@@ -281,6 +283,7 @@ int elf_load_driver(driver_node_t* node){
 
 	if(!file){
 		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(err), KLOG_FAILED);
+		kmfree(h);
 		return -1;
 	}
 
@@ -289,6 +292,7 @@ int elf_load_driver(driver_node_t* node){
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
 		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno), KLOG_FAILED);
+		kmfree(h);
 		return -1;
 	}
 
