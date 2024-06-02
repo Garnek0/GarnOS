@@ -18,11 +18,12 @@ endef
 # It is highly recommended to use a custom built cross toolchain to build a kernel.
 # We are only using "cc" as a placeholder here. It may work by using
 # the host system's toolchain, but this is not guaranteed.
-override DEFAULT_CC := cc
+
+override DEFAULT_CC := ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
 $(eval $(call DEFAULT_VAR,CC,$(DEFAULT_CC)))
 
 # Same thing for "ld" (the linker).
-override DEFAULT_LD := ld
+override DEFAULT_LD := ../hosttools/bin/x86_64-pc-garn-mlibc-ld
 $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 
 # User controllable C flags.

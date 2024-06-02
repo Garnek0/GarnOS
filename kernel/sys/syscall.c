@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "syscall.h"
+#include "syscall_internals.h"
 
 #include <sys/uname-internals.h>
 #include <sys/dal/dal-internals.h>

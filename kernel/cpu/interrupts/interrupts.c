@@ -9,11 +9,10 @@
 
 #include "interrupt-internals.h"
 #include <cpu/interrupts/idt.h>
-#include <sys/syscall.h>
+#include <sys/syscall_internals.h>
 #include <garn/kstdio.h>
 
 #include <garn/irq.h>
-#include <sys/syscall.h>
 
 //initialise interrupts
 void interrupts_init(){

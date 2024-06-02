@@ -28,7 +28,8 @@ CPPFLAGS := \
     -MMD \
     -MP
 
-CC = gcc
+CC := ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
+LD := ../hosttools/bin/x86_64-pc-garn-mlibc-ld
 
 CFILES := $(shell find -L . -type f -name '*.c')
 MOD_OBJ := $(CFILES:.c=.sys)
