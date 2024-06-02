@@ -2,7 +2,7 @@
 
 ![](https://tokei.rs/b1/github/Garnek0/GarnOS)
 
-<img src="GarnOS.png">
+<img width="256" height="256" src="GarnOS.svg">
 
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
