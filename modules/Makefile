@@ -42,12 +42,16 @@ AUTOREG := autoreg.txt
 HEADER_DEPS := $(CFILES:.c=.d)
 
 .PHONY: all
-all: $(MOD_OBJ) initrd drv_dir autoreg sysroot_cpy
-
-%.sys: %.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< -o $@
-	cp $@ .
-	rm $@
+all: buildmods initrd drv_dir autoreg sysroot_cpy
+	
+.PHONY: buildmods
+buildmods:
+	@for a in $$(ls); do \
+	    if [ -d $$a ]; then \
+	        echo "Building module(s) in $$a/"; \
+	        $(MAKE) -C $$a; \
+	    fi; \
+	done;
 
 .PHONY: autoreg
 autoreg:

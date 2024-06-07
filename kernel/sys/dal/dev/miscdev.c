@@ -17,7 +17,7 @@ void miscdev_init(){
     //Detect PS/2 Controller
 
     if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
-        goto ps2_found;
+        goto i8042_found;
     } else {
         inb(0x60);
 
@@ -26,13 +26,13 @@ void miscdev_init(){
         size_t timeout = 100000;
 
         while(timeout--) if(inb(0x64) & 1) break;
-        if(!timeout) goto ps2_not_found;
+        if(!timeout) goto i8042_not_found;
         res = inb(0x60);
 
-        if(res == 0x55) goto ps2_found;
+        if(res == 0x55) goto i8042_found;
     }
 
-ps2_found:
+i8042_found:
     device_t* ps2controller = kmalloc(sizeof(device_t));
     ps2controller->bus = DEVICE_BUS_NONE;
     ps2controller->data = NULL;
@@ -42,6 +42,6 @@ ps2_found:
     ps2controller->id = DEVICE_CREATE_ID_PS2;
     device_add(ps2controller);
 
-ps2_not_found:
+i8042_not_found:
     ;
 }

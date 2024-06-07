@@ -10,15 +10,6 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ide.h"
-#include <garn/module.h>
-#include <garn/hw/pci.h>
-#include <garn/kstdio.h>
-#include <garn/fal/file.h>
-#include <garn/hw/ports.h>
-#include <garn/mm.h>
-#include <garn/timer.h>
-#include <garn/irq.h>
-#include <garn/module.h>
 
 //BUG: Something weird happens with larger size drives. I have a feeling its due to this driver, but it could also be the FS driver
 
@@ -29,9 +20,9 @@
 - [ ] Implement ATAPI read/write.
 */
 
-void ide_write(ide_channel_t* channel, unsigned char reg, unsigned char data){
+void ide_write_reg(ide_channel_t* channel, unsigned char reg, unsigned char data){
     if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
+        ide_write_reg(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
     if(reg < 0x08)
         outb(channel->iobase  + reg - 0x00, data);
     else if(reg < 0x0C)
@@ -41,13 +32,13 @@ void ide_write(ide_channel_t* channel, unsigned char reg, unsigned char data){
     else if(reg < 0x16)
         outb(channel->busMastering + reg - 0x0E, data);
     if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, channel->noInt);
+        ide_write_reg(channel, ATA_REG_CONTROL, channel->noInt);
 }
 
-uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
+uint8_t ide_read_reg(ide_channel_t* channel, unsigned char reg){
     uint8_t result;
     if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
+        ide_write_reg(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
     if(reg < 0x08)
         result = inb(channel->iobase + reg - 0x00);
     else if(reg < 0x0C)
@@ -57,7 +48,7 @@ uint8_t ide_read(ide_channel_t* channel, unsigned char reg){
     else if(reg < 0x16)
         result = inb(channel->busMastering + reg - 0x0E);
     if(reg > 0x07 && reg < 0x0C)
-        ide_write(channel, ATA_REG_CONTROL, channel->noInt);
+        ide_write_reg(channel, ATA_REG_CONTROL, channel->noInt);
     return result;
 }
 
@@ -75,195 +66,6 @@ uint8_t ide_error(uint8_t error){
 
     return error;
     
-}
-
-uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErrors){
-    while(ide_read(channel, reg) & bit);
-
-    uint8_t err = ide_error(ide_read(channel, ATA_REG_ERROR));
-
-    if(checkErrors){
-        if(ide_read(channel, ATA_REG_STATUS) & ATA_SR_ERR) err;
-    }
-
-    return err;
-}
-
-int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    //kprintf("[IDE] Read Req: LBA 0x%x, Seccount %d\n", startLBA, blocks);
-    uint8_t lba_mode, dma, cmd;
-    uint8_t lba_io[6];
-    ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
-    ide_channel_t* channel = ideDrive->channel;
-    uint16_t cyl;
-    uint8_t head, sect, err;
-
-    if(startLBA >= 0x100000){
-        // LBA48:
-        lba_mode = 2;
-        lba_io[0] = (startLBA & 0x0000000000FF) >> 0;
-        lba_io[1] = (startLBA & 0x00000000FF00) >> 8;
-        lba_io[2] = (startLBA & 0x000000FF0000) >> 16;
-        lba_io[3] = (startLBA & 0x0000FF000000) >> 24;
-        lba_io[4] = (startLBA & 0x00FF00000000) >> 32;
-        lba_io[5] = (startLBA & 0xFF0000000000) >> 40;
-    } else if(ideDrive->idSpace.capabilities & (1 << 9)){ 
-        // LBA28:
-        lba_mode = 1;
-        lba_io[0] = (startLBA & 0x00000FF) >> 0;
-        lba_io[1] = (startLBA & 0x000FF00) >> 8;
-        lba_io[2] = (startLBA & 0x0FF0000) >> 16;
-        lba_io[3] = 0;
-        lba_io[4] = 0;
-        lba_io[5] = 0;
-        head = (startLBA & 0xF000000) >> 24;
-    } else {
-        // CHS:
-        lba_mode = 0;
-        sect = (startLBA % 63) + 1;
-        cyl = (startLBA + 1  - sect) / (16 * 63);
-        lba_io[0] = sect;
-        lba_io[1] = (cyl >> 0) & 0xFF;
-        lba_io[2] = (cyl >> 8) & 0xFF;
-        lba_io[3] = 0;
-        lba_io[4] = 0;
-        lba_io[5] = 0;
-        head = (startLBA + 1  - sect) % (16 * 63) / (63);
-    }
-
-    dma = 0;
-
-    while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
-
-    if(lba_mode == 0) ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (ideDrive->masterSlave << 4) | head);
-    else ide_write(channel, ATA_REG_HDDEVSEL, 0xE0 | (ideDrive->masterSlave << 4) | head);
-
-    if (lba_mode == 2) {
-        ide_write(channel, ATA_REG_SECCOUNT1, ((blocks & 0xFF00) >> 8));
-        ide_write(channel, ATA_REG_LBA3, lba_io[3]);
-        ide_write(channel, ATA_REG_LBA4, lba_io[4]);
-        ide_write(channel, ATA_REG_LBA5, lba_io[5]);
-    }
-    ide_write(channel, ATA_REG_SECCOUNT0, (blocks & 0x00FF));
-    ide_write(channel, ATA_REG_LBA0, lba_io[0]);
-    ide_write(channel, ATA_REG_LBA1, lba_io[1]);
-    ide_write(channel, ATA_REG_LBA2, lba_io[2]);
-
-    if (lba_mode == 0 && dma == 0) cmd = ATA_CMD_READ_PIO;
-    if (lba_mode == 1 && dma == 0) cmd = ATA_CMD_READ_PIO;   
-    if (lba_mode == 2 && dma == 0) cmd = ATA_CMD_READ_PIO_EXT;   
-    if (lba_mode == 0 && dma == 1) cmd = ATA_CMD_READ_DMA;
-    if (lba_mode == 1 && dma == 1) cmd = ATA_CMD_READ_DMA;
-    if (lba_mode == 2 && dma == 1) cmd = ATA_CMD_READ_DMA_EXT;
-    ide_write(channel, ATA_REG_COMMAND, cmd);
-
-    if(dma){
-        //TODO: DMA
-    } else {
-        uint16_t* tmp = buf;
-        for(size_t i = 0; i < blocks; i++) {
-            if((err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true))) return -1;
-            for(int j = 0; j < 256; j++){
-                tmp[j + 256*i] = inw(channel->iobase + ATA_REG_DATA);
-            }
-        }
-    }
-
-    return 0;
-}
-
-int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    uint8_t lba_mode, dma, cmd;
-    uint8_t lba_io[6];
-    ide_drive_t* ideDrive = (ide_drive_t*)drive->context;
-    ide_channel_t* channel = ideDrive->channel;
-    uint16_t cyl;
-    uint8_t head, sect;
-
-    if(startLBA >= 0x100000){
-        // LBA48:
-        lba_mode = 2;
-        lba_io[0] = (startLBA & 0x0000000000FF) >> 0;
-        lba_io[1] = (startLBA & 0x00000000FF00) >> 8;
-        lba_io[2] = (startLBA & 0x000000FF0000) >> 16;
-        lba_io[3] = (startLBA & 0x0000FF000000) >> 24;
-        lba_io[4] = (startLBA & 0x00FF00000000) >> 32;
-        lba_io[5] = (startLBA & 0xFF0000000000) >> 40;
-    } else if(ideDrive->idSpace.capabilities & (1 << 9)){ 
-        // LBA28:
-        lba_mode = 1;
-        lba_io[0] = (startLBA & 0x00000FF) >> 0;
-        lba_io[1] = (startLBA & 0x000FF00) >> 8;
-        lba_io[2] = (startLBA & 0x0FF0000) >> 16;
-        lba_io[3] = 0;
-        lba_io[4] = 0;
-        lba_io[5] = 0;
-        head = (startLBA & 0xF000000) >> 24;
-    } else {
-        // CHS:
-        lba_mode = 0;
-        sect = (startLBA % 63) + 1;
-        cyl = (startLBA + 1  - sect) / (16 * 63);
-        lba_io[0] = sect;
-        lba_io[1] = (cyl >> 0) & 0xFF;
-        lba_io[2] = (cyl >> 8) & 0xFF;
-        lba_io[3] = 0;
-        lba_io[4] = 0;
-        lba_io[5] = 0;
-        head = (startLBA + 1  - sect) % (16 * 63) / (63);
-    }
-
-    dma = 0;
-
-    while (ide_read(channel, ATA_REG_STATUS) & ATA_SR_BSY);
-
-    if(lba_mode == 0) ide_write(channel, ATA_REG_HDDEVSEL, 0xA0 | (ideDrive->masterSlave << 4) | head);
-    else ide_write(channel, ATA_REG_HDDEVSEL, 0xE0 | (ideDrive->masterSlave << 4) | head);
-
-    if (lba_mode == 2) {
-        ide_write(channel, ATA_REG_SECCOUNT1, ((blocks & 0xFF00) >> 8));
-        ide_write(channel, ATA_REG_LBA3, lba_io[3]);
-        ide_write(channel, ATA_REG_LBA4, lba_io[4]);
-        ide_write(channel, ATA_REG_LBA5, lba_io[5]);
-    }
-    ide_write(channel, ATA_REG_SECCOUNT0, (blocks & 0x00FF));
-    ide_write(channel, ATA_REG_LBA0, lba_io[0]);
-    ide_write(channel, ATA_REG_LBA1, lba_io[1]);
-    ide_write(channel, ATA_REG_LBA2, lba_io[2]);
-
-    if (lba_mode == 0 && dma == 0) cmd = ATA_CMD_WRITE_PIO;
-    if (lba_mode == 1 && dma == 0) cmd = ATA_CMD_WRITE_PIO;
-    if (lba_mode == 2 && dma == 0) cmd = ATA_CMD_WRITE_PIO_EXT;
-    if (lba_mode == 0 && dma == 1) cmd = ATA_CMD_WRITE_DMA;
-    if (lba_mode == 1 && dma == 1) cmd = ATA_CMD_WRITE_DMA;
-    if (lba_mode == 2 && dma == 1) cmd = ATA_CMD_WRITE_DMA_EXT;
-    ide_write(channel, ATA_REG_COMMAND, cmd);  
-
-    if(dma){
-        //TODO: DMA
-    } else {
-        uint16_t* tmp = buf;
-        for (size_t i = 0; i < blocks; i++) {
-            ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
-            for(int j = 0; j < 256; j++){
-                outw(channel->iobase + ATA_REG_DATA, tmp[j + 256*i]);
-            }
-        }
-        ide_write(channel, ATA_REG_COMMAND, (char []){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);
-        ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
-    }
-
-    return 0;
-}
-
-//TODO: ATAPI
-
-int ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    return 0;
-}
-
-int ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
-    return 0;
 }
 
 void init(){
@@ -368,8 +170,8 @@ bool attach(device_t* device){
     ide_channel_t* currentChannel;
     ide_drive_t* currentDrive;
 
-    ide_write(channelPrimary, ATA_REG_CONTROL, 2);
-    ide_write(channelSecondary, ATA_REG_CONTROL, 2);
+    ide_write_reg(channelPrimary, ATA_REG_CONTROL, 2);
+    ide_write_reg(channelSecondary, ATA_REG_CONTROL, 2);
 
     bool error = false;
     char* tmp;
@@ -397,28 +199,28 @@ bool attach(device_t* device){
             }
 
             // select drive
-            ide_write(currentChannel, ATA_REG_HDDEVSEL, 0xA0 | (j << 4));
+            ide_write_reg(currentChannel, ATA_REG_HDDEVSEL, 0xA0 | (j << 4));
             ksleep(10);
 
-            ide_write(currentChannel, ATA_REG_SECCOUNT0, 0);
-            ide_write(currentChannel, ATA_REG_LBA0, 0);
-            ide_write(currentChannel, ATA_REG_LBA1, 0);
-            ide_write(currentChannel, ATA_REG_LBA2, 0);
+            ide_write_reg(currentChannel, ATA_REG_SECCOUNT0, 0);
+            ide_write_reg(currentChannel, ATA_REG_LBA0, 0);
+            ide_write_reg(currentChannel, ATA_REG_LBA1, 0);
+            ide_write_reg(currentChannel, ATA_REG_LBA2, 0);
 
             //identify drive
-            ide_write(currentChannel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
+            ide_write_reg(currentChannel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY);
             ksleep(10);
 
-            if(ide_read(currentChannel, ATA_REG_STATUS) == 0 || ide_read(currentChannel, ATA_REG_STATUS) == 0x7F || ide_read(currentChannel, ATA_REG_STATUS) == 0xFF) continue; //no drive
+            if(ide_read_reg(currentChannel, ATA_REG_STATUS) == 0 || ide_read_reg(currentChannel, ATA_REG_STATUS) == 0x7F || ide_read_reg(currentChannel, ATA_REG_STATUS) == 0xFF) continue; //no drive
 
             currentDrive->type = IDE_ATA;
 
-            if(ide_read(currentChannel, ATA_REG_LBA1) != 0 || ide_read(currentChannel, ATA_REG_LBA2) != 0){
+            if(ide_read_reg(currentChannel, ATA_REG_LBA1) != 0 || ide_read_reg(currentChannel, ATA_REG_LBA2) != 0){
                 currentDrive->type = IDE_ATAPI;
                 klog("Found ATAPI Device.\n", KLOG_INFO, "IDE");
 
                 //identify ATAPI drive
-                ide_write(currentChannel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
+                ide_write_reg(currentChannel, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
                 ksleep(10);
             } else {
                 klog("Found ATA Device.\n", KLOG_INFO, "IDE");
@@ -426,9 +228,9 @@ bool attach(device_t* device){
 
             error = false;
 
-            while(!(ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_DRQ)){
-                if((ide_read(currentChannel, ATA_REG_STATUS) & ATA_SR_ERR)){
-                    ide_error(ide_read(currentChannel, ATA_REG_ERROR));
+            while(!(ide_read_reg(currentChannel, ATA_REG_STATUS) & ATA_SR_DRQ)){
+                if((ide_read_reg(currentChannel, ATA_REG_STATUS) & ATA_SR_ERR)){
+                    ide_error(ide_read_reg(currentChannel, ATA_REG_ERROR));
                     error = true;
                     break;
                 }

@@ -9,6 +9,14 @@
 #define AHCI_MODULE_H
 
 #include <garn/types.h>
+#include <garn/kernel.h>
+#include <garn/dal/dal.h>
+#include <garn/hw/pci.h>
+#include <garn/mm.h>
+#include <garn/timer.h>
+#include <garn/kerrno.h>
+#include <garn/kstdio.h>
+#include <garn/module.h>
 
 #define FIS_TYPE_REG_H2D 0x27
 #define FIS_TYPE_REG_D2H 0x34
@@ -348,5 +356,16 @@ typedef struct {
 	ahci_controller_t* controller;
 	int port;
 } ahci_drive_t;
+
+int ahci_find_cmd_slot(ahci_controller_t* controller, ahci_mem_port_t* port);
+bool ahci_wait_set(volatile uint32_t* reg, uint32_t bit, uint32_t ms);
+bool ahci_wait_clear(volatile uint32_t* reg, uint32_t bit, uint32_t ms);
+bool ahci_enable(ahci_mem_t* abar);
+
+int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+
+int ahci_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+int ahci_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 
 #endif //AHCI_MODULE_H

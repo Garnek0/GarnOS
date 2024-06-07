@@ -12,6 +12,13 @@
 
 #include <garn/types.h>
 #include <garn/dal/dal.h>
+#include <garn/hw/pci.h>
+#include <garn/kstdio.h>
+#include <garn/fal/file.h>
+#include <garn/hw/ports.h>
+#include <garn/mm.h>
+#include <garn/timer.h>
+#include <garn/irq.h>
 #include <garn/module.h>
 
 #define ATA_SR_BSY     0x80    // Busy
@@ -142,5 +149,18 @@ typedef struct {
     uint16_t reserved : 15;
     uint8_t eot : 1;
 }__attribute__((packed)) ide_prd_t;
+
+void ide_write_reg(ide_channel_t* channel, unsigned char reg, unsigned char data);
+uint8_t ide_read_reg(ide_channel_t* channel, unsigned char reg);
+
+uint8_t ide_error(uint8_t error);
+
+uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErrors);
+
+int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+
+int ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
+int ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 
 #endif //IDE_MODULE_H
