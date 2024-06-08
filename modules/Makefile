@@ -1,4 +1,6 @@
 
+include ../.config
+
 INITRD_FILENAME = initrd.grd
 
 CFLAGS := \
@@ -35,7 +37,16 @@ CFILES := $(shell find -L . -type f -name '*.c')
 MOD_OBJ := $(CFILES:.c=.sys)
 MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-INITRD_MODS := ide.sys ahci.sys
+INITRD_MODS := 
+
+ifdef CONFIG_INCLUDE_IDE_DRIVER
+INITRD_MODS += ide.sys
+endif
+
+ifdef CONFIG_INCLUDE_AHCI_DRIVER
+INITRD_MODS += ahci.sys
+endif
+
 INITRD_AUTOREG := initreg.txt
 AUTOREG := autoreg.txt
 
@@ -49,7 +60,7 @@ buildmods:
 	@for a in $$(ls); do \
 	    if [ -d $$a ]; then \
 	        echo "Building module(s) in $$a/"; \
-	        $(MAKE) -C $$a; \
+	        $(MAKE) -C $$a CFLAGS="$(CFLAGS)" CPPFLAGS="$(CPPFLAGS) -I../../include" CC="../$(CC)" LD="../$(LD)"; \
 	    fi; \
 	done;
 

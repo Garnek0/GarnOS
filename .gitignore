@@ -15,3 +15,5 @@
 *.d
 *.sys
 *.grd
+.config
+.config.old

@@ -1,0 +1,26 @@
+menu "Device Drivers"
+
+menu "Storage Controllers"
+
+config INCLUDE_IDE_DRIVER
+		bool "Include generic IDE controller driver"
+		default y
+		help
+
+config INCLUDE_AHCI_DRIVER
+		bool "Include generic AHCI controller driver"
+		default y
+		help
+
+endmenu
+
+menu "Input Controllers and Devices"
+
+config INCLUDE_i8042_DRIVER
+		bool "Include i8042 PS/2 controller driver"
+		default y
+		help
+
+endmenu
+
+endmenu

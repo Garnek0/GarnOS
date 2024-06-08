@@ -139,6 +139,14 @@ $(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 kernel-docs:
 	cd include; doxygen
 
+.PHONY: menuconfig
+menuconfig:
+	kconfig-mconf KConfig
+
+.PHONY: xconfig
+xconfig:
+	kconfig-qconf KConfig
+
 .PHONY: clean
 clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd docs/html
@@ -148,5 +156,5 @@ clean:
 
 .PHONY: distclean
 distclean: clean
-	rm -rf limine ovmf sysroot toolchain mlibc hosttools
+	rm -rf limine ovmf sysroot toolchain mlibc hosttools .config .config.old
 	$(MAKE) -C kernel distclean

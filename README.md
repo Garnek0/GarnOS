@@ -24,30 +24,29 @@ First of all, you need to build the toolchain:
 make toolchain
 ``` 
 
+Once you've done that, you must configure the kernel:
+```
+make menuconfig # curses (less friendly interface)
+make xconfig # qt (more friendly interface)
+```
+
 Then, in the root directory, run:
 ```
-make all
+make all # ISO Image
+make all-hdd # HDD Image
 ```
-to build the iso, or:
-```
-make all-hdd
-```
-to get a hdd image.
-
 NOTE: The ISO image will probably not work. Use the HDD image instead!
+
+You may also run the OS directly, as described below, since the `run-*` targets also build the OS in case it hasn't been built already.
 
 ## Running
 In the root directory, run:
 ```
-make run
+make run # Run using ISO Image
+make run-hdd # Run using HDD Image
 ```
-to run the iso version in QEMU, or
-```
-make run-hdd
-```
-to run the hdd image.
 
-You can also run GarnOS in an EFI environment by appending `-uefi` to the commands showed above
+You can also run GarnOS in an EFI environment by appending `-uefi` to the commands shown above
 
 For debugging, it is recommended to append `CFLAGS="-fsanitize=undefined -g -O2"` to whatever make command you're using.
 
