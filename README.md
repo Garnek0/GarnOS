@@ -17,6 +17,18 @@ The main goals of GarnOS are support and modularity.
 
 # Building & Running
 
+## Dependencies
+- GCC and Binutils
+- At least a minimum toolset to build a cross-toolchain
+- QEMU
+- Xorriso (for ISO images)
+- Python3 (with kconfiglib installed)
+- GNU Parted
+- kconfig-frontends
+- Doxygen (for docs)
+- Git
+- make and cmake (cmake is required by mlibc)
+
 ## Building
 
 First of all, you need to build the toolchain:
@@ -80,6 +92,7 @@ See LICENSE for details.
 - APIC implementation doesn't work properly on some systems.
 - Disk access doesnt work properly on "large" drives (> ~512 MiB).
 - Disk access is EXTREMELY slow. It's so slow it takes 2-4 seconds to load a simple program such as `ls`.
+- AHCI Driver doesn't work on real hardware.
 
 ## Support
 

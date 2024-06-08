@@ -153,11 +153,13 @@ kernel-docs:
 
 .PHONY: menuconfig
 menuconfig:
-	kconfig-mconf KConfig
+	kconfig-mconf Kconfig
+	python3 scripts/genconfig.py
 
 .PHONY: xconfig
 xconfig:
-	kconfig-qconf KConfig
+	kconfig-qconf Kconfig
+	python3 scripts/genconfig.py
 
 .PHONY: clean
 clean:

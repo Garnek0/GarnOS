@@ -6,11 +6,13 @@ config INCLUDE_IDE_DRIVER
 		bool "Include generic IDE controller driver"
 		default y
 		help
+			"Check this if your target system has an IDE controller."
 
 config INCLUDE_AHCI_DRIVER
 		bool "Include generic AHCI controller driver"
 		default y
 		help
+			"Check this if your target system has an AHCI controller."
 
 endmenu
 
@@ -20,6 +22,7 @@ config INCLUDE_i8042_DRIVER
 		bool "Include i8042 PS/2 controller driver"
 		default y
 		help
+			"Check this if your target system has an i8042 PS/2 controller."
 
 endmenu
 

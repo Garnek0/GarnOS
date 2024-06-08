@@ -7,6 +7,7 @@
 /hosttools
 /mlibc
 /docs/html
+/include/garn/config.h
 *.elf
 *.txt
 *.hdd

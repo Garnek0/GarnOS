@@ -97,7 +97,7 @@ void _start(){
     
     term_clear();
 
-    //init_kcon(); //start demo console
+    init_kcon(); //start demo console
 
     sched_init(); //initialise thread scheduler
     
