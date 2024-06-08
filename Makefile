@@ -55,15 +55,27 @@ limine:
 	
 .PHONY: kernel
 kernel:
+ifdef DEBUG
+	$(MAKE) -C kernel DEBUG=y
+else
 	$(MAKE) -C kernel
+endif
 
 .PHONY: modules
 modules:
+ifdef DEBUG
+	$(MAKE) -C modules DEBUG=y
+else
 	$(MAKE) -C modules
+endif
 
 .PHONY: programs
 programs:
+ifdef DEBUG
+	$(MAKE) -C programs DEBUG=y
+else
 	$(MAKE) -C programs
+endif
 
 sysroot:
 	rm -rf sysroot

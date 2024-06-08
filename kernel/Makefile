@@ -27,8 +27,13 @@ override DEFAULT_LD := ../hosttools/bin/x86_64-pc-garn-mlibc-ld
 $(eval $(call DEFAULT_VAR,LD,$(DEFAULT_LD)))
 
 # User controllable C flags.
-override DEFAULT_CFLAGS := -g -O2 -pipe
+ifdef DEBUG
+override DEFAULT_CFLAGS := -fsanitize=undefined -g -O2 -pipe
 $(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
+else
+override DEFAULT_CFLAGS := -O2 -pipe
+$(eval $(call DEFAULT_VAR,CFLAGS,$(DEFAULT_CFLAGS)))
+endif
 
 # User controllable C preprocessor flags. We set none by default.
 override DEFAULT_CPPFLAGS :=
