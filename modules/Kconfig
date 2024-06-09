@@ -1,5 +1,11 @@
 menu "Device Drivers & Other Modules"
 
+menu "Busses"
+
+source "modules/pci/Kconfig"
+
+endmenu
+
 source "modules/ahci/Kconfig"
 
 source "modules/ide/Kconfig"

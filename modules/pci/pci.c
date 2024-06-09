@@ -1,26 +1,66 @@
 /*  
-*   File: pcidev.c
+*   Module: pci.sys
 *
-*   Author: Garnek
+*   File: pci.c
+*
+*   Module Author: Garnek
 *   
-*   Description: PCI Devices
+*   Module Description: PCI Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <sys/dal/dal-internals.h>
+#include "pci.h"
+
 #include <garn/hw/pci.h>
 #include <garn/hw/ports.h>
 #include <garn/kstdio.h>
-#include <exec/elf.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
+#include <garn/module.h>
 
 pci_config_header_t hdr;
 pci_config_device_t* pciDevice;
 pci_config_pci_to_pci_t* pciToPci;
 pci_config_pci_to_cardbus_t* pciToCardbus;
 
-void pcidev_init(){
+uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
+    uint32_t address;
+    uint32_t busl  = (uint32_t)bus;
+    uint32_t devl = (uint32_t)dev;
+    uint32_t funcl = (uint32_t)func;
+    uint16_t data = 0;
+ 
+    address = (uint32_t)((busl << 16) | (devl << 11) | (funcl << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
+ 
+    outl(PCI_CONFIG_ADDRESS, address);
+
+    data = (uint16_t)((inl(PCI_CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
+    return data;
+}
+
+uint32_t pci_config_read_address(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
+    uint32_t address = pci_config_read_word(bus, dev, func, offset);
+    address |= (((uint32_t)pci_config_read_word(bus, dev, func, offset+2) << 16) & 0xFFFF0000);
+
+    return address;
+}
+
+void init(){
+    return;
+}
+
+void fini(){
+    return;
+}
+
+bool probe(device_t* device){
+    if(device->type == DEVICE_TYPE_SYSTEM_DEVICE && device->bus == DEVICE_BUS_PCI) return true;
+    return false;
+}
+
+bool attach(device_t* dev){
+    if(!probe(dev)) return false;
+
     device_t* device;
 
     for(uint16_t i = 0; i < 256; i++){
@@ -522,3 +562,24 @@ void pcidev_init(){
         }
     }
 }
+
+bool remove(device_t* device){
+    return true;
+}
+
+module_t metadata = {
+    .name = "pci",
+    .init = init,
+    .fini = fini
+};
+
+device_driver_t driver_metadata = {
+    .probe = probe,
+    .attach = attach,
+    .remove = remove
+};
+
+device_id_t driver_ids[] = {
+    DEVICE_CREATE_ID_BUS(DEVICE_ID_BUS_PCI),
+    0
+};

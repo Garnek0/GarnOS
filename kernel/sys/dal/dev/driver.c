@@ -129,63 +129,62 @@ bool device_driver_attach(device_t* device){
     bool status;
     int i = 0;
 
-    lock(driverManagerLock, {
-        foreach(item, driverList){
-            i = 0;
-            status = false;
-            node = (driver_node_t*)item->value;
-            if(!node || !node->ids) continue;
+    foreach(item, driverList){
+        i = 0;
+        status = false;
+        node = (driver_node_t*)item->value;
+        if(!node || !node->ids) continue;
 
-            for(;; i++){
-                if(node->ids[i] == 0) break;
-                switch(DEVICE_ID_CLASS(node->ids[i])){
-                    case DEVICE_ID_CLASS_PS2:
-                    case DEVICE_ID_CLASS_RTC:
-                    {
-                        if(node->ids[i] == device->id) status = true;
-                        break;
-                    }
-                    case DEVICE_ID_CLASS_PCI:
-                    {
-                        if((DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR(device->id) || DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR_ANY) &&
-                        (DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE(device->id) || DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE_ANY) &&
-                        DEVICE_ID_PCI_CLASS(node->ids[i]) == DEVICE_ID_PCI_CLASS(device->id) &&
-                        DEVICE_ID_PCI_SUBCLASS(node->ids[i]) == DEVICE_ID_PCI_SUBCLASS(device->id) &&
-                        (DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF(device->id) || DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF_ANY)) status = true;
-                        break;
-                    }
-                    default:
-                        break;
-
-                }
-                if(status){
-                    klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
-                    if(!node->loaded) elf_load_driver(node);
+        for(;; i++){
+            if(node->ids[i] == 0) break;
+            switch(DEVICE_ID_CLASS(node->ids[i])){
+                case DEVICE_ID_CLASS_PS2:
+                case DEVICE_ID_CLASS_RTC:
+                case DEVICE_ID_CLASS_BUS:
+                {
+                    if(node->ids[i] == device->id) status = true;
                     break;
                 }
-            }
-            if(!status) continue;
- 
-            driver = (device_driver_t*)node->driver;
-            if(!driver || !driver->probe){
-                continue;
-            }
-
-            status = driver->probe(device);
-            if(status){
-                device->node = node;
-                klog("Found Driver for %s\n", KLOG_OK, "DAL", device->name);
-                status = driver->attach(device);
-                if(status){
-                    releaseLock(&driverManagerLock);
-                    return true;
-                } else {
-                    klog("Failed to attach device %s to %s\n", KLOG_FAILED, "DAL", device->name, node->path);
-                    device->node = NULL;
+                case DEVICE_ID_CLASS_PCI:
+                {
+                    if((DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR(device->id) || DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR_ANY) &&
+                    (DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE(device->id) || DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE_ANY) &&
+                    DEVICE_ID_PCI_CLASS(node->ids[i]) == DEVICE_ID_PCI_CLASS(device->id) &&
+                    DEVICE_ID_PCI_SUBCLASS(node->ids[i]) == DEVICE_ID_PCI_SUBCLASS(device->id) &&
+                    (DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF(device->id) || DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF_ANY)) status = true;
+                    break;
                 }
+                default:
+                    break;
+
+            }
+            if(status){
+                klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
+                if(!node->loaded) elf_load_driver(node);
+                break;
             }
         }
-    });
+        if(!status) continue;
+
+        driver = (device_driver_t*)node->driver;
+        if(!driver || !driver->probe){
+            continue;
+        }
+
+        status = driver->probe(device);
+        if(status){
+            device->node = node;
+            klog("Found Driver for %s\n", KLOG_OK, "DAL", device->name);
+            status = driver->attach(device);
+            if(status){
+                releaseLock(&driverManagerLock);
+                return true;
+            } else {
+                klog("Failed to attach device %s to %s\n", KLOG_FAILED, "DAL", device->name, node->path);
+                device->node = NULL;
+            }
+        }
+    }
 
     return false;
 }

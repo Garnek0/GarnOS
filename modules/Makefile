@@ -47,6 +47,10 @@ ifdef CONFIG_INCLUDE_AHCI_DRIVER
 INITRD_MODS += ahci.sys
 endif
 
+ifdef CONFIG_INCLUDE_PCI_DRIVER
+INITRD_MODS += pci.sys
+endif
+
 INITRD_AUTOREG := initreg.txt
 AUTOREG := autoreg.txt
 

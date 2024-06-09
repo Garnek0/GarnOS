@@ -72,4 +72,12 @@
 
 #define DEVICE_CREATE_ID_RTC (DEVICE_ID_CLASS_RTC << 56)
 
+//Bus Class
+
+#define DEVICE_ID_CLASS_BUS 0x04ull
+
+#define DEVICE_ID_BUS_PCI 0x00ull
+
+#define DEVICE_CREATE_ID_BUS(bustype) ((DEVICE_ID_CLASS_RTC << 56) | (uint64_t)bustype)
+
 #endif //DAL_DEVICE_TYPES_H

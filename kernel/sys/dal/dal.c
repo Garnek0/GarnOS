@@ -26,7 +26,6 @@ void dal_init(){
     driver_init(); //Initialise device driver manager
     module_init(); //Initialise module manager
 
-    pcidev_init(); //Detect pci devices
     miscdev_init(); //Detect misc devices
 
     if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
