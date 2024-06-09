@@ -14,4 +14,6 @@ source "modules/i8042/Kconfig"
 
 source "modules/rtc/Kconfig"
 
+source "modules/pit/Kconfig"
+
 endmenu

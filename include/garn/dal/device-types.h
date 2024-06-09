@@ -66,11 +66,14 @@
 
 #define DEVICE_CREATE_ID_PCI(vid, did, cls, scls, progif) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8) | ((uint64_t)progif))
 
-//RTC Class
+//Timer Class
 
-#define DEVICE_ID_CLASS_RTC 0x03ull
+#define DEVICE_ID_CLASS_TIMER 0x03ull
 
-#define DEVICE_CREATE_ID_RTC (DEVICE_ID_CLASS_RTC << 56)
+#define DEVICE_ID_TIMER_PIT 0x00ull
+#define DEVICE_ID_TIMER_RTC 0x01ull
+
+#define DEVICE_CREATE_ID_TIMER(timer) ((DEVICE_ID_CLASS_TIMER << 56) | (uint64_t)timer)
 
 //Bus Class
 
@@ -78,6 +81,6 @@
 
 #define DEVICE_ID_BUS_PCI 0x00ull
 
-#define DEVICE_CREATE_ID_BUS(bustype) ((DEVICE_ID_CLASS_RTC << 56) | (uint64_t)bustype)
+#define DEVICE_CREATE_ID_BUS(bustype) ((DEVICE_ID_CLASS_BUS << 56) | (uint64_t)bustype)
 
 #endif //DAL_DEVICE_TYPES_H

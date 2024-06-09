@@ -93,6 +93,7 @@ See LICENSE for details.
 - Disk access doesnt work properly on "large" drives (> ~512 MiB).
 - Disk access is EXTREMELY slow. It's so slow it takes 2-4 seconds to load a simple program such as `ls`.
 - AHCI Driver doesn't work on real hardware.
+- mlibc sometimes panics when running user programs.
 
 ## Support
 

@@ -12,7 +12,7 @@
 
 #include <garn/types.h>
 #include <garn/dal/dal.h>
-#include <garn/hw/pci.h>
+#include <modules/pci/pci.h>
 #include <garn/kstdio.h>
 #include <garn/fal/file.h>
 #include <garn/hw/ports.h>

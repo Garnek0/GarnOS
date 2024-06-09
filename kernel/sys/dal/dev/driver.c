@@ -9,7 +9,7 @@
 
 #include <sys/dal/dal-internals.h>
 #include <garn/mm.h>
-#include <garn/hw/pci.h>
+#include <modules/pci/pci.h>
 #include <garn/spinlock.h>
 #include <garn/ds/list.h>
 #include <garn/kstdio.h>
@@ -139,7 +139,7 @@ bool device_driver_attach(device_t* device){
             if(node->ids[i] == 0) break;
             switch(DEVICE_ID_CLASS(node->ids[i])){
                 case DEVICE_ID_CLASS_PS2:
-                case DEVICE_ID_CLASS_RTC:
+                case DEVICE_ID_CLASS_TIMER:
                 case DEVICE_ID_CLASS_BUS:
                 {
                     if(node->ids[i] == device->id) status = true;

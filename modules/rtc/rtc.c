@@ -160,6 +160,6 @@ device_driver_t driver_metadata = {
 };
 
 device_id_t driver_ids[] = {
-    DEVICE_CREATE_ID_RTC,
+    DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_RTC),
     0
 };

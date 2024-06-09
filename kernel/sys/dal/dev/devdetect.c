@@ -16,6 +16,19 @@
 
 void devdetect(){
 
+#ifdef CONFIG_INCLUDE_PIT_DRIVER
+
+device_t* pitDev = kmalloc(sizeof(device_t));
+pitDev->bus = DEVICE_BUS_NONE;
+pitDev->data = NULL;
+pitDev->name = "Programmable Interval Timer";
+pitDev->node = NULL;
+pitDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
+pitDev->id = DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT);
+device_add(pitDev);
+
+#endif //CONFIG_INCLUDE_PIT_DRIVER
+
 #ifdef CONFIG_INCLUDE_i8042_DRIVER
 
     //Detect i8042 PS/2 Controller
@@ -59,7 +72,7 @@ i8042_not_found:
     rtcDev->name = "Real-Time Clock";
     rtcDev->node = NULL;
     rtcDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
-    rtcDev->id = DEVICE_CREATE_ID_RTC;
+    rtcDev->id = DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_RTC);
     device_add(rtcDev);
 
 #endif //CONFIG_INCLUDE_RTC_DRIVER

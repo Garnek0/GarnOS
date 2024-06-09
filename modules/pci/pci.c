@@ -11,7 +11,6 @@
 
 #include "pci.h"
 
-#include <garn/hw/pci.h>
 #include <garn/hw/ports.h>
 #include <garn/kstdio.h>
 #include <garn/mm.h>
@@ -561,6 +560,8 @@ bool attach(device_t* dev){
             }
         }
     }
+
+    return true;
 }
 
 bool remove(device_t* device){

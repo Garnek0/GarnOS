@@ -25,6 +25,7 @@ CFLAGS := \
 
 CPPFLAGS := \
     -I. \
+	-I../../ \
     -I../include \
     $(CPPFLAGS) \
     -MMD \
@@ -49,6 +50,10 @@ endif
 
 ifdef CONFIG_INCLUDE_PCI_DRIVER
 INITRD_MODS += pci.sys
+endif
+
+ifdef CONFIG_INCLUDE_PIT_DRIVER
+INITRD_MODS += pit.sys
 endif
 
 INITRD_AUTOREG := initreg.txt

@@ -310,10 +310,10 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     }
 
     //Create initial process stack
-    PUSH(uint64_t, 0, currentProcess->mainThread->regs.rsp); //Aux vector NULL
-    PUSH(uint64_t, 0, currentProcess->mainThread->regs.rsp); //envp NULL
+    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //Aux vector NULL
+    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //envp NULL
     for(ssize_t i = envc-1; i >= 0; i--) PUSH(uint64_t, newEnvp[i], currentProcess->mainThread->regs.rsp); //envp
-    PUSH(uint64_t, 0, currentProcess->mainThread->regs.rsp); //argv NULL
+    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //argv NULL
     for(ssize_t i = argc-1; i >= 0; i--) PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
     PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
 
