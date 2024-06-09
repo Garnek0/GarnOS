@@ -11,7 +11,7 @@
 #include <garn/kstdio.h>
 #include <garn/mm.h>
 #include <garn/kernel.h>
-#include <hw/rtc/rtc.h>
+#include <garn/time.h>
 #include <garn/term/term.h>
 #include <garn/dal/dal.h>
 #include <garn/ds/list.h>
@@ -54,15 +54,15 @@ static void console_ver(){
     kprintf(KERNEL_VER"\n");
 }
 
-static char* weekdayNames[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-
 static void console_timedate(){
-    kprintf("%d/%d/%d %s\n", rtc.month, rtc.dayOfMonth, rtc.year, weekdayNames[rtc.weekday]);
-    kprintf("%d:", rtc.hours);
-    if(rtc.minutes < 10) kprintf("0");
-    kprintf("%d:", rtc.minutes);
-    if(rtc.seconds < 10) kprintf("0");
-    kprintf("%d\n", rtc.seconds);
+    systime_t time = time_get();
+
+    kprintf("%d/%d/%u\n", time.month, time.dayOfMonth, time.year);
+    kprintf("%d:", time.hours);
+    if(time.minutes < 10) kprintf("0");
+    kprintf("%d:", time.minutes);
+    if(time.seconds < 10) kprintf("0");
+    kprintf("%d\n", time.seconds);
 }
 
 static void console_dev(){

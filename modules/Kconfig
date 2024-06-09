@@ -1,0 +1,11 @@
+menu "Device Drivers & Other Modules"
+
+source "modules/ahci/Kconfig"
+
+source "modules/ide/Kconfig"
+
+source "modules/i8042/Kconfig"
+
+source "modules/rtc/Kconfig"
+
+endmenu

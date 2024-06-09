@@ -1,0 +1,5 @@
+config INCLUDE_AHCI_DRIVER
+		bool "Include generic AHCI controller driver"
+		default y
+		help
+			"Check this if your target system has an AHCI controller."

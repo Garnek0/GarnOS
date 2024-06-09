@@ -132,7 +132,7 @@ device_driver_t driver_metadata = {
     .remove = remove
 };
 
-device_id_t* driver_ids[] = {
+device_id_t driver_ids[] = {
     DEVICE_CREATE_ID_PS2,
     0
 };

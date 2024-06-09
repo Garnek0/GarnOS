@@ -20,6 +20,7 @@
 #include <garn/input.h>
 #include <garn/fal/file.h>
 #include <garn/fal/filesys.h>
+#include <garn/config.h>
 
 #include <mem/mm-internals.h>
 
@@ -39,7 +40,6 @@
 
 #include <exec/elf.h>
 
-#include <hw/rtc/rtc.h>
 #include <hw/pit/pit.h>
 
 #include <module/module-internals.h>
@@ -93,11 +93,13 @@ void _start(){
 
     dal_init(); //initialise Device Abstraction Layer
 
+#ifdef CONFIG_KCON
+    init_kcon(); //start demo console
+#endif //CONFIG_KCON
+
     kernel_screen_output_disable();
     
     term_clear();
-
-    init_kcon(); //start demo console
 
     sched_init(); //initialise thread scheduler
     

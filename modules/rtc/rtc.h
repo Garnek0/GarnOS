@@ -2,6 +2,8 @@
 *   File: rtc.h
 *
 *   Author: Garnek
+*   
+*   Description: defines for RTC stuff
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
@@ -20,6 +22,7 @@
 #define RTC_DAY_OF_MONTH 0x07
 #define RTC_MONTH 0x08
 #define RTC_YEAR 0x09
+#define RTC_CENTURY 0x32
 
 #define RTC_STATUS_A 0x0A
 #define RTC_STATUS_B 0x0B
@@ -37,6 +40,7 @@ typedef struct {
     uint8_t dayOfMonth;
     uint8_t month;
     uint8_t year;
+    uint8_t century;
 } rtc_t;
 extern rtc_t rtc;
 

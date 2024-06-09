@@ -12,9 +12,13 @@
 #include <garn/acpi/acpi-tables.h>
 #include <garn/mm.h>
 #include <garn/hw/ports.h>
+#include <garn/config.h>
 
 void miscdev_init(){
-    //Detect PS/2 Controller
+
+#ifdef CONFIG_INCLUDE_i8042_DRIVER
+
+    //Detect i8042 PS/2 Controller
 
     if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
         goto i8042_found;
@@ -44,4 +48,20 @@ i8042_found:
 
 i8042_not_found:
     ;
+
+#endif //CONFIG_INCLUDE_i8042_DRIVER
+
+#ifdef CONFIG_INCLUDE_RTC_DRIVER
+
+    device_t* rtcDev = kmalloc(sizeof(device_t));
+    rtcDev->bus = DEVICE_BUS_NONE;
+    rtcDev->data = NULL;
+    rtcDev->name = "Real-Time Clock";
+    rtcDev->node = NULL;
+    rtcDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
+    rtcDev->id = DEVICE_CREATE_ID_RTC;
+    device_add(rtcDev);
+
+#endif //CONFIG_INCLUDE_RTC_DRIVER
+
 }

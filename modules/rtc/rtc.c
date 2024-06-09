@@ -1,18 +1,25 @@
 /*  
+*   Module: rtc.sys
+*
 *   File: rtc.c
 *
-*   Author: Garnek
+*   Module Author: Garnek
 *   
-*   Description: Realtime Clock Driver
+*   Module Description: RTC Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "rtc.h"
+
 #include <garn/hw/ports.h>
 #include <garn/irq.h>
 #include <garn/irq.h>
 #include <garn/kstdio.h>
 #include <garn/spinlock.h>
+#include <garn/dal/dal.h>
+#include <garn/module.h>
+#include <garn/time.h>
+#include <garn/acpi/acpi-tables.h>
 
 rtc_t rtc;
 
@@ -58,6 +65,8 @@ void rtc_handler(stack_frame_t* regs){
         rtc.dayOfMonth = rtc_read_register(RTC_DAY_OF_MONTH);
         rtc.month = rtc_read_register(RTC_MONTH);
         rtc.year = rtc_read_register(RTC_YEAR);
+        if(FADT->century) rtc.century = rtc_read_register(RTC_CENTURY);
+        else rtc.century = 19;
 
     lock(rtcLock, {
         //if bcd mode, convert to binary
@@ -69,6 +78,7 @@ void rtc_handler(stack_frame_t* regs){
             rtc.dayOfMonth = rtc_bcd_to_bin(rtc.dayOfMonth);
             rtc.month = rtc_bcd_to_bin(rtc.month);
             rtc.year = rtc_bcd_to_bin(rtc.year);
+            rtc.century = rtc_bcd_to_bin(rtc.century);
         }
 
         //if 12 hour format, convert to 24 hour format
@@ -77,12 +87,37 @@ void rtc_handler(stack_frame_t* regs){
         }
     });
 
-        //Status C must be read after each interrupt
-        rtc_read_register(RTC_STATUS_C);
+    //Assemble systime
+    systime_t time;
+    time.seconds = rtc.seconds;
+    time.minutes = rtc.minutes;
+    time.hours = rtc.hours;
+    time.dayOfMonth = rtc.dayOfMonth;
+    time.month = rtc.month;
+    time.year = rtc.century*100 + rtc.year;
+
+    time_set(time);
+
+    //Status C must be read after each interrupt
+    rtc_read_register(RTC_STATUS_C);
+}
+
+void init(){
+    return;
+}
+
+void fini(){
+    return;
+}
+
+bool probe(device_t* device){
+    if(device->type == DEVICE_TYPE_SYSTEM_DEVICE && device->bus == DEVICE_BUS_NONE) return true;
+    return false;
 }
 
 //initialise the rtc
-void rtc_init(){
+bool attach(device_t* device){
+    if(!probe(device)) return false;
 
     asm volatile("cli");
 
@@ -103,4 +138,28 @@ void rtc_init(){
     asm volatile("sti");
 
     klog("RTC Initialised Successfully.\n", KLOG_OK, "RTC");
+
+    return true;
 }
+
+bool remove(device_t* device){
+    irq_remove_handler(8, rtc_handler);
+    return true;
+}
+
+module_t metadata = {
+    .name = "rtc",
+    .init = init,
+    .fini = fini
+};
+
+device_driver_t driver_metadata = {
+    .probe = probe,
+    .attach = attach,
+    .remove = remove
+};
+
+device_id_t driver_ids[] = {
+    DEVICE_CREATE_ID_RTC,
+    0
+};

@@ -12,6 +12,7 @@
 #include <garn/hw/ports.h>
 #include <garn/mm.h>
 #include <garn/spinlock.h>
+#include <garn/config.h>
 
 #include <garn/kstdio.h>
 
@@ -22,6 +23,8 @@ spinlock_t serialLock;
 
 //initialise the serial console
 int serial_init(){
+
+#ifdef CONFIG_SERIAL_DEBUGGING
 
     serialPresent = true;
 
@@ -67,6 +70,8 @@ int serial_init(){
 
     serial_log("Serial initialised for logging.\n\r");
     klog("Serial Console Initialised.\n", KLOG_OK, "Serial");
+
+#endif //CONFIG_SERIAL_DEBUGGING
 
     return 0;
 }

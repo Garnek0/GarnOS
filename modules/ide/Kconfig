@@ -1,0 +1,5 @@
+config INCLUDE_IDE_DRIVER
+		bool "Include generic IDE controller driver"
+		default y
+		help
+			"Check this if your target system has an IDE controller."

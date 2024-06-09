@@ -140,6 +140,7 @@ bool device_driver_attach(device_t* device){
                 if(node->ids[i] == 0) break;
                 switch(DEVICE_ID_CLASS(node->ids[i])){
                     case DEVICE_ID_CLASS_PS2:
+                    case DEVICE_ID_CLASS_RTC:
                     {
                         if(node->ids[i] == device->id) status = true;
                         break;

@@ -15,6 +15,7 @@
 #include <garn/mm.h>
 #include <sys/bootloader.h>
 #include <cpu/apic/apic.h>
+#include <garn/config.h>
 
 uint8_t ioapicCount;
 uint8_t ioapicIDs[256];
@@ -76,7 +77,7 @@ void ioapic_init(){
     outb(0x20, 0x20); //PIC EOI
     outb(0xA0, 0x20);
 
-    //Remap PIC and disable it
+    //Remap PIC (and disable it)
 
     uint8_t m1, m2;
 
@@ -105,6 +106,20 @@ void ioapic_init(){
     io_wait();
     outb(PIC2_DATA, m2);
     io_wait();
+
+#ifndef CONFIG_X86_IOAPIC
+
+    //Enable PIC
+    outb(PIC1_DATA, 0x00);
+    io_wait();
+    outb(PIC2_DATA, 0x00);
+    io_wait();
+
+    asm volatile("sti");
+
+    klog("PICs Initialised Successfully.\n", KLOG_OK, "I/O APIC");
+
+#else
 
     //Disable PIC
     outb(PIC1_DATA, 0xff);
@@ -238,4 +253,7 @@ void ioapic_init(){
     asm volatile("sti");
 
     klog("I/O APICs Initialised Successfully.\n", KLOG_OK, "I/O APIC");
+
+#endif //CONFIG_X86_IOAPIC
+
 }

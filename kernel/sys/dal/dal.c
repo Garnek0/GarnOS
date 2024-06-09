@@ -11,7 +11,6 @@
 #include <sys/dal/dal-internals.h>
 #include <garn/panic.h>
 #include <hw/pit/pit.h>
-#include <hw/rtc/rtc.h>
 
 void dal_init(){
     device_init(); //Initialise device manager
@@ -23,8 +22,6 @@ void dal_init(){
     multiproc_init(); //Initialize CPUs
 
     pit_init(); //Initialise PIT Timer
-
-    rtc_init(); //Initialise realtime clock
 
     driver_init(); //Initialise device driver manager
     module_init(); //Initialise module manager
