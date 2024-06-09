@@ -14,7 +14,7 @@
 #include <garn/hw/ports.h>
 #include <garn/config.h>
 
-void miscdev_init(){
+void devdetect(){
 
 #ifdef CONFIG_INCLUDE_i8042_DRIVER
 

@@ -34,13 +34,9 @@ void device_init();
 
 void driver_init();
 
-//miscdev
+//devdetect
 
-void miscdev_init();
-
-//pcidev
-
-void pcidev_init();
+void devdetect();
 
 //checksysfs
 
