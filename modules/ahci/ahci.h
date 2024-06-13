@@ -11,7 +11,7 @@
 #include <garn/types.h>
 #include <garn/kernel.h>
 #include <garn/dal/dal.h>
-#include <modules/pci/pci.h>
+#include <garn/hw/pci.h>
 #include <garn/mm.h>
 #include <garn/timer.h>
 #include <garn/kerrno.h>

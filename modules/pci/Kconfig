@@ -1,5 +1,0 @@
-config INCLUDE_PCI_DRIVER
-		bool "PCI Support"
-		default y
-		help
-			"Check this if your target system has a PCI bus."

@@ -9,7 +9,7 @@
 
 #include <sys/dal/dal-internals.h>
 #include <garn/mm.h>
-#include <modules/pci/pci.h>
+#include <garn/hw/pci.h>
 #include <garn/spinlock.h>
 #include <garn/ds/list.h>
 #include <garn/kstdio.h>

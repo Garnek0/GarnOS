@@ -151,15 +151,21 @@ $(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 kernel-docs:
 	cd include; doxygen
 
+.SILENT: xconfig menuconfig
+
 .PHONY: menuconfig
 menuconfig:
 	kconfig-mconf Kconfig
+	echo "Generating config.h..."
 	python3 scripts/genconfig.py
+	echo "done"
 
 .PHONY: xconfig
 xconfig:
 	kconfig-qconf Kconfig
+	echo "Generating config.h..."
 	python3 scripts/genconfig.py
+	echo "done"
 
 .PHONY: clean
 clean:

@@ -79,14 +79,7 @@ i8042_not_found:
 
 #ifdef CONFIG_INCLUDE_PCI_DRIVER
 
-    device_t* pciDev = kmalloc(sizeof(device_t));
-    pciDev->bus = DEVICE_BUS_PCI;
-    pciDev->data = NULL;
-    pciDev->name = "PCI Bus";
-    pciDev->node = NULL;
-    pciDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
-    pciDev->id = DEVICE_CREATE_ID_BUS(DEVICE_ID_BUS_PCI);
-    device_add(pciDev);
+    pcidev_detect();
 
 #endif //CONFIG_INCLUDE_PCI_DRIVER
 

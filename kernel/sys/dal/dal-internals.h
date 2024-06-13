@@ -34,6 +34,10 @@ void device_init();
 
 void driver_init();
 
+//pcidev
+
+void pcidev_detect();
+
 //devdetect
 
 void devdetect();

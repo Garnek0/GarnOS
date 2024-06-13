@@ -1,5 +1,5 @@
 config INCLUDE_RTC_DRIVER
-		bool "Include generic RTC driver"
+		bool "Real-Time Clock"
 		default y
 		help
 			"Check this if your target system has a standard PC Real-time clock."
