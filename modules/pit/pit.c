@@ -59,6 +59,8 @@ bool attach(device_t* device){
     irq_add_handler(0, pit_handler, 0);
 
     klog("Timer Initialised.\n", KLOG_OK, "PIT");
+
+    return true;
 }
 
 bool remove(device_t* device){

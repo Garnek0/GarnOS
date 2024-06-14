@@ -1,5 +1,6 @@
 config INCLUDE_IDE_DRIVER
-		bool "IDE Support"
+		bool "PCI IDE Controller Support"
+		depends on INCLUDE_PCI_DRIVER
 		default y
 		help
-			"Check this if your target system has an IDE controller."
+			"Check this if your target system has a PCI IDE controller."

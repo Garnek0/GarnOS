@@ -157,6 +157,12 @@
 #define PCI_HEADER_PCI_TO_CARDBUS 0x02
 
 typedef struct {
+    uint8_t bus;
+    uint8_t dev;
+    uint8_t func;
+} pci_location_t;
+
+typedef struct {
     uint16_t vendorID;
     uint16_t deviceID;
     uint16_t command;
@@ -172,6 +178,7 @@ typedef struct {
 } pci_config_header_t;
 
 typedef struct {
+    pci_location_t location;
     pci_config_header_t hdr;
     uint32_t BAR0;
     uint32_t BAR1;
@@ -191,6 +198,7 @@ typedef struct {
 } pci_config_device_t;
 
 typedef struct {
+    pci_location_t location;
     pci_config_header_t hdr;
     uint32_t BAR0;
     uint32_t BAR1;
@@ -217,11 +225,13 @@ typedef struct {
 } pci_config_pci_to_pci_t;
 
 typedef struct {
+    pci_location_t location;
     pci_config_header_t hdr;
     //TODO: Do this
 } pci_config_pci_to_cardbus_t;
 
-uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset);
-uint32_t pci_config_read_address(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset);
+uint16_t pci_config_read_word(pci_location_t location, uint8_t offset);
+void pci_config_write_word(pci_location_t location, uint8_t offset, uint16_t data);
+uint32_t pci_config_read_address(pci_location_t location, uint8_t offset);
 
 #endif //PCI_H

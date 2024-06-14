@@ -94,6 +94,13 @@ bool attach(device_t* device){
     pci_config_device_t* pciConfig;
     pciConfig = (pci_config_device_t*)device->data;
 
+    //Enable bus mastering, memory access and interrupts in the PCI command register
+
+    pciConfig->hdr.command |= ((1 << 1) & (1 << 2));
+    pciConfig->hdr.command &= ~(1 << 10);
+
+    pci_config_write_word(pciConfig->location, 0x4, pciConfig->hdr.command);
+
     ide_channel_t* channelPrimary = kmalloc(sizeof(ide_channel_t));
     memset(channelPrimary, 0, sizeof(ide_channel_t));
     ide_channel_t* channelSecondary = kmalloc(sizeof(ide_channel_t));

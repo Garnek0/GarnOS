@@ -13,15 +13,18 @@
 #include <exec/elf.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
+#include <garn/config.h>
 
-uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
+#ifdef CONFIG_INCLUDE_PCI_DRIVER
+
+uint16_t pci_config_read_word(pci_location_t location, uint8_t offset){
     uint32_t address;
-    uint32_t busl  = (uint32_t)bus;
-    uint32_t devl = (uint32_t)dev;
-    uint32_t funcl = (uint32_t)func;
+    uint32_t bus  = (uint32_t)location.bus;
+    uint32_t dev = (uint32_t)location.dev;
+    uint32_t func = (uint32_t)location.func;
     uint16_t data = 0;
  
-    address = (uint32_t)((busl << 16) | (devl << 11) | (funcl << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
+    address = (uint32_t)((bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
  
     outl(PCI_CONFIG_ADDRESS, address);
 
@@ -29,9 +32,24 @@ uint16_t pci_config_read_word(uint8_t bus, uint8_t dev, uint8_t func, uint8_t of
     return data;
 }
 
-uint32_t pci_config_read_address(uint8_t bus, uint8_t dev, uint8_t func, uint8_t offset) {
-    uint32_t address = pci_config_read_word(bus, dev, func, offset);
-    address |= (((uint32_t)pci_config_read_word(bus, dev, func, offset+2) << 16) & 0xFFFF0000);
+void pci_config_write_word(pci_location_t location, uint8_t offset, uint16_t data){
+    uint32_t address;
+    uint32_t bus  = (uint32_t)location.bus;
+    uint32_t dev = (uint32_t)location.dev;
+    uint32_t func = (uint32_t)location.func;
+ 
+    address = (uint32_t)((bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
+ 
+    outl(PCI_CONFIG_ADDRESS, address);
+
+    outl(PCI_CONFIG_DATA, data >> ((offset & 2) * 8));
+}
+
+uint32_t pci_config_read_address(pci_location_t location, uint8_t offset){
+    uint32_t address = pci_config_read_word(location, offset);
+    address |= (((uint32_t)pci_config_read_word(location, offset+2) << 16) & 0xFFFF0000);
 
     return address;
 }
+
+#endif //CONFIG_INCLUDE_PCI_DRIVER

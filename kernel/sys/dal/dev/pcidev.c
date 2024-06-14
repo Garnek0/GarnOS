@@ -14,7 +14,11 @@
 #include <exec/elf.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
+#include <garn/config.h>
 
+#ifdef CONFIG_INCLUDE_PCI_DRIVER
+
+pci_location_t location;
 pci_config_header_t hdr;
 pci_config_device_t* pciDevice;
 pci_config_pci_to_pci_t* pciToPci;
@@ -26,20 +30,24 @@ void pcidev_detect(){
     for(uint16_t i = 0; i < 256; i++){
         for(uint16_t j = 0; j < 32; j++){
             for(uint16_t k = 0; k < 8; k++){
-                hdr.vendorID = pci_config_read_word(i, j, k, 0x0);
-                hdr.deviceID = pci_config_read_word(i, j, k, 0x2);
+                location.bus = i;
+                location.dev = j;
+                location.func = k;
+
+                hdr.vendorID = pci_config_read_word(location, 0x0);
+                hdr.deviceID = pci_config_read_word(location, 0x2);
                 if(hdr.vendorID == 0xFFFF && hdr.deviceID == 0xFFFF) continue;
 
-                hdr.command = pci_config_read_word(i, j, k, 0x4);
-                hdr.status = pci_config_read_word(i, j, k, 0x6);
-                hdr.revisionID = pci_config_read_word(i, j, k, 0x8) & 0xFF;
-                hdr.progIF = (pci_config_read_word(i, j, k, 0x8) >> 8) & 0xFF;
-                hdr.subclass = pci_config_read_word(i, j, k, 0xA) & 0xFF;
-                hdr.class = (pci_config_read_word(i, j, k, 0xA) >> 8) & 0xFF;
-                hdr.cacheLineSize = pci_config_read_word(i, j, k, 0xC) & 0xFF;
-                hdr.latencyTimer = (pci_config_read_word(i, j, k, 0xC) >> 8) & 0xFF;
-                hdr.headerType = pci_config_read_word(i, j, k, 0xE) & 0xFF;
-                hdr.BIST = (pci_config_read_word(i, j, k, 0xE) >> 8) & 0xFF;
+                hdr.command = pci_config_read_word(location, 0x4);
+                hdr.status = pci_config_read_word(location, 0x6);
+                hdr.revisionID = pci_config_read_word(location, 0x8) & 0xFF;
+                hdr.progIF = (pci_config_read_word(location, 0x8) >> 8) & 0xFF;
+                hdr.subclass = pci_config_read_word(location, 0xA) & 0xFF;
+                hdr.class = (pci_config_read_word(location, 0xA) >> 8) & 0xFF;
+                hdr.cacheLineSize = pci_config_read_word(location, 0xC) & 0xFF;
+                hdr.latencyTimer = (pci_config_read_word(location, 0xC) >> 8) & 0xFF;
+                hdr.headerType = pci_config_read_word(location, 0xE) & 0xFF;
+                hdr.BIST = (pci_config_read_word(location, 0xE) >> 8) & 0xFF;
 
                 device = kmalloc(sizeof(device_t));
                 memset(device, 0, sizeof(device_t));
@@ -52,21 +60,22 @@ void pcidev_detect(){
                         memset(pciDevice, 0, sizeof(pci_config_device_t));
 
                         pciDevice->hdr = hdr;
-                        pciDevice->BAR0 = pci_config_read_address(i, j, k, 0x10);
-                        pciDevice->BAR1 = pci_config_read_address(i, j, k, 0x14);
-                        pciDevice->BAR2 = pci_config_read_address(i, j, k, 0x18);
-                        pciDevice->BAR3 = pci_config_read_address(i, j, k, 0x1C);
-                        pciDevice->BAR4 = pci_config_read_address(i, j, k, 0x20);
-                        pciDevice->BAR5 = pci_config_read_address(i, j, k, 0x24);
-                        pciDevice->cardbusCISPtr = pci_config_read_address(i, j, k, 0x28);
-                        pciDevice->subsystemVendorID = pci_config_read_word(i, j, k, 0x2C);
-                        pciDevice->subsystemDeviceID = pci_config_read_word(i, j, k, 0x2E);
-                        pciDevice->expansionROM = pci_config_read_address(i, j, k, 0x30);
-                        pciDevice->capabilitiesPointer = pci_config_read_word(i, j, k, 0x34);
-                        pciDevice->intLine = pci_config_read_word(i, j, k, 0x3C) & 0xFF;
-                        pciDevice->intPIN = (pci_config_read_word(i, j, k, 0x3C) >> 8) & 0xFF;
-                        pciDevice->minGrant = pci_config_read_word(i, j, k, 0x3E) & 0xFF;
-                        pciDevice->maxLatency = (pci_config_read_word(i, j, k, 0x3E) >> 8) & 0xFF;
+                        pciDevice->location = location;
+                        pciDevice->BAR0 = pci_config_read_address(location, 0x10);
+                        pciDevice->BAR1 = pci_config_read_address(location, 0x14);
+                        pciDevice->BAR2 = pci_config_read_address(location, 0x18);
+                        pciDevice->BAR3 = pci_config_read_address(location, 0x1C);
+                        pciDevice->BAR4 = pci_config_read_address(location, 0x20);
+                        pciDevice->BAR5 = pci_config_read_address(location, 0x24);
+                        pciDevice->cardbusCISPtr = pci_config_read_address(location, 0x28);
+                        pciDevice->subsystemVendorID = pci_config_read_word(location, 0x2C);
+                        pciDevice->subsystemDeviceID = pci_config_read_word(location, 0x2E);
+                        pciDevice->expansionROM = pci_config_read_address(location, 0x30);
+                        pciDevice->capabilitiesPointer = pci_config_read_word(location, 0x34);
+                        pciDevice->intLine = pci_config_read_word(location, 0x3C) & 0xFF;
+                        pciDevice->intPIN = (pci_config_read_word(location, 0x3C) >> 8) & 0xFF;
+                        pciDevice->minGrant = pci_config_read_word(location, 0x3E) & 0xFF;
+                        pciDevice->maxLatency = (pci_config_read_word(location, 0x3E) >> 8) & 0xFF;
 
                         device->data = (void*)pciDevice;
 
@@ -475,28 +484,29 @@ void pcidev_detect(){
                         memset(pciToPci, 0, sizeof(pci_config_pci_to_pci_t));
 
                         pciToPci->hdr = hdr;
-                        pciToPci->BAR0 = pci_config_read_address(i, j, k, 0x10);
-                        pciToPci->BAR1 = pci_config_read_address(i, j, k, 0x14);
-                        pciToPci->primaryBus = pci_config_read_word(i, j, k, 0x18) & 0xFF;
-                        pciToPci->secondaryBus = (pci_config_read_word(i, j, k, 0x18) >> 8) & 0xFF;
-                        pciToPci->subordinateBus = pci_config_read_word(i, j, k, 0x1A) & 0xFF;
-                        pciToPci->secondaryLatencyTimer = (pci_config_read_word(i, j, k, 0x1A) >> 8) & 0xFF;
-                        pciToPci->IOBase = pci_config_read_word(i, j, k, 0x1C) & 0xFF;
-                        pciToPci->IOLimit = (pci_config_read_word(i, j, k, 0x1C) >> 8) & 0xFF;
-                        pciToPci->secondayStatus = pci_config_read_word(i, j, k, 0x1E);
-                        pciToPci->memoryBase = pci_config_read_word(i, j, k, 0x20);
-                        pciToPci->memoryLimit = pci_config_read_word(i, j, k, 0x22);
-                        pciToPci->prefetchableMemoryBase = pci_config_read_word(i, j, k, 0x24);
-                        pciToPci->prefetchableMemoryLimit = pci_config_read_word(i, j, k, 0x26);
-                        pciToPci->prefetchableBaseUpper = pci_config_read_address(i, j, k, 0x28);
-                        pciToPci->prefetchableLimitUpper = pci_config_read_address(i, j, k, 0x2C);
-                        pciToPci->IOBaseUpper = pci_config_read_word(i, j, k, 0x30);
-                        pciToPci->IOLimitUpper = pci_config_read_word(i, j, k, 0x32);
-                        pciToPci->capabilitiesPointer = pci_config_read_word(i, j, k, 0x34) & 0xFF;
-                        pciToPci->expansionROM = pci_config_read_address(i, j, k, 0x38);
-                        pciToPci->intLine = pci_config_read_word(i, j, k, 0x3C) & 0xFF;
-                        pciToPci->intPIN = (pci_config_read_word(i, j, k, 0x3C) >> 8) & 0xFF;
-                        pciToPci->bridgeControl = pci_config_read_word(i, j, k, 0x3E);
+                        pciToPci->location = location;
+                        pciToPci->BAR0 = pci_config_read_address(location, 0x10);
+                        pciToPci->BAR1 = pci_config_read_address(location, 0x14);
+                        pciToPci->primaryBus = pci_config_read_word(location, 0x18) & 0xFF;
+                        pciToPci->secondaryBus = (pci_config_read_word(location, 0x18) >> 8) & 0xFF;
+                        pciToPci->subordinateBus = pci_config_read_word(location, 0x1A) & 0xFF;
+                        pciToPci->secondaryLatencyTimer = (pci_config_read_word(location, 0x1A) >> 8) & 0xFF;
+                        pciToPci->IOBase = pci_config_read_word(location, 0x1C) & 0xFF;
+                        pciToPci->IOLimit = (pci_config_read_word(location, 0x1C) >> 8) & 0xFF;
+                        pciToPci->secondayStatus = pci_config_read_word(location, 0x1E);
+                        pciToPci->memoryBase = pci_config_read_word(location, 0x20);
+                        pciToPci->memoryLimit = pci_config_read_word(location, 0x22);
+                        pciToPci->prefetchableMemoryBase = pci_config_read_word(location, 0x24);
+                        pciToPci->prefetchableMemoryLimit = pci_config_read_word(location, 0x26);
+                        pciToPci->prefetchableBaseUpper = pci_config_read_address(location, 0x28);
+                        pciToPci->prefetchableLimitUpper = pci_config_read_address(location, 0x2C);
+                        pciToPci->IOBaseUpper = pci_config_read_word(location, 0x30);
+                        pciToPci->IOLimitUpper = pci_config_read_word(location, 0x32);
+                        pciToPci->capabilitiesPointer = pci_config_read_word(location, 0x34) & 0xFF;
+                        pciToPci->expansionROM = pci_config_read_address(location, 0x38);
+                        pciToPci->intLine = pci_config_read_word(location, 0x3C) & 0xFF;
+                        pciToPci->intPIN = (pci_config_read_word(location, 0x3C) >> 8) & 0xFF;
+                        pciToPci->bridgeControl = pci_config_read_word(location, 0x3E);
 
                         device->data = (void*)pciToPci;
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
@@ -522,3 +532,5 @@ void pcidev_detect(){
         }
     }
 }
+
+#endif //CONFIG_INCLUDE_PCI_DRIVER
