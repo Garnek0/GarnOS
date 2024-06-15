@@ -80,7 +80,7 @@ bool attach(device_t* device){
     i8042_write(i8042_COMMAND, i8042_COMMAND_SELFTEST);
     res = i8042_read(i8042_DATA);
     if(res != 0x55){
-        klog("i8042 Controller Self-Test Failed! Test returned 0x%x.\n", KLOG_WARNING, "i8042", res);
+        klog("i8042 Controller Self-Test Failed! Test returned 0x%x. Assuming i8042 is nonexistent or faulty.\n", KLOG_WARNING, "i8042", res);
         return false;
     }
 

@@ -18,14 +18,14 @@ void devdetect(){
 
 #ifdef CONFIG_INCLUDE_PIT_DRIVER
 
-device_t* pitDev = kmalloc(sizeof(device_t));
-pitDev->bus = DEVICE_BUS_NONE;
-pitDev->data = NULL;
-pitDev->name = "Programmable Interval Timer";
-pitDev->node = NULL;
-pitDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
-pitDev->id = DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT);
-device_add(pitDev);
+    device_t* pitDev = kmalloc(sizeof(device_t));
+    pitDev->bus = DEVICE_BUS_NONE;
+    pitDev->data = NULL;
+    pitDev->name = "Programmable Interval Timer";
+    pitDev->node = NULL;
+    pitDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
+    pitDev->id = DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT);
+    device_add(pitDev);
 
 #endif //CONFIG_INCLUDE_PIT_DRIVER
 

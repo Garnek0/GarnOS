@@ -27,6 +27,4 @@ void dal_init(){
     module_init(); //Initialise module manager
 
     devdetect(); //Detect devices
-
-    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
 }

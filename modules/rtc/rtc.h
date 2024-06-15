@@ -27,10 +27,16 @@
 #define RTC_STATUS_A 0x0A
 #define RTC_STATUS_B 0x0B
 #define RTC_STATUS_C 0x0C
+#define RTC_STATUS_D 0x0D
+
+#define RTC_POST_ERROR 0x0E
 
 #define RTC_HOUR_FORMAT (1 << 1)
 #define RTC_BINARY (1 << 2)
+
 #define RTC_UPDATE_ENDED_INT (1 << 4)
+#define RTC_ALARM_INT (1 << 5)
+#define RTC_PERIODIC_INT (1 << 6)
 
 typedef struct {
     uint8_t seconds;

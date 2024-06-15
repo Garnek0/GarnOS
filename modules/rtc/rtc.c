@@ -20,6 +20,7 @@
 #include <garn/module.h>
 #include <garn/time.h>
 #include <garn/acpi/acpi-tables.h>
+#include <garn/timer.h>
 
 rtc_t rtc;
 
@@ -55,18 +56,23 @@ static uint8_t rtc_bcd_to_bin(uint8_t bcd){
     return ((bcd & 0xF0) >> 1) + ((bcd & 0xF0) >> 3) + (bcd & 0x0F);
 }
 
-//actual rtc handler
+//RTC handler
 void rtc_handler(stack_frame_t* regs){
-        //get the time data from CMOS
-        rtc.seconds = rtc_read_register(RTC_SECONDS);
-        rtc.minutes = rtc_read_register(RTC_MINUTES);
-        rtc.hours = rtc_read_register(RTC_HOURS);
-        rtc.weekday = rtc_read_register(RTC_WEEKDAY);
-        rtc.dayOfMonth = rtc_read_register(RTC_DAY_OF_MONTH);
-        rtc.month = rtc_read_register(RTC_MONTH);
-        rtc.year = rtc_read_register(RTC_YEAR);
-        if(FADT->century) rtc.century = rtc_read_register(RTC_CENTURY);
-        else rtc.century = 19;
+    //Status C must be read after each interrupt anyway
+    if(!(rtc_read_register(RTC_STATUS_C) & ((1 << 4) | (1 << 7)))){
+        return;
+    }
+
+    //get the time data from CMOS
+    rtc.seconds = rtc_read_register(RTC_SECONDS);
+    rtc.minutes = rtc_read_register(RTC_MINUTES);
+    rtc.hours = rtc_read_register(RTC_HOURS);
+    rtc.weekday = rtc_read_register(RTC_WEEKDAY);
+    rtc.dayOfMonth = rtc_read_register(RTC_DAY_OF_MONTH);
+    rtc.month = rtc_read_register(RTC_MONTH);
+    rtc.year = rtc_read_register(RTC_YEAR);
+    if(FADT->century) rtc.century = rtc_read_register(RTC_CENTURY);
+    else rtc.century = 19;
 
     lock(rtcLock, {
         //if bcd mode, convert to binary
@@ -97,9 +103,6 @@ void rtc_handler(stack_frame_t* regs){
     time.year = rtc.century*100 + rtc.year;
 
     time_set(time);
-
-    //Status C must be read after each interrupt
-    rtc_read_register(RTC_STATUS_C);
 }
 
 void init(){
@@ -111,8 +114,27 @@ void fini(){
 }
 
 bool probe(device_t* device){
-    if(device->type == DEVICE_TYPE_SYSTEM_DEVICE && device->bus == DEVICE_BUS_NONE) return true;
-    return false;
+    if(!(device->type == DEVICE_TYPE_SYSTEM_DEVICE) || !(device->bus == DEVICE_BUS_NONE)) return false;
+
+    //Check for any CMOS POST errors (errors may also mean the RTC is missing)
+    if(!(rtc_read_register(RTC_STATUS_D) & (1 << 7))){
+        uint8_t postError = rtc_read_register(RTC_POST_ERROR);
+        if(postError & (1 << 2)){
+            klog("Invalid RTC Time or RTC not present!\n", KLOG_FAILED, "RTC");
+            return false;
+        } else if(postError & (1 << 5)){
+            klog("Invalid Configuration or RTC not present!\n", KLOG_FAILED, "RTC");
+            return false;
+        } else if(postError & (1 << 6)){
+            klog("CMOS Checksum bad or RTC not present!\n", KLOG_FAILED, "RTC");
+            return false;
+        } else if(postError & (1 << 7)){
+            klog("Clock lost power or RTC not present!\n", KLOG_FAILED, "RTC");
+            return false;
+        }
+    }
+
+    return true;
 }
 
 //initialise the rtc
@@ -126,13 +148,15 @@ bool attach(device_t* device){
     if(statb & RTC_BINARY) binary = true;
     if(statb & RTC_HOUR_FORMAT) hourMode = true;
 
-    //turn on update ended interrupts
+    //turn on update ended interrupts, turn off everything else
     statb |= RTC_UPDATE_ENDED_INT;
+    statb &= ~(RTC_ALARM_INT | RTC_PERIODIC_INT);
     rtc_write_register(RTC_STATUS_B, statb);
 
     irq_add_handler(8, rtc_handler, 0);
     //This needs to be here on real hardware for the RTC to function.
     //I dont know why, but RTC interrupts won't work otherwise.
+    //(I think it may be because of previous unhandled ints occuring while the system is powered off?)
     rtc_read_register(RTC_STATUS_C);
 
     asm volatile("sti");

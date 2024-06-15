@@ -34,6 +34,7 @@
 #include <sys/input-internals.h>
 #include <sys/ksym-internals.h>
 #include <sys/bootloader.h>
+#include <sys/dal/dal-internals.h>
 
 #include <cpu/gdt/gdt.h>
 #include <cpu/multiproc/multiproc-internals.h>
@@ -96,6 +97,9 @@ void _start(){
 #ifdef CONFIG_KCON
     init_kcon(); //start demo console
 #endif //CONFIG_KCON
+
+    //We should not proceed if the system FS hasn't been found
+    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
 
     kernel_screen_output_disable();
     

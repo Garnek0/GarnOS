@@ -164,7 +164,7 @@ void apic_init(){
     apic_write_register(APIC_SPURIOUS_INT_VECT, 255 | 0x100);
 
     //APIC Error
-    irq_add_handler(223, apic_error_handler, 0);
+    irq_add_handler(223, apic_error_handler, IRQ_SHARED);
     apic_write_register(APIC_LVT_ERROR, 254);
 
     apic_write_register(APIC_TPR, 0);
