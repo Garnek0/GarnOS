@@ -8,9 +8,10 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "ioapic.h"
+#include <uacpi/acpi.h>
+#include <uacpi/tables.h>
 #include <garn/kstdio.h>
 #include <garn/hw/ports.h>
-#include <garn/acpi/acpi-tables.h>
 #include <cpu/multiproc/multiproc-internals.h>
 #include <garn/mm.h>
 #include <sys/bootloader.h>
@@ -72,6 +73,10 @@ ioapic_redirection_entry_t ioapic_get_redirection(uint32_t entry){
 }
 
 void ioapic_init(){
+    uacpi_table MADTTable;
+    uacpi_table_find_by_signature(ACPI_MADT_SIGNATURE, &MADTTable);
+    struct acpi_madt* MADT = (struct acpi_madt*)MADTTable.virt_addr;
+
     asm volatile("cli");
 
     outb(0x20, 0x20); //PIC EOI
@@ -127,8 +132,8 @@ void ioapic_init(){
     outb(PIC2_DATA, 0xff);
     io_wait();
 
-    acpi_madt_record_hdr_t* hdr = MADT->records;
-    acpi_madt_record_ioapic_t* ioapicRec;
+    struct acpi_entry_hdr* hdr = MADT->entries;
+    struct acpi_madt_ioapic* ioapicRec;
 
     ioapic_redirection_entry_t red;
     red.fields.delvMode = 0;
@@ -138,30 +143,30 @@ void ioapic_init(){
     red.fields.mask = 0;
     red.fields.destination = 0;
 
-    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
-        if(hdr->entryType != ACPI_MADT_IOAPIC){
-            i += hdr->recordLength;
-            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+    for(size_t i = 0; i < MADT->hdr.length - sizeof(struct acpi_madt);){
+        if(hdr->type != ACPI_MADT_ENTRY_TYPE_IOAPIC){
+            i += hdr->length;
+            hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
             continue;
         }
 
-        ioapicRec = (acpi_madt_record_ioapic_t*)hdr;
+        ioapicRec = (struct acpi_madt_ioapic*)hdr;
 
-        ioapicIDs[ioapicCount] = ioapicRec->ioapicID;
-        ioapicGSIs[ioapicCount] = ioapicRec->gsiBase;
-        ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->ioapicAddress + bl_get_hhdm_offset());
-        vmm_map(vmm_get_kernel_pml4(), ioapicRec->ioapicAddress, ioapicRec->ioapicAddress + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
+        ioapicIDs[ioapicCount] = ioapicRec->id;
+        ioapicGSIs[ioapicCount] = ioapicRec->gsi_base;
+        ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->address + bl_get_hhdm_offset());
+        vmm_map(vmm_get_kernel_pml4(), ioapicRec->address, ioapicRec->address + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
         ioapicCount++;
 
-        klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->ioapicID, ioapicRec->gsiBase, ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
+        klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->id, ioapicRec->gsi_base, ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);
 
         for(int j = 0; j < ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1; j++){
-            red.fields.vector = 32 + ioapicRec->gsiBase + j;
-            ioapic_redirect(red, ioapicRec->gsiBase + j);
+            red.fields.vector = 32 + ioapicRec->gsi_base + j;
+            ioapic_redirect(red, ioapicRec->gsi_base + j);
         }
 
-        i += hdr->recordLength;
-        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+        i += hdr->length;
+        hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
     }
 
     if(ioapicCount == 0){
@@ -186,23 +191,23 @@ void ioapic_init(){
 
     //Get Interrupt source overrides
 
-    hdr = MADT->records;
-    acpi_madt_record_source_override_t* sourceOverrideRec;
+    hdr = MADT->entries;
+    struct acpi_madt_interrupt_source_override* sourceOverrideRec;
 
-    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
-        if(hdr->entryType != ACPI_MADT_INTERRUPT_SOURCE_OVERRIDE){
-            i += hdr->recordLength;
-            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+    for(size_t i = 0; i < MADT->hdr.length - sizeof(struct acpi_madt);){
+        if(hdr->type != ACPI_MADT_ENTRY_TYPE_INTERRUPT_SOURCE_OVERRIDE){
+            i += hdr->length;
+            hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
             continue;
         }
 
-        sourceOverrideRec = (acpi_madt_record_source_override_t*)hdr;
+        sourceOverrideRec = (struct acpi_madt_interrupt_source_override*)hdr;
 
-        klog("Found I/O APIC Interrupt Override Source. (IRQ %u -> GSI %u)\n", KLOG_INFO, "I/O APIC", sourceOverrideRec->IRQSource, sourceOverrideRec->GSI);
+        klog("Found I/O APIC Interrupt Override Source. (IRQ %u -> GSI %u)\n", KLOG_INFO, "I/O APIC", sourceOverrideRec->source, sourceOverrideRec->gsi);
 
         red.bits = 0;
 
-        red.fields.vector = 32 + sourceOverrideRec->IRQSource;
+        red.fields.vector = 32 + sourceOverrideRec->source;
 
         uint8_t polarity = sourceOverrideRec->flags & 0b11;
         if(polarity == 0b01) red.fields.pinPolarity = 0;
@@ -212,28 +217,28 @@ void ioapic_init(){
         if(triggerMode == 0b01) red.fields.triggerMode = 0;
         else if(triggerMode == 0b11) red.fields.triggerMode = 1;
 
-        ioapic_redirect(red, sourceOverrideRec->GSI);
-        i += hdr->recordLength;
-        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+        ioapic_redirect(red, sourceOverrideRec->gsi);
+        i += hdr->length;
+        hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
     }
 
     // Get NMI sources
 
-    hdr = MADT->records;
-    acpi_madt_record_nmi_source_t* nmiRec;
+    hdr = MADT->entries;
+    struct acpi_madt_nmi_source* nmiRec;
 
-    for(size_t i = 0; i < MADT->header.length - sizeof(acpi_madt_t);){
-        if(hdr->entryType != ACPI_MADT_NMI_SOURCE){
-            i += hdr->recordLength;
-            hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+    for(size_t i = 0; i < MADT->hdr.length - sizeof(struct acpi_madt);){
+        if(hdr->type != ACPI_MADT_ENTRY_TYPE_NMI_SOURCE){
+            i += hdr->length;
+            hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
             continue;
         }
 
-        nmiRec = (acpi_madt_record_nmi_source_t*)hdr;
+        nmiRec = (struct acpi_madt_nmi_source*)hdr;
 
-        klog("Found I/O APIC NMI Source. (GSI: %u)\n", KLOG_INFO, "I/O APIC", nmiRec->GSI);
+        klog("Found I/O APIC NMI Source. (GSI: %u)\n", KLOG_INFO, "I/O APIC", nmiRec->gsi);
 
-        red = ioapic_get_redirection(nmiRec->GSI);
+        red = ioapic_get_redirection(nmiRec->gsi);
 
         uint8_t polarity = nmiRec->flags & 0b11;
         if(polarity == 0b01) red.fields.pinPolarity = 0;
@@ -245,9 +250,9 @@ void ioapic_init(){
 
         red.fields.delvMode = 0b100;
 
-        ioapic_redirect(red, nmiRec->GSI);
-        i += hdr->recordLength;
-        hdr = (acpi_madt_record_hdr_t*)((uint64_t)hdr + hdr->recordLength);
+        ioapic_redirect(red, nmiRec->gsi);
+        i += hdr->length;
+        hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
     }
 
     asm volatile("sti");

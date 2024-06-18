@@ -132,6 +132,14 @@ void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t 
     });
 }
 
+void vmm_map_range(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, size_t length, uint32_t flags){
+    for(int i = 0; i < length; i+=PAGE_SIZE){
+        vmm_map(pml4, (uint64_t)physAddr, (uint64_t)virtAddr, flags);
+        physAddr += PAGE_SIZE;
+        virtAddr += PAGE_SIZE;
+    }
+}
+
 void vmm_unmap(page_table_t* pml4, uint64_t virtAddr){
     int Pi, PTi, PDi, PDPi;
     vmm_indexer(virtAddr, &Pi, &PTi, &PDi, &PDPi);
@@ -159,6 +167,13 @@ void vmm_unmap(page_table_t* pml4, uint64_t virtAddr){
 
         asm("invlpg (%0)" :: "r"(virtAddr) : "memory");
     });
+}
+
+void vmm_unmap_range(page_table_t* pml4, uint64_t virtAddr, size_t length){
+    for(int i = 0; i < length; i+=PAGE_SIZE){
+        vmm_unmap(pml4, (uint64_t)virtAddr);
+        virtAddr += PAGE_SIZE;
+    }
 }
 
 void vmm_set_flags(page_table_t* pml4, uint64_t virtAddr, uint32_t flags){
@@ -193,4 +208,11 @@ void vmm_set_flags(page_table_t* pml4, uint64_t virtAddr, uint32_t flags){
 
         asm("invlpg (%0)" :: "r"(virtAddr) : "memory");
     });
+}
+
+void vmm_set_flags_range(page_table_t* pml4, uint64_t virtAddr, size_t length, uint32_t flags){
+    for(int i = 0; i < length; i+=PAGE_SIZE){
+        vmm_set_flags(pml4, virtAddr, flags);
+        virtAddr += PAGE_SIZE;
+    }
 }

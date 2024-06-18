@@ -34,7 +34,8 @@ static void console_help(){
             "fs         - list mounted filesystems\n"
             "drives     - list all drives\n"
             "user       - enter userspace\n"
-            "shutdown   - shutdown the system (non-ACPI)\n");
+            "shutdown   - shutdown the system\n"
+            "reboot     - perform a reboot\n");
 }
 
 static void console_clear(){
@@ -124,6 +125,10 @@ static void console_shutdown(){
     power_shutdown();
 }
 
+static void console_reboot(){
+    power_restart();
+}
+
 void kcon_add_command(char* cmd, void* function){
     kcon_command_t* command = kmalloc(sizeof(kcon_command_t)); 
     memcpy(command->cmd, cmd, strlen(cmd));
@@ -149,6 +154,7 @@ void init_kcon(){
     kcon_add_command("drives", console_drives);
     kcon_add_command("user", console_user);
     kcon_add_command("shutdown", console_shutdown);
+    kcon_add_command("reboot", console_reboot);
 
     kprintf("GarnOS Kernel Console Demo\n");
     char* cmd;

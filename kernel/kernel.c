@@ -14,7 +14,6 @@
 #include <garn/mm.h>
 #include <garn/fb.h>
 #include <garn/hw/serial.h>
-#include <garn/acpi/acpi-tables.h>
 #include <garn/dal/dal.h>
 #include <garn/term/term.h>
 #include <garn/input.h>
@@ -86,7 +85,7 @@ void _start(){
 
     power_init(); //initialise system power management
 
-    acpi_tables_init(); //Parse ACPI Tables
+    acpi_init(); //Initialise ACPI
 
     ksym_init(); //initialise kernel symbol table
 

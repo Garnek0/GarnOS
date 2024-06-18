@@ -28,19 +28,19 @@ all-hdd: $(IMAGE_NAME).hdd
 
 .PHONY: run
 run: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -smp 4 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
 	
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -enable-kvm -M smm=off -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -smp 4 -enable-kvm -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -debugcon stdio -enable-kvm -m 2G -vga std -hda $(IMAGE_NAME).hdd -M smm=off
+	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -enable-kvm -m 2G -vga std -hda $(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -debugcon stdio -enable-kvm -m 2G -cpu max -vga std -M smm=off -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -enable-kvm -m 2G -cpu max -vga std -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf

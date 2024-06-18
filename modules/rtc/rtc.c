@@ -1,10 +1,10 @@
-/*  
+/*
 *   Module: rtc.sys
 *
 *   File: rtc.c
 *
 *   Module Author: Garnek
-*   
+*
 *   Module Description: RTC Driver
 */
 // SPDX-License-Identifier: BSD-2-Clause
@@ -19,13 +19,17 @@
 #include <garn/dal/dal.h>
 #include <garn/module.h>
 #include <garn/time.h>
-#include <garn/acpi/acpi-tables.h>
 #include <garn/timer.h>
+
+#include <uacpi/acpi.h>
+#include <uacpi/tables.h>
 
 rtc_t rtc;
 
 static bool hourMode = false;
 static bool binary = false;
+
+struct acpi_fadt* FADT;
 
 spinlock_t rtcLock;
 
@@ -58,6 +62,8 @@ static uint8_t rtc_bcd_to_bin(uint8_t bcd){
 
 //RTC handler
 void rtc_handler(stack_frame_t* regs){
+
+
     //Status C must be read after each interrupt anyway
     if(!(rtc_read_register(RTC_STATUS_C) & ((1 << 4) | (1 << 7)))){
         return;
@@ -152,6 +158,10 @@ bool attach(device_t* device){
     statb |= RTC_UPDATE_ENDED_INT;
     statb &= ~(RTC_ALARM_INT | RTC_PERIODIC_INT);
     rtc_write_register(RTC_STATUS_B, statb);
+
+    uacpi_table FADTTable;
+    uacpi_table_find_by_signature(ACPI_FADT_SIGNATURE, &FADTTable);
+    FADT = (struct acpi_fadt*)FADTTable.virt_addr;
 
     irq_add_handler(8, rtc_handler, 0);
     //This needs to be here on real hardware for the RTC to function.

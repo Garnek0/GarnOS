@@ -12,7 +12,6 @@
 #include <garn/hw/pci.h>
 #include <garn/spinlock.h>
 #include <garn/ds/list.h>
-#include <garn/acpi/acpi-tables.h>
 #include <garn/kstdio.h>
 #include <garn/dal/dal.h>
 #include <exec/elf.h>

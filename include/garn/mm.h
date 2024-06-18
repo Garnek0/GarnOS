@@ -16,7 +16,7 @@
 
 #define KHEAP_FLAGS_FREE 1
 
-#define KHEAP_INIT_PAGES 128
+#define KHEAP_INIT_PAGES 25000
 
 #define MEMMAP_USABLE                 0
 #define MEMMAP_RESERVED               1
@@ -131,7 +131,9 @@ size_t pmm_get_free_pages_count();
 
 void vmm_indexer(uint64_t virtAddr, int* Pi, int* PTi, int* PDi, int* PDPi);
 void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t flags);
+void vmm_map_range(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, size_t length, uint32_t flags);
 void vmm_unmap(page_table_t* pml4, uint64_t virtAddr);
+void vmm_unmap_range(page_table_t* pml4, uint64_t virtAddr, size_t length);
 void vmm_set_flags(page_table_t* pml4, uint64_t virtAddr, uint32_t flags);
 page_table_t* vmm_get_kernel_pml4();
 

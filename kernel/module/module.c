@@ -13,7 +13,6 @@
 #include <garn/hw/ports.h>
 #include <sys/fal/initrd/initrd.h>
 #include <garn/fal/file.h>
-#include <garn/acpi/acpi-tables.h>
 #include <garn/spinlock.h>
 #include <garn/ds/list.h>
 #include <garn/kstdio.h>

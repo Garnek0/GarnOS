@@ -18,7 +18,7 @@ config SERIAL_DEBUGGING
 
 endmenu
 
-menu "Architecture Configuration"
+menu "Platform"
 
 config X86_IOAPIC
     bool "Enable I/O APIC Support"

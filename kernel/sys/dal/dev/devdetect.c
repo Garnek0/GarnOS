@@ -9,12 +9,16 @@
 
 #include <sys/dal/dal-internals.h>
 #include <garn/dal/dal.h>
-#include <garn/acpi/acpi-tables.h>
+#include <uacpi/acpi.h>
+#include <uacpi/tables.h>
 #include <garn/mm.h>
 #include <garn/hw/ports.h>
 #include <garn/config.h>
 
 void devdetect(){
+    uacpi_table FADTTable;
+    uacpi_table_find_by_signature(ACPI_FADT_SIGNATURE, &FADTTable);
+    struct acpi_fadt* FADT = (struct acpi_fadt*)FADTTable.virt_addr;
 
 #ifdef CONFIG_INCLUDE_PIT_DRIVER
 
@@ -33,7 +37,7 @@ void devdetect(){
 
     //Detect i8042 PS/2 Controller
 
-    if(FADT!=NULL && (FADT->bootArchitectureFlags & (1 << 1))){
+    if(FADT!=NULL && (FADT->iapc_boot_arch & (1 << 1))){
         goto i8042_found;
     } else {
         inb(0x60);
