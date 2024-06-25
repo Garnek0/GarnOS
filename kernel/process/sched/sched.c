@@ -88,5 +88,5 @@ void sched_preempt(stack_frame_t* regs){
 
     arch_restore_context(regs);
 
-    vaspace_switch(currentThread->process->pml4);
+    vaspace_switch(currentThread->process->pt);
 }

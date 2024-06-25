@@ -37,12 +37,13 @@ void vmm_init();
 //vaspace
 
 page_table_t* vaspace_new();
-void vaspace_destroy(page_table_t* pml4);
-void vaspace_clear(page_table_t* pml4);
+void vaspace_destroy(page_table_t* pt);
+void vaspace_clear(page_table_t* pt);
 page_table_t* vaspace_clone(page_table_t* toClone);
-void vaspace_switch(page_table_t* pml4);
-void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, uint32_t flags);
+void vaspace_switch(page_table_t* pt);
+void* vaspace_create_area(page_table_t* pt, uint64_t virtAddr, size_t size, uint32_t flags);
 void vaspace_create_thread_user_stack(struct _thread* thread);
+bool vmm_is_page_free(page_table_t* pt, uint64_t virtAddr);
 
 void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int flags, int fd, uint64_t offset);
 int sys_munmap(stack_frame_t* regs, void* addr, size_t length);

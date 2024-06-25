@@ -402,11 +402,11 @@ int elf_exec_load(process_t* process, char* path){
 	for(int i = 0; i < h->e_phnum; i++) {
 		phdr = (Elf64_Phdr*)((uint64_t)elfExec + h->e_phoff + h->e_phentsize * i);
 		if(phdr->p_type == PT_LOAD) {
-			vaspace_create_area(process->pml4, phdr->p_vaddr, phdr->p_memsz, VMM_PRESENT | VMM_USER | VMM_RW);
+			vaspace_create_area(process->pt, phdr->p_vaddr, phdr->p_memsz, VMM_PRESENT | VMM_USER | VMM_RW);
 
 			//TODO: this is not very efficient since it requires flushing the tlb. Make a 
 			//vaspace_memcpy() or sth that can memcpy into another address space
-			vaspace_switch(process->pml4);
+			vaspace_switch(process->pt);
 
 			memcpy((void*)phdr->p_vaddr, (void*)((uint64_t)elfExec + phdr->p_offset), phdr->p_filesz);
 
@@ -414,7 +414,7 @@ int elf_exec_load(process_t* process, char* path){
 				*(uint8_t*)(phdr->p_vaddr + i) = 0;
 			}
 
-			vaspace_switch(vmm_get_kernel_pml4());
+			vaspace_switch(vmm_get_kernel_pt());
 		}
 	}
 

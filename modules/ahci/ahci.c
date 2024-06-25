@@ -79,7 +79,7 @@ bool attach(device_t* device){
     //Get ABAR and disable caching
 
     ahci_mem_t* abar = (ahci_mem_t*)((pciConfig->BAR5 & 0xFFFFFFF0) + hhdmOffset);
-    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar, VMM_PRESENT | VMM_RW | VMM_PCD);
+    vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)abar, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
 
     ahci_controller_t* ahciController = kmalloc(sizeof(ahci_controller_t));
     ahciController->abar = abar;
@@ -140,13 +140,13 @@ bool attach(device_t* device){
                 abar->ports[i].clb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].clbu = 0;
                 memset((void*)((uint64_t)abar->ports[i].clb + hhdmOffset) , 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].clb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)abar->ports[i].clb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
             } else {
                 uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].clb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].clbu = ((addr & 0xFFFFFFFF00000000) >> 32);
                 memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
             }
 
             ahci_command_header_t* commandList = (ahci_command_header_t*)(((uint64_t)abar->ports[i].clb | ((uint64_t)abar->ports[i].clbu << 32)) + hhdmOffset);
@@ -157,13 +157,13 @@ bool attach(device_t* device){
                     commandList[j].ctba = (uint32_t)((uint64_t)pmm_allocate32(1));
                     commandList[j].ctbau = 0;
                     memset((void*)((uint64_t)commandList[j].ctba + hhdmOffset), 0, PAGE_SIZE);
-                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)commandList[j].ctba + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                    vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)commandList[j].ctba + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
                 } else {
                     uint64_t addr = (uint64_t)pmm_allocate(1);
                     commandList[j].ctba = (addr & 0x00000000FFFFFFFF);
                     commandList[j].ctbau = ((addr & 0xFFFFFFFF00000000) >> 32);
                     memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
-                    vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                    vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
                 }
             }
 
@@ -172,13 +172,13 @@ bool attach(device_t* device){
                 abar->ports[i].fb = (uint32_t)((uint64_t)pmm_allocate32(1));
                 abar->ports[i].fbu = 0;
                 memset((void*)((uint64_t)abar->ports[i].fb + hhdmOffset) , 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)abar->ports[i].fb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)abar->ports[i].fb + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
             } else {
                 uint64_t addr = (uint64_t)pmm_allocate(1);
                 abar->ports[i].fb = (addr & 0x00000000FFFFFFFF);
                 abar->ports[i].fbu = ((addr & 0xFFFFFFFF00000000) >> 32);
                 memset((void*)((uint64_t)addr + hhdmOffset), 0, PAGE_SIZE);
-                vmm_set_flags(vmm_get_kernel_pml4(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_PCD);
+                vmm_set_flags(vmm_get_kernel_pt(), (uint64_t)addr + hhdmOffset, VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE);
             }
 
             //Check device presence and type

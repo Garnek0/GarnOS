@@ -15,6 +15,7 @@
 #include <garn/term/term.h>
 #include <arch/arch-internals.h>
 #include <garn/irq.h>
+#include <garn/arch.h>
 #include <garn/mm.h>
 #include <cpuid.h>
 #include <garn/kerrno.h>
@@ -29,31 +30,10 @@ static void multiproc_configure_cpu_device(){
 
     //Using CPUID to get the CPU brand name
 
-    uint32_t regs[13];
+    //50 chars (plus NULL) should be enough
+    cpuDevice->name = kmalloc(51);
 
-    __get_cpuid(0x80000000, &regs[0], &regs[1], &regs[2], &regs[3]);
-
-    if (regs[0] < 0x80000004) return;
-
-    __get_cpuid(0x80000002, &regs[0], &regs[1], &regs[2], &regs[3]);
-    __get_cpuid(0x80000003, &regs[4], &regs[5], &regs[6], &regs[7]);
-    __get_cpuid(0x80000004, &regs[8], &regs[9], &regs[10], &regs[11]);
-
-    regs[12] = 0;
-
-    char name[49];
-    memcpy((void*)name, (void*)regs, 48);
-    name[48] = 0;
-
-    //Remove the spaces
-    for(int i = 47; i > 0; i--){
-        if(name[i] == ' ' || name[i] == 0) name[i] = 0;
-        else break;
-    }
-
-    cpuDevice->name = kmalloc(sizeof(uint32_t) * 13);
-
-    memcpy(cpuDevice->name, name, 49);
+    arch_get_cpu_model_name(cpuDevice->name);
 
     device_add(cpuDevice);
 }
@@ -65,7 +45,7 @@ void ready_cpus(struct limine_smp_info* cpuinfo){
     //boot the other cpus
 
     //Load Kernel Address Space
-    vaspace_switch(vmm_get_kernel_pml4());
+    vaspace_switch(vmm_get_kernel_pt());
 
     //Initialise this CPU
     arch_init_full(cpuinfo->processor_id);

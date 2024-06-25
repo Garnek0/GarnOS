@@ -26,7 +26,7 @@ typedef struct _process {
     int exitStatus;
     uint8_t status;
 
-    struct _page_table* pml4;
+    struct _page_table* pt;
 
     fd_t* fdTable;
     size_t fdMax;

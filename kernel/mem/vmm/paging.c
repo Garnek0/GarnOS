@@ -11,26 +11,14 @@
 #include <sys/bootloader.h>
 #include <limine.h>
 #include <garn/kstdio.h>
+#include <arch/arch-internals.h>
 
-page_table_t* PML4;
-page_table_t* kernelPML4;
+page_table_t* kernelPT;
 
 spinlock_t VMMlock; //vmm lock
 
-void vmm_indexer(uint64_t virtAddr, int* Pi, int* PTi, int* PDi, int* PDPi){
-    virtAddr >>= 12;
-    *Pi = virtAddr & 0x1ff;
-    virtAddr >>= 9;
-    *PTi = virtAddr & 0x1ff;
-    virtAddr >>= 9;
-    *PDi = virtAddr & 0x1ff;
-    virtAddr >>= 9;
-    *PDPi = virtAddr & 0x1ff;
-}
-
 void vmm_init(){
-    kernelPML4 = (page_table_t*)((uint64_t)pmm_allocate(1) + bl_get_hhdm_offset());
-    memset((void*)kernelPML4, 0, PAGE_SIZE);
+    kernelPT = arch_mm_init();
     
     //map kernel
 
@@ -40,14 +28,14 @@ void vmm_init(){
         if(entry.type != MEMMAP_KERNEL_AND_MODULES) continue;
 
         for(uint64_t i = 0; i <= ALIGN_UP(entry.length, PAGE_SIZE); i+=PAGE_SIZE){
-            vmm_map(kernelPML4, i+bl_get_kernel_phys_base(), i+bl_get_kernel_virt_base(), 0x3);
+            vmm_map(kernelPT, i+bl_get_kernel_phys_base(), i+bl_get_kernel_virt_base(), (VMM_PRESENT | VMM_RW));
         }
     }
 
     //map first 4 GiB
     for(uint64_t i = 0x1000; i <= 0xffffffff; i+=PAGE_SIZE){
-        vmm_map(kernelPML4, i, i, 0x3);
-        vmm_map(kernelPML4, i, i+bl_get_hhdm_offset(), 0x3);
+        vmm_map(kernelPT, i, i, 0x3);
+        vmm_map(kernelPT, i, i+bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW));
     }
 
     //map any additional memmap entry
@@ -58,161 +46,69 @@ void vmm_init(){
         if(currentEntry.base+currentEntry.length <= 0xffffffff) continue;
 
         for(uint64_t j = 0; j < ALIGN_UP(currentEntry.length, PAGE_SIZE); j+=PAGE_SIZE){
-            vmm_map(kernelPML4, j+currentEntry.base, j+currentEntry.base, 0x3);
-            vmm_map(kernelPML4, j+currentEntry.base, j+currentEntry.base+bl_get_hhdm_offset(), 0x3);
+            vmm_map(kernelPT, j+currentEntry.base, j+currentEntry.base, (VMM_PRESENT | VMM_RW));
+            vmm_map(kernelPT, j+currentEntry.base, j+currentEntry.base+bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW));
         }
     }
-    vaspace_switch(kernelPML4);
+    vaspace_switch(kernelPT);
 }
 
-inline page_table_t* vmm_get_kernel_pml4(){
-    return kernelPML4;
+page_table_t* vmm_get_kernel_pt(){
+    return kernelPT;
 }
 
-void vmm_map(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, uint32_t flags){
-    int Pi, PTi, PDi, PDPi;
-    vmm_indexer(virtAddr, &Pi, &PTi, &PDi, &PDPi);
-
-    page_table_entry_t currentEntry;
-
+void vmm_map(page_table_t* pt, uint64_t physAddr, uint64_t virtAddr, uint32_t flags){
     lock(VMMlock, {
-        currentEntry = pml4->entries[PDPi];
-        page_table_t* PDP;
-        if(!currentEntry.present){
-            PDP = (page_table_t*)((uint64_t)pmm_allocate(1) + bl_get_hhdm_offset());
-            memset((void*)PDP, 0, sizeof(page_table_t));
-            currentEntry.addr = (uint64_t)((uint64_t)PDP - bl_get_hhdm_offset()) >> 12;
-            currentEntry.present = true;
-            currentEntry.readWrite = true;
-            currentEntry.userSupervisor = (flags & VMM_USER);
-            pml4->entries[PDPi] = currentEntry;
-        } else {
-            PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-        }
-
-        currentEntry = PDP->entries[PDi];
-        page_table_t* PD;
-        if(!currentEntry.present){
-            PD = (page_table_t*)((uint64_t)pmm_allocate(1) + bl_get_hhdm_offset());
-            memset((void*)PD, 0, sizeof(page_table_t));
-            currentEntry.addr = (uint64_t)((uint64_t)PD - bl_get_hhdm_offset()) >> 12;
-            currentEntry.present = true;
-            currentEntry.readWrite = true;
-            currentEntry.userSupervisor = (flags & VMM_USER);
-            PDP->entries[PDi] = currentEntry;
-        } else {
-            PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-        }
-
-        currentEntry = PD->entries[PTi];
-        page_table_t* PT;
-        if(!currentEntry.present){
-            PT = (page_table_t*)((uint64_t)pmm_allocate(1) + bl_get_hhdm_offset());
-            memset((void*)PT, 0, sizeof(page_table_t));
-            currentEntry.addr = (uint64_t)((uint64_t)PT - bl_get_hhdm_offset()) >> 12;
-            currentEntry.present = true;
-            currentEntry.readWrite = true;
-            currentEntry.userSupervisor = (flags & VMM_USER);
-            PD->entries[PTi] = currentEntry;
-        } else {
-            PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-        }
-
-        currentEntry = PT->entries[Pi];
-        currentEntry.addr = (uint64_t)physAddr >> 12;
-        currentEntry.present = (flags & VMM_PRESENT);
-        currentEntry.readWrite = (flags & VMM_RW);
-        currentEntry.userSupervisor = (flags & VMM_USER);
-        currentEntry.writeThrough = (flags & VMM_PWT);
-        currentEntry.cacheDisable = (flags & VMM_PCD);
-        currentEntry.accessed = (flags & VMM_ACCESSED);
-        currentEntry.pageSize = (flags & VMM_PS);
-        currentEntry.nx = (flags & VMM_NX);
-        PT->entries[Pi] = currentEntry;
+        arch_mm_map(pt, physAddr, virtAddr, flags);
     });
 }
 
-void vmm_map_range(page_table_t* pml4, uint64_t physAddr, uint64_t virtAddr, size_t length, uint32_t flags){
+void vmm_map_range(page_table_t* pt, uint64_t physAddr, uint64_t virtAddr, size_t length, uint32_t flags){
     for(int i = 0; i < length; i+=PAGE_SIZE){
-        vmm_map(pml4, (uint64_t)physAddr, (uint64_t)virtAddr, flags);
+        vmm_map(pt, (uint64_t)physAddr, (uint64_t)virtAddr, flags);
         physAddr += PAGE_SIZE;
         virtAddr += PAGE_SIZE;
     }
 }
 
-void vmm_unmap(page_table_t* pml4, uint64_t virtAddr){
-    int Pi, PTi, PDi, PDPi;
-    vmm_indexer(virtAddr, &Pi, &PTi, &PDi, &PDPi);
-
-    page_table_entry_t currentEntry;
-
+void vmm_unmap(page_table_t* pt, uint64_t virtAddr){
     lock(VMMlock, {
-        currentEntry = pml4->entries[PDPi];
-        page_table_t* PDP;
-        PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-        currentEntry = PDP->entries[PDi];
-        page_table_t* PD;
-        PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-
-        currentEntry = PD->entries[PTi];
-        page_table_t* PT;
-        PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-        currentEntry = PT->entries[Pi];
-        currentEntry.present = 0;
-        currentEntry.addr = 0;
-        PT->entries[Pi] = currentEntry;
-
-        asm("invlpg (%0)" :: "r"(virtAddr) : "memory");
+        arch_mm_unmap(pt, virtAddr);
     });
 }
 
-void vmm_unmap_range(page_table_t* pml4, uint64_t virtAddr, size_t length){
+void vmm_unmap_range(page_table_t* pt, uint64_t virtAddr, size_t length){
     for(int i = 0; i < length; i+=PAGE_SIZE){
-        vmm_unmap(pml4, (uint64_t)virtAddr);
+        vmm_unmap(pt, (uint64_t)virtAddr);
         virtAddr += PAGE_SIZE;
     }
 }
 
-void vmm_set_flags(page_table_t* pml4, uint64_t virtAddr, uint32_t flags){
-	int Pi, PTi, PDi, PDPi;
-	vmm_indexer(virtAddr, &Pi, &PTi, &PDi, &PDPi);
-
-    page_table_entry_t currentEntry;
-
-    lock(VMMlock, {
-        currentEntry = pml4->entries[PDPi];
-        page_table_t* PDP;
-        PDP = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-        currentEntry = PDP->entries[PDi];
-        page_table_t* PD;
-        PD = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-        currentEntry = PD->entries[PTi];
-        page_table_t* PT;
-        PT = (page_table_t*)(((uint64_t)currentEntry.addr << 12) + bl_get_hhdm_offset());
-
-        currentEntry = PT->entries[Pi];
-        currentEntry.present = (flags & VMM_PRESENT);
-        currentEntry.readWrite = (flags & VMM_RW);
-        currentEntry.userSupervisor = (flags & VMM_USER);
-        currentEntry.writeThrough = (flags & VMM_PWT);
-        currentEntry.cacheDisable = (flags & VMM_PCD);
-        currentEntry.accessed = (flags & VMM_ACCESSED);
-        currentEntry.pageSize = (flags & VMM_PS);
-        currentEntry.nx = (flags & VMM_NX);
-        PT->entries[Pi] = currentEntry;
-
-        asm("invlpg (%0)" :: "r"(virtAddr) : "memory");
+void vmm_set_flags(page_table_t* pt, uint64_t virtAddr, uint32_t flags){
+	lock(VMMlock, {
+        arch_mm_set_flags(pt, virtAddr, flags);
     });
 }
 
-void vmm_set_flags_range(page_table_t* pml4, uint64_t virtAddr, size_t length, uint32_t flags){
+void vmm_set_flags_range(page_table_t* pt, uint64_t virtAddr, size_t length, uint32_t flags){
     for(int i = 0; i < length; i+=PAGE_SIZE){
-        vmm_set_flags(pml4, virtAddr, flags);
+        vmm_set_flags(pt, virtAddr, flags);
         virtAddr += PAGE_SIZE;
     }
+}
+
+bool vmm_is_page_free(page_table_t* pt, uint64_t virtAddr){
+    bool result;
+    lock(VMMlock, {
+        result = arch_mm_is_page_free(pt, virtAddr);
+    });
+    return result;
+}
+
+uint64_t vmm_virt_to_phys(page_table_t* pt, uint64_t virtAddr){
+    uint64_t result;
+    lock(VMMlock, {
+        result = arch_mm_virt_to_phys(pt, virtAddr);
+    });
+    return result;
 }

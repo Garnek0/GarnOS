@@ -92,7 +92,7 @@ void apic_init(){
             hdr = (struct acpi_entry_hdr*)((uint64_t)hdr + hdr->length);
         }
 
-        vmm_map(vmm_get_kernel_pml4(), (uint64_t)LAPICAddress, (uint64_t)((uint64_t)LAPICAddress + bl_get_hhdm_offset()), (VMM_PRESENT | VMM_RW | VMM_PCD));
+        vmm_map(vmm_get_kernel_pt(), (uint64_t)LAPICAddress, (uint64_t)((uint64_t)LAPICAddress + bl_get_hhdm_offset()), (VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE));
         LAPICAddress = (void*)((uint64_t)LAPICAddress + bl_get_hhdm_offset());
     }
 

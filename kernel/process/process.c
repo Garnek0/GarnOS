@@ -19,21 +19,7 @@
 #include <garn/kerrno.h>
 #include <garn/kernel.h>
 #include <garn/arch.h>
-
-#define PUSH(type,val,stack) do { \
-	stack -= sizeof(type); \
-	while(stack & (sizeof(type)-1)) stack--; \
-	*((type*)stack) = (type)(val); \
-} while(0)
-
-#define PUSHSTR(s,stack) do { \
-	ssize_t l = strlen(s); \
-	do { \
-		PUSH(char,s[l],stack); \
-		l--; \
-	} while (l>=0); \
-} while (0)
-
+#include <garn/config.h>
 
 process_t* processList;
 process_t* processListLast;
@@ -55,7 +41,7 @@ void process_create_init(){
     initProcess->status = PROCESS_STATUS_RUNNING;
 
     //Create VA Space and allocate the main thread
-    initProcess->pml4 = vaspace_new();
+    initProcess->pt = vaspace_new();
 
     thread_t* thread = kmalloc(sizeof(thread_t));
     thread->process = initProcess;
@@ -100,9 +86,14 @@ void process_create_init(){
 
     initProc = initProcess;
 
-    vaspace_switch(initProcess->pml4);
+    vaspace_switch(initProcess->pt);
 
     char* argvPtrs[1];
+
+#ifdef CONFIG_ARCH_X86
+
+#ifdef CONFIG_ARCH_64BIT
+
     PUSHSTR("./bin/init.elf", initProcess->mainThread->regs.rsp);
     argvPtrs[0] = (char*)initProcess->mainThread->regs.rsp;
     PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // Aux vector null
@@ -111,6 +102,18 @@ void process_create_init(){
     PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
     PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
     PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
+
+#else
+
+;
+
+#endif //CONFIG_ARCH_64BIT
+
+#elif CONFIG_ARCH_DUMMY
+
+;
+
+#endif
 
     klog("Spawned init process. Jumping into userspace. Bye!\n", KLOG_OK, "proc");
 
@@ -161,7 +164,7 @@ void process_free(process_t* process){
             for(size_t i = 0; i < proc->fdMax; i++){
                 if(proc->fdTable[i].file) proc->fdTable[i].file->refCount--;
             }
-            vaspace_destroy(proc->pml4);
+            vaspace_destroy(proc->pt);
 
             for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
                 if(childProc->parent == proc) childProc->parent = initProc;
@@ -208,7 +211,7 @@ int sys_fork(stack_frame_t* regs){
     newProcess->mainThread->status = THREAD_STATUS_READY;
     newProcess->mainThread->process = newProcess;
 
-    newProcess->pml4 = vaspace_clone(currentProcess->pml4);
+    newProcess->pt = vaspace_clone(currentProcess->pt);
 
     processListLast->next = newProcess;
     processListLast = newProcess;
@@ -300,13 +303,16 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     for(size_t i = 0; i < argc; i++) newArgv[i] = (char*)argv[i];
     for(size_t i = 0; i < envc; i++) newEnvp[i] = (char*)envp[i];
 
-    vaspace_clear(currentProcess->pml4);
+    vaspace_clear(currentProcess->pt);
 
     arch_disable_interrupts(); //Stop interrupts from messing up the thread state
 
     vaspace_create_thread_user_stack(currentProcess->mainThread);
 
     //Push argv and envp strings
+
+#ifdef CONFIG_ARCH_X86
+#ifdef CONFIG_ARCH_64BIT
 
     for(size_t i = 0; i < argc; i++){
         PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
@@ -328,13 +334,25 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     for(ssize_t i = argc-1; i >= 0; i--) PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
     PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
 
+#else
+
+;
+
+#endif //CONFIG_ARCH_64BIT
+
+#elif CONFIG_ARCH_DUMMY
+
+;
+
+#endif
+
     //Load image and jump to entry point
 
     if(elf_exec_load(currentProcess, (char*)path) != 0){
         return -ENOENT;
     }
 
-    vaspace_switch(currentProcess->pml4);
+    vaspace_switch(currentProcess->pt);
 
     kmfree((void*)path);
     kmfree(newArgv);

@@ -3,7 +3,7 @@
 ;
 ;   Author: Garnek
 ;   
-;   Description: spinlock for proper SMP resource access
+;   Description: x86 spinlock implementation for safe SMP resource access
 ;
 ; SPDX-License-Identifier: BSD-2-Clause
 

@@ -155,7 +155,7 @@ void ioapic_init(){
         ioapicIDs[ioapicCount] = ioapicRec->id;
         ioapicGSIs[ioapicCount] = ioapicRec->gsi_base;
         ioapicAddresses[ioapicCount] = (void*)((uint64_t)ioapicRec->address + bl_get_hhdm_offset());
-        vmm_map(vmm_get_kernel_pml4(), ioapicRec->address, ioapicRec->address + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_PCD));
+        vmm_map(vmm_get_kernel_pt(), ioapicRec->address, ioapicRec->address + bl_get_hhdm_offset(), (VMM_PRESENT | VMM_RW | VMM_CACHE_DISABLE));
         ioapicCount++;
 
         klog("New I/O APIC. (ID: %u, GSI Base: %u, Pin count: %u)\n", KLOG_INFO, "I/O APIC", ioapicRec->id, ioapicRec->gsi_base, ((ioapic_read_reg((uint64_t)ioapicAddresses[ioapicCount-1], IOAPICVER) >> 16) & 0xFF)+1);

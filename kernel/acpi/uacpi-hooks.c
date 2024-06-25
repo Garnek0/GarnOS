@@ -115,12 +115,12 @@ void uacpi_kernel_free(void *mem, uacpi_size size_hint){
 #endif
 
 void *uacpi_kernel_map(uacpi_phys_addr addr, uacpi_size len){
-    vmm_map_range(vmm_get_kernel_pml4(), (uint64_t)addr, (uint64_t)addr + hhdmOffset, len, (VMM_PCD | VMM_RW | VMM_PRESENT));
+    vmm_map_range(vmm_get_kernel_pt(), (uint64_t)addr, (uint64_t)addr + hhdmOffset, len, (VMM_CACHE_DISABLE | VMM_RW | VMM_PRESENT));
     return (void*)((uint64_t)addr + hhdmOffset);
 }
 
 void uacpi_kernel_unmap(void *addr, uacpi_size len){
-    vmm_unmap_range(vmm_get_kernel_pml4(), (uint64_t)addr, len);
+    vmm_unmap_range(vmm_get_kernel_pt(), (uint64_t)addr, len);
 }
 
 uacpi_status uacpi_kernel_pci_read(uacpi_pci_address *address, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 *value){
