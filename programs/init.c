@@ -20,9 +20,6 @@
 #define SHELL_PATH "/bin/shell.elf"
 
 int main(int argc, char** argv){
-
-    //Terminal foreground colour
-
     printf("Welcome to GarnOS!\n");
 
     int status;

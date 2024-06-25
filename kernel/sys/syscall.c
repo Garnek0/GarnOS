@@ -20,8 +20,7 @@
 #include <sys/fal/fal-internals.h>
 
 #include <garn/irq.h>
-#include <cpu/interrupts/interrupt-internals.h>
-#include <cpu/interrupts/idt.h>
+#include <arch/arch-internals.h>
 #include <garn/kstdio.h>
 
 #include <garn/syscall.h>
@@ -38,7 +37,6 @@ void gsys_syscall_register(size_t num, void* addr){
 }
 
 void syscall_init(){
-
     // POSIX & Linux Syscalls
 
     syscall_register(0, sys_read);
@@ -59,9 +57,11 @@ void syscall_init(){
 
     // Garn Syscalls (> 0x80000000)
 
-    gsys_syscall_register(0x80000000 - 0x80000000, sys_set_fs_base);
+    gsys_syscall_register(0x80000000 - 0x80000000, sys_set_tsp);
 
-    idt_set_entry(0x80, isr128, INT_USER_GATE);
+    arch_syscall_init();
+
+    klog("Syscalls initialised.\n", KLOG_OK, "syscall");
 }
 
 void syscall_handler(stack_frame_t* regs){
@@ -69,29 +69,37 @@ void syscall_handler(stack_frame_t* regs){
 
     callerThread->regs = *regs;
 
-    if(regs->rax < 0x80000000){
+    if(arch_syscall_number(regs) < 0x80000000){
         int (*syscall)(stack_frame_t* regs,
-        uint64_t arg1, 
-        uint64_t arg2, 
-        uint64_t arg3, 
-        uint64_t arg4, 
-        uint64_t arg5, 
-        uint64_t arg6) = (int(*)(stack_frame_t* regs, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6))syscallTable[regs->rax];
+        long arg0, 
+        long arg1, 
+        long arg2, 
+        long arg3, 
+        long arg4, 
+        long arg5) = (int(*)(stack_frame_t* regs, long arg0, long arg1, long arg2, long arg3, long arg4, long arg5))syscallTable[arch_syscall_number(regs)];
 
-        asm volatile("sti"); //enable interrupts
+        arch_enable_interrupts(); //enable interrupts
+        
+        long result;
 
-        if(syscall) regs->rax = syscall(regs, regs->rdi, regs->rsi, regs->rdx, regs->r10, regs->r8, regs->r9);
+        if(syscall) result = syscall(regs, arch_syscall_arg0(regs), arch_syscall_arg1(regs), arch_syscall_arg2(regs), arch_syscall_arg3(regs), arch_syscall_arg4(regs), arch_syscall_arg5(regs));
+
+        arch_syscall_return(regs, result);
     } else {
         int (*syscall)(stack_frame_t* regs,
-        uint64_t arg1, 
-        uint64_t arg2, 
-        uint64_t arg3, 
-        uint64_t arg4, 
-        uint64_t arg5, 
-        uint64_t arg6) = (int(*)(stack_frame_t* regs, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4, uint64_t arg5, uint64_t arg6))gsysSyscallTable[regs->rax - 0x80000000];
+        long arg0, 
+        long arg1, 
+        long arg2, 
+        long arg3, 
+        long arg4, 
+        long arg5) = (int(*)(stack_frame_t* regs, long arg0, long arg1, long arg2, long arg3, long arg4, long arg5))gsysSyscallTable[arch_syscall_number(regs) - 0x80000000];
 
-        asm volatile("sti"); //enable interrupts
+        arch_enable_interrupts(); //enable interrupts
+        
+        long result;
 
-        if(syscall) regs->rax = syscall(regs, regs->rdi, regs->rsi, regs->rdx, regs->r10, regs->r8, regs->r9);
+        if(syscall) result = syscall(regs, arch_syscall_arg0(regs), arch_syscall_arg1(regs), arch_syscall_arg2(regs), arch_syscall_arg3(regs), arch_syscall_arg4(regs), arch_syscall_arg5(regs));
+
+        arch_syscall_return(regs, result);        
     }
 }

@@ -12,12 +12,8 @@
 #include <garn/kstdio.h>
 #include <garn/dal/dal.h>
 #include <garn/dal/device-types.h>
-#include <cpu/apic/apic.h>
-#include <hw/ioapic/ioapic.h>
-
 #include <garn/term/term.h>
-
-#include <cpu/gdt/gdt.h>
+#include <arch/arch-internals.h>
 #include <garn/irq.h>
 #include <garn/mm.h>
 #include <cpuid.h>
@@ -68,39 +64,33 @@ spinlock_t InitCountLock;
 void ready_cpus(struct limine_smp_info* cpuinfo){
     //boot the other cpus
 
-    //GDT and TSS
-    gdt_init(cpuinfo->processor_id);
-
-    //IDT and Interrupts
-    interrupts_init();
-
     //Load Kernel Address Space
     vaspace_switch(vmm_get_kernel_pml4());
 
-    //APIC
-    apic_init();
+    //Initialise this CPU
+    arch_init_full(cpuinfo->processor_id);
 
     //CPU device
     multiproc_configure_cpu_device();
 
     //Report Initialisation Completion
     lock(InitCountLock, {
-        klog("Processor and APIC %u Initialised.\n", KLOG_OK, "multiproc", cpuinfo->processor_id);
+        klog("Processor %u Initialised.\n", KLOG_OK, "multiproc", cpuinfo->processor_id);
         CPUInitCount++;
     });
 
-    //Halt (for now)
-    while(1) asm("hlt");
+    //Stop (for now)
+    while(1) arch_stop();
 }
 
 void multiproc_init(){
-    klog("Initialising Processors and APICs...\n", KLOG_INFO, "multiproc");
+    klog("Initialising Processors...\n", KLOG_INFO, "multiproc");
 
-    apic_init();
+    arch_init_late(0); //Initialise CPU 0 (late)
 
     multiproc_configure_cpu_device();
 
-    klog("Bootstrap Processor APIC Initialised (APIC 0).\n", KLOG_OK, "multiproc");
+    klog("Bootstrap Processor Initialised (CPU 0).\n", KLOG_OK, "multiproc");
 
     CPUInitCount++;
 
@@ -114,11 +104,7 @@ void multiproc_init(){
 
     size_t CPUCount = bl_get_cpu_count();
 
-    while(CPUInitCount != CPUCount) asm volatile("nop");
+    while(CPUInitCount != CPUCount) arch_no_op();
 
-    klog("Processors and APICs Initialised Successfully. (%d CPUs)\n", KLOG_OK, "multiproc", CPUInitCount);
-
-    //Initialise I/O APICS
-
-    ioapic_init();
+    klog("Processors Initialised Successfully. (%d CPUs)\n", KLOG_OK, "multiproc", CPUInitCount);
 }

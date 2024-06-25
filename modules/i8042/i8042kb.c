@@ -128,7 +128,7 @@ void i8042_kb_init(){
     i8042_read(i8042_DATA);
 
     irq_add_handler(1, keyboard_handler, IRQ_SHARED);
-    inb(i8042_DATA); //Discard data one more time just in case
+    arch_inb(i8042_DATA); //Discard data one more time just in case
     klog("Keyboard Initialised\n", KLOG_OK, "i8042");
 }
 

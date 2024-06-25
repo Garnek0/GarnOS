@@ -76,10 +76,6 @@ extern void irq23();
 extern void irq223();
 extern void irq224();
 
-typedef struct {
-    void* handler;
-} irq_t;
-
 void exceptions_init();
 void interrupts_init();
 void irq_init();

@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include <garn/msr.h>
+#include <arch/x86/msr/msr.h>
 
 uint64_t rdmsr(uint64_t msr){
     uint64_t rax, rdx;

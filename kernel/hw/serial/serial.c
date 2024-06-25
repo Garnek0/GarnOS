@@ -9,7 +9,7 @@
 
 #include <garn/hw/serial.h>
 #include "serial-internals.h"
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/mm.h>
 #include <garn/spinlock.h>
 #include <garn/config.h>
@@ -29,42 +29,42 @@ int serial_init(){
     serialPresent = true;
 
     //initialise the UART
-    outb(COM_INT, 0x00);
-    outb(COM_LINE_CONTROL, 0x80);
-    outb(COM_DIVISOR_LSB, 0x0C);
-    outb(COM_DIVISOR_MSB, 0x00);
-    outb(COM_LINE_CONTROL, 0x03);
-    outb(COM_FIFO_CTRL, 0xC7);
-    outb(COM_MODEM_CTRL, 0x0B);
-    outb(COM_MODEM_CTRL, 0x1E);
+    arch_outb(COM_INT, 0x00);
+    arch_outb(COM_LINE_CONTROL, 0x80);
+    arch_outb(COM_DIVISOR_LSB, 0x0C);
+    arch_outb(COM_DIVISOR_MSB, 0x00);
+    arch_outb(COM_LINE_CONTROL, 0x03);
+    arch_outb(COM_FIFO_CTRL, 0xC7);
+    arch_outb(COM_MODEM_CTRL, 0x0B);
+    arch_outb(COM_MODEM_CTRL, 0x1E);
 
     //Theres a 1 in 256 chance an unavailable/disconnected
     //Serial will return the correct value for a single test.
     //To minimise that chance, run 3 tests instead.
 
     //test the serial port
-    outb(COM_DATA, 0xAE);
-    if(inb(COM_DATA) != 0xAE) {
+    arch_outb(COM_DATA, 0xAE);
+    if(arch_inb(COM_DATA) != 0xAE) {
         serialPresent = false;
         klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
 
-    outb(COM_DATA, 0x56);
-    if(inb(COM_DATA) != 0x56) {
+    arch_outb(COM_DATA, 0x56);
+    if(arch_inb(COM_DATA) != 0x56) {
         serialPresent = false;
         klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
 
-    outb(COM_DATA, 0xA3);
-    if(inb(COM_DATA) != 0xA3) {
+    arch_outb(COM_DATA, 0xA3);
+    if(arch_inb(COM_DATA) != 0xA3) {
         serialPresent = false;
         klog("Serial Console Not Initialised. Serial not present or disconnected?\n", KLOG_FAILED, "Serial");
         return 1;
     }
  
-    outb(COM_MODEM_CTRL, 0x0F);
+    arch_outb(COM_MODEM_CTRL, 0x0F);
 
     serial_enable_logs();
 
@@ -81,8 +81,8 @@ void serial_write(uint8_t data){
 
     lock(serialLock, {
         //poll bit 5 of the line status register
-        while((inb(COM_LINE_STATUS) & 0x20) == 0);
-        outb(COM_DATA, data);
+        while((arch_inb(COM_LINE_STATUS) & 0x20) == 0);
+        arch_outb(COM_DATA, data);
     });
 }
 

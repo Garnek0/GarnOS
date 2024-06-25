@@ -19,6 +19,6 @@ process_t* sched_get_current_process();
 thread_t* sched_get_current_thread();
 void sched_init();
 
-int sys_set_fs_base(stack_frame_t* regs, void* pointer);
+int sys_set_tsp(stack_frame_t* regs, void* pointer);
 
 #endif //SCHED_H

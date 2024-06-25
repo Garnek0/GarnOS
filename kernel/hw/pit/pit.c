@@ -10,7 +10,7 @@
 #include "pit.h"
 #include <garn/irq.h>
 #include <garn/irq.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/spinlock.h>
 #include <process/sched/sched.h>
 #include <garn/kstdio.h>

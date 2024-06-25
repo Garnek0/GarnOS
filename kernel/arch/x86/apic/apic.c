@@ -13,7 +13,7 @@
 #include <garn/mm.h>
 #include <cpu/multiproc/multiproc-internals.h>
 #include <garn/irq.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/kernel.h>
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>
@@ -58,8 +58,8 @@ void apic_eoi(){
 
     //ensures PIC support in case it is used instead
     //of the I/O APIC
-    outb(0x20, 0x20);
-    outb(0xA0, 0x20);
+    arch_outb(0x20, 0x20);
+    arch_outb(0xA0, 0x20);
 }
 
 void apic_init(){

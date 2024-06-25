@@ -9,7 +9,7 @@
 
 #include <sys/dal/dal-internals.h>
 #include <garn/hw/pci.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/kstdio.h>
 #include <exec/elf.h>
 #include <garn/mm.h>

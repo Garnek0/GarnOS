@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <garn/hw/pci.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/kstdio.h>
 #include <exec/elf.h>
 #include <garn/mm.h>
@@ -26,9 +26,9 @@ uint16_t pci_config_read_word(pci_location_t location, uint8_t offset){
  
     address = (uint32_t)((bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
  
-    outl(PCI_CONFIG_ADDRESS, address);
+    arch_outl(PCI_CONFIG_ADDRESS, address);
 
-    data = (uint16_t)((inl(PCI_CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
+    data = (uint16_t)((arch_inl(PCI_CONFIG_DATA) >> ((offset & 2) * 8)) & 0xFFFF);
     return data;
 }
 
@@ -40,9 +40,9 @@ void pci_config_write_word(pci_location_t location, uint8_t offset, uint16_t dat
  
     address = (uint32_t)((bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC) | ((uint32_t)0x80000000));
  
-    outl(PCI_CONFIG_ADDRESS, address);
+    arch_outl(PCI_CONFIG_ADDRESS, address);
 
-    outl(PCI_CONFIG_DATA, data >> ((offset & 2) * 8));
+    arch_outl(PCI_CONFIG_DATA, data >> ((offset & 2) * 8));
 }
 
 uint32_t pci_config_read_address(pci_location_t location, uint8_t offset){

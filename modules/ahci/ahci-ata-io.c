@@ -139,7 +139,7 @@ int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         return -ENODEV;
     }
 
-    while(port->ci != 0) asm volatile("nop");
+    while(port->ci != 0) arch_no_op();
 
     memcpy(buf, (void*)((uint64_t)bufContinuous + hhdmOffset), count*512);
 
@@ -277,7 +277,7 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         return -ENODEV;
     }
 
-    while(port->ci != 0) asm volatile("nop");
+    while(port->ci != 0) arch_no_op();
 
     memcpy(buf, (void*)((uint64_t)bufContinuous + hhdmOffset), count*512);
 

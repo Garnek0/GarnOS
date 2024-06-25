@@ -11,7 +11,7 @@
 
 #include "pit.h"
 
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/kstdio.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
@@ -19,10 +19,10 @@
 #include <garn/irq.h>
 
 static void pit_set_divisor(uint16_t div){
-    outb(PIT_CHANNEL_0, (div & 0xff));
-    io_wait();
-    outb(PIT_CHANNEL_0, ((div >> 8) & 0xff));
-    io_wait();
+    arch_outb(PIT_CHANNEL_0, (div & 0xff));
+    arch_io_wait();
+    arch_outb(PIT_CHANNEL_0, ((div >> 8) & 0xff));
+    arch_io_wait();
 }
 
 void pit_set_frequency(uint32_t freq){
@@ -52,7 +52,7 @@ bool probe(device_t* device){
 bool attach(device_t* device){
     if(!probe(device)) return false;
 
-    outb(PIT_MODE_OR_COMMAND, 0b00110100);
+    arch_outb(PIT_MODE_OR_COMMAND, 0b00110100);
 
     pit_set_frequency(1000); //1ms per tick
 

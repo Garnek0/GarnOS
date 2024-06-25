@@ -10,7 +10,7 @@
 #ifndef i8042_MODULE_H
 #define i8042_MODULE_H
 
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/kstdio.h>
 #include <garn/dal/dal.h>
 #include <garn/module.h>

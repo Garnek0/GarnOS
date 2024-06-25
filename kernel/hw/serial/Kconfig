@@ -1,0 +1,6 @@
+config SERIAL_DEBUGGING
+    bool "Serial Debugging"
+	default n
+    help
+        "Enables logging through the serial port. You should leave this unchecked unless you actually
+		want to debug the kernel, because the logs may interfere with devices attached to the serial port."

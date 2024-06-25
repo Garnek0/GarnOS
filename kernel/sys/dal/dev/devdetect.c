@@ -12,7 +12,7 @@
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>
 #include <garn/mm.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/config.h>
 
 void devdetect(){
@@ -40,15 +40,15 @@ void devdetect(){
     if(FADT!=NULL && (FADT->iapc_boot_arch & (1 << 1))){
         goto i8042_found;
     } else {
-        inb(0x60);
+        arch_inb(0x60);
 
         uint8_t res;
-        outb(0x64, 0xAA);
+        arch_outb(0x64, 0xAA);
         size_t timeout = 100000;
 
-        while(timeout--) if(inb(0x64) & 1) break;
+        while(timeout--) if(arch_inb(0x64) & 1) break;
         if(!timeout) goto i8042_not_found;
-        res = inb(0x60);
+        res = arch_inb(0x60);
 
         if(res == 0x55) goto i8042_found;
     }

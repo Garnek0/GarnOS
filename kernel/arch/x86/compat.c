@@ -3,12 +3,12 @@
 *
 *   Author: Garnek
 *   
-*   Description: Compatibility Checks
+*   Description: x86 Compatibility Checks
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "compat.h"
 #include <garn/panic.h>
+#include <arch/arch-internals.h>
 #include <cpuid.h>
 
 enum {
@@ -20,21 +20,14 @@ enum {
     CPUID_FEAT_EDX_LM           = 1 << 29,
 };
 
-void compat_check(){
+void arch_compat_checks(){
     uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
     __get_cpuid(0x1, &eax, &ebx, &ecx, &edx);
 
-    if(!(edx & CPUID_FEAT_EDX_FPU)) panic("Unsupported CPU! (FPU Not Available)", "compat"); //check FPU availability
+    if(!(edx & CPUID_FEAT_EDX_FPU)) panic("Unsupported CPU! (x87 FPU Not Available)", "compat"); //check FPU availability
     else klog("System supports x87 FPU.\n", KLOG_OK, "compat");
     if(!(edx & CPUID_FEAT_EDX_APIC)) panic("Unsupported CPU! (APIC Not Available)", "compat"); //check APIC availability
     else klog("System supports APIC.\n", KLOG_OK, "compat");
     if(!(edx & CPUID_FEAT_EDX_MSR)) panic("Unsupported CPU! (MSR Not Available)", "compat"); //check MSR availability
     else klog("System supports MSR.\n", KLOG_OK, "compat");
-    if(!(edx & CPUID_FEAT_EDX_PAE)) panic("Unsupported CPU! (PAE Not Supported)", "compat"); //check PAE support
-    else klog("System supports PAE.\n", KLOG_OK, "compat");
-
-    __get_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
-
-    if(!(edx & CPUID_FEAT_EDX_NX)) panic("Unsupported CPU! (NX Not Supported)", "compat"); //check NX support
-    else klog("System supports NX bit.\n", KLOG_OK, "compat");
 }

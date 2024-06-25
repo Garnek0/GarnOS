@@ -10,11 +10,9 @@
 #include "sched.h"
 #include <process/process.h>
 #include <garn/ds/list.h>
-#include <cpu/gdt/gdt.h>
-#include <garn/msr.h>
-#include <cpu/user.h>
 #include <garn/kstdio.h>
 #include <mem/mm-internals.h>
+#include <arch/arch-internals.h>
 
 list_t* threadList;
 list_node_t* currentThreadNode;
@@ -51,7 +49,7 @@ inline thread_t* sched_get_current_thread(){
     return currentThread;
 }
 
-static void _sched_get_next_thread(){
+static void sched_get_next_thread(){
     if(threadList->head->next == NULL) return; // There is only one thread
 
 checkready:
@@ -72,34 +70,23 @@ checkready:
     if(currentThread->status != THREAD_STATUS_READY) goto checkready;
 }
 
-static void _sched_store_context(stack_frame_t* regs){
-    currentThread->regs = *regs;
-}
-
-static void _sched_switch_context(stack_frame_t* regs){
-    *regs = currentThread->regs;
-
-    vaspace_switch(currentThread->process->pml4);
-
-    wrmsr(0xC0000100, currentThread->fsbase);
-}
-
-int sys_set_fs_base(stack_frame_t* regs, void* pointer){
-    currentThread->fsbase = (uint64_t)pointer;
-    wrmsr(0xC0000100, (uint64_t)pointer);
+int sys_set_tsp(stack_frame_t* regs, void* pointer){
+    arch_set_tsp(pointer, regs);
     return 0;
 }
 
 void sched_preempt(stack_frame_t* regs){
     if(!threadList || threadList->head == NULL) return;
 
-    asm volatile("cli");
+    arch_disable_interrupts();
 
-    _sched_store_context(regs);
+    arch_store_context(regs);
 
-    _sched_get_next_thread();
+    sched_get_next_thread();
 
-    tss_set_rsp(0, (uint64_t)currentThread->kernelStack);
+    arch_set_kernel_stack(0, (uint64_t)currentThread->kernelStack);
 
-    _sched_switch_context(regs);
+    arch_restore_context(regs);
+
+    vaspace_switch(currentThread->process->pml4);
 }

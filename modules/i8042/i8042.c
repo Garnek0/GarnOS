@@ -14,7 +14,7 @@
 void i8042_write(uint8_t port, uint8_t data){
     bool timedOut = true;
     for(int i = 0; i < 5; i++){
-        if(!(inb(i8042_COMMAND) & i8042_STATUS_WRITERDY)){
+        if(!(arch_inb(i8042_COMMAND) & i8042_STATUS_WRITERDY)){
             timedOut = false;
             break;
         }
@@ -24,13 +24,13 @@ void i8042_write(uint8_t port, uint8_t data){
         klog("i8042 Write Access Timed Out.\n", KLOG_WARNING, "i8042");
         return;
     }
-    outb(port, data);
+    arch_outb(port, data);
 }
 
 uint8_t i8042_read(uint8_t port){
     bool timedOut = true;
     for(int i = 0; i < 5; i++){
-        if(inb(i8042_COMMAND) & i8042_STATUS_READRDY){
+        if(arch_inb(i8042_COMMAND) & i8042_STATUS_READRDY){
             timedOut = false;
             break;
         }
@@ -40,7 +40,7 @@ uint8_t i8042_read(uint8_t port){
         klog("i8042 Read Access Timed Out.\n", KLOG_WARNING, "i8042");
         return 0;
     }
-    return inb(port);
+    return arch_inb(port);
 }
 
 void init(){
@@ -63,12 +63,12 @@ bool attach(device_t* device){
     uint8_t res; //used to store test results
     bool dualChannel = false; //self explanatory
 
-    inb(i8042_DATA); //Discard leftover data
+    arch_inb(i8042_DATA); //Discard leftover data
 
     i8042_write(i8042_COMMAND, i8042_COMMAND_DISABLE_PORT1);
     i8042_write(i8042_COMMAND, i8042_COMMAND_DISABLE_PORT2);
 
-    inb(i8042_DATA); //Discard leftover data
+    arch_inb(i8042_DATA); //Discard leftover data
 
     i8042_write(i8042_COMMAND, i8042_COMMAND_GET_CONFIG);
     configByte = i8042_read(i8042_DATA);

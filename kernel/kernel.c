@@ -24,7 +24,6 @@
 #include <mem/mm-internals.h>
 
 #include <sys/ksym-internals.h>
-#include <sys/compat.h>
 #include <garn/timer.h>
 #include <garn/power.h>
 #include <sys/fal/initrd/initrd.h>
@@ -34,8 +33,10 @@
 #include <sys/ksym-internals.h>
 #include <sys/bootloader.h>
 #include <sys/dal/dal-internals.h>
+#include <sys/syscall_internals.h>
 
-#include <cpu/gdt/gdt.h>
+#include <arch/arch-internals.h>
+
 #include <cpu/multiproc/multiproc-internals.h>
 
 #include <exec/elf.h>
@@ -65,13 +66,11 @@ void _start(){
 
     term_init(); //initialise terminal emulator
 
-    compat_check(); //compatability checks;
+    arch_compat_checks(); //compatability checks
 
     serial_init(); //Initialise serial for debugging
 
-    gdt_init(0); //load the GDT
-
-    interrupts_init(); //enables interrupts
+    arch_init_early(0); //initialise CPU 0 (early)
 
     pmm_init(); //initialise PMM
 
@@ -99,6 +98,8 @@ void _start(){
 
     //We should not proceed if the system FS hasn't been found
     if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
+
+    syscall_init();
 
     kernel_screen_output_disable();
     

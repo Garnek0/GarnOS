@@ -22,7 +22,7 @@ void timer_tick(stack_frame_t* regs){
 void ksleep(uint64_t ms){
     uint64_t finalTicks = ticksSinceOSBoot + ms;
     while(ticksSinceOSBoot < finalTicks){
-        asm volatile("nop");
+        arch_no_op();
     }
 }
 

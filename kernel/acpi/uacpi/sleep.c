@@ -5,6 +5,7 @@
 #include <acpi/uacpi/internal-inc/registers.h>
 #include <acpi/uacpi/internal-inc/event.h>
 #include <uacpi/platform/arch_helpers.h>
+#include <garn/arch.h>
 
 #ifndef UACPI_REDUCED_HARDWARE
 #define CALL_SLEEP_FN(name, state)                       \
@@ -607,6 +608,8 @@ uacpi_status uacpi_shutdown(void){
             uacpi_status_to_string(ret)
         );
     }
+
+    arch_disable_interrupts();
 
     ret = uacpi_enter_sleep_state(UACPI_SLEEP_STATE_S5);
     if (uacpi_unlikely_error(ret)) {

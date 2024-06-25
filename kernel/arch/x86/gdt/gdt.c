@@ -9,6 +9,7 @@
 
 #include "gdt.h"
 #include <cpu/multiproc/multiproc-internals.h>
+#include <arch/arch-internals.h>
 
 gdt_t gdt[MAX_CPUS];
 tss_t tss[MAX_CPUS];
@@ -67,4 +68,8 @@ void gdt_init(size_t cpu){
     gdt_load(&gdtr[cpu]);
 
     tss_flush();
+}
+
+void arch_set_kernel_stack(size_t cpu, uintptr_t stack){
+    tss_set_rsp(cpu, stack);
 }

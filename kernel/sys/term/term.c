@@ -11,7 +11,7 @@
 #include <garn/kernel.h>
 #include <garn/fb.h>
 #include <garn/mm.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/hw/serial.h>
 #include <garn/kstdio.h>
 
@@ -135,7 +135,7 @@ static void term_putchar_raw(char chr){
 
     if(!tc.enabled) return;
 
-    outb(0xE9, (uint8_t)chr);
+    arch_outb(0xE9, (uint8_t)chr);
     serial_write((uint8_t)chr);
     if(chr == '\n') serial_write((uint8_t)'\r');
 
@@ -206,7 +206,7 @@ char term_putchar(char chr){
     if(!tc.enabled) return 0;
 
     lock(tc.lock, {
-        outb(0xE9, (uint8_t)chr);
+        arch_outb(0xE9, (uint8_t)chr);
         serial_write((uint8_t)chr);
         if(chr == '\n') serial_write((uint8_t)'\r');
 
@@ -247,7 +247,7 @@ char term_putchar(char chr){
 
 char term_putchar_dbg(char chr){
     lock(tc.lock, {
-        outb(0xE9, (uint8_t)chr);
+        arch_outb(0xE9, (uint8_t)chr);
         serial_write((uint8_t)chr);
         if(chr == '\n') serial_write((uint8_t)'\r');
     });

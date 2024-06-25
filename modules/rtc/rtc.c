@@ -11,7 +11,7 @@
 
 #include "rtc.h"
 
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/irq.h>
 #include <garn/irq.h>
 #include <garn/kstdio.h>
@@ -40,18 +40,18 @@ static uint8_t rtc_read_register(uint8_t reg){
         //by the init function/irq handler)
         //Not a problem for VMs but a huge pain for real hardware
         //select the desired register
-        outb(RTC_ADDRESS, reg | 0x80);
+        arch_outb(RTC_ADDRESS, reg | 0x80);
     });
 
-    return inb(RTC_DATA);
+    return arch_inb(RTC_DATA);
 }
 
 static void rtc_write_register(uint8_t reg, uint8_t data){
     lock(rtcLock, {
         //disable NMIs.
         //select the desired register
-        outb(RTC_ADDRESS, reg | 0x80);
-        outb(RTC_DATA, data);
+        arch_outb(RTC_ADDRESS, reg | 0x80);
+        arch_outb(RTC_DATA, data);
     });
 }
 
@@ -147,7 +147,7 @@ bool probe(device_t* device){
 bool attach(device_t* device){
     if(!probe(device)) return false;
 
-    asm volatile("cli");
+    arch_disable_interrupts();
 
     //get Status Register B and fill in binary and hourMode accordingly
     uint8_t statb = rtc_read_register(RTC_STATUS_B);
@@ -169,7 +169,7 @@ bool attach(device_t* device){
     //(I think it may be because of previous unhandled ints occuring while the system is powered off?)
     rtc_read_register(RTC_STATUS_C);
 
-    asm volatile("sti");
+    arch_enable_interrupts();;
 
     klog("RTC Initialised Successfully.\n", KLOG_OK, "RTC");
 

@@ -29,7 +29,7 @@ char* kreadline(char* prompt){
         kerrno = 0;
         while(keyBuffer!='\n'){
             keyBuffer = 0;
-            while(!keyBuffer) asm volatile("nop");
+            while(!keyBuffer) arch_no_op();
             if(keyBuffer == '\b' && backspaces){
                 kputchar(keyBuffer);
                 backspaces--;

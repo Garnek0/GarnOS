@@ -52,7 +52,7 @@ inline void power_set_suspend(void* func){
 
 static int _power_shutdown_default(){
     kprintf("You may now power off your computer.");
-    asm volatile("cli");
+    arch_disable_interrupts();
     for(;;){
         asm volatile("hlt");
     }
@@ -61,7 +61,7 @@ static int _power_shutdown_default(){
 
 static int _power_restart_default(){
     kprintf("You may now *manually* restart your computer ;)");
-    asm volatile("cli");
+    arch_disable_interrupts();
     for(;;){
         asm volatile("hlt");
     }

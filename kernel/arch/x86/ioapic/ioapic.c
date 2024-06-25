@@ -11,11 +11,11 @@
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>
 #include <garn/kstdio.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <cpu/multiproc/multiproc-internals.h>
 #include <garn/mm.h>
 #include <sys/bootloader.h>
-#include <cpu/apic/apic.h>
+#include <arch/x86/apic/apic.h>
 #include <garn/config.h>
 
 uint8_t ioapicCount;
@@ -79,46 +79,46 @@ void ioapic_init(){
 
     asm volatile("cli");
 
-    outb(0x20, 0x20); //PIC EOI
-    outb(0xA0, 0x20);
+    arch_outb(0x20, 0x20); //PIC EOI
+    arch_outb(0xA0, 0x20);
 
     //Remap PIC (and disable it)
 
     uint8_t m1, m2;
 
-    m1 = inb(PIC1_DATA);
-	m2 = inb(PIC2_DATA);
+    m1 = arch_inb(PIC1_DATA);
+	m2 = arch_inb(PIC2_DATA);
 
-    outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
-	io_wait();
-	outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
-	io_wait();
-	outb(PIC1_DATA, 0x20);
-	io_wait();
-	outb(PIC2_DATA, 0x28);
-	io_wait();
-	outb(PIC1_DATA, 4);
-	io_wait();
-	outb(PIC2_DATA, 2);
-	io_wait();
+    arch_outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
+	arch_io_wait();
+	arch_outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
+	arch_io_wait();
+	arch_outb(PIC1_DATA, 0x20);
+	arch_io_wait();
+	arch_outb(PIC2_DATA, 0x28);
+	arch_io_wait();
+	arch_outb(PIC1_DATA, 4);
+	arch_io_wait();
+	arch_outb(PIC2_DATA, 2);
+	arch_io_wait();
  
-	outb(PIC1_DATA, ICW4_8086);
-	io_wait();
-	outb(PIC2_DATA, ICW4_8086);
-	io_wait();
+	arch_outb(PIC1_DATA, ICW4_8086);
+	arch_io_wait();
+	arch_outb(PIC2_DATA, ICW4_8086);
+	arch_io_wait();
 
-    outb(PIC1_DATA, m1);
-    io_wait();
-    outb(PIC2_DATA, m2);
-    io_wait();
+    arch_outb(PIC1_DATA, m1);
+    arch_io_wait();
+    arch_outb(PIC2_DATA, m2);
+    arch_io_wait();
 
 #ifndef CONFIG_X86_IOAPIC
 
     //Enable PIC
-    outb(PIC1_DATA, 0x00);
-    io_wait();
-    outb(PIC2_DATA, 0x00);
-    io_wait();
+    arch_outb(PIC1_DATA, 0x00);
+    arch_io_wait();
+    arch_outb(PIC2_DATA, 0x00);
+    arch_io_wait();
 
     asm volatile("sti");
 
@@ -127,10 +127,10 @@ void ioapic_init(){
 #else
 
     //Disable PIC
-    outb(PIC1_DATA, 0xff);
-    io_wait();
-    outb(PIC2_DATA, 0xff);
-    io_wait();
+    arch_outb(PIC1_DATA, 0xff);
+    arch_io_wait();
+    arch_outb(PIC2_DATA, 0xff);
+    arch_io_wait();
 
     struct acpi_entry_hdr* hdr = MADT->entries;
     struct acpi_madt_ioapic* ioapicRec;
@@ -175,10 +175,10 @@ void ioapic_init(){
         }
 
         //use the PIC as a fallback interrupt controller
-        outb(PIC1_DATA, 0x00);
-        io_wait();
-        outb(PIC2_DATA, 0x00);
-        io_wait();
+        arch_outb(PIC1_DATA, 0x00);
+        arch_io_wait();
+        arch_outb(PIC2_DATA, 0x00);
+        arch_io_wait();
 
         klog("I/O APICs Not Found! Using PIC Instead.\n", KLOG_FAILED, "I/O APIC");
 

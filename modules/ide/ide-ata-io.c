@@ -85,7 +85,7 @@ int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         for(size_t i = 0; i < blocks; i++) {
             if((err = ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, true))) return -1;
             for(int j = 0; j < 256; j++){
-                tmp[j + 256*i] = inw(channel->iobase + ATA_REG_DATA);
+                tmp[j + 256*i] = arch_inw(channel->iobase + ATA_REG_DATA);
             }
         }
     }
@@ -167,7 +167,7 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf){
         for (size_t i = 0; i < blocks; i++) {
             ide_poll(channel, ATA_REG_STATUS, ATA_SR_BSY, false);
             for(int j = 0; j < 256; j++){
-                outw(channel->iobase + ATA_REG_DATA, tmp[j + 256*i]);
+                arch_outw(channel->iobase + ATA_REG_DATA, tmp[j + 256*i]);
             }
         }
         ide_write_reg(channel, ATA_REG_COMMAND, (char []){ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH, ATA_CMD_CACHE_FLUSH_EXT}[lba_mode]);

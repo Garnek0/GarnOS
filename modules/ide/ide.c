@@ -24,13 +24,13 @@ void ide_write_reg(ide_channel_t* channel, unsigned char reg, unsigned char data
     if(reg > 0x07 && reg < 0x0C)
         ide_write_reg(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
     if(reg < 0x08)
-        outb(channel->iobase  + reg - 0x00, data);
+        arch_outb(channel->iobase  + reg - 0x00, data);
     else if(reg < 0x0C)
-        outb(channel->iobase  + reg - 0x06, data);
+        arch_outb(channel->iobase  + reg - 0x06, data);
     else if(reg < 0x0E)
-        outb(channel->control  + reg - 0x0A, data);
+        arch_outb(channel->control  + reg - 0x0A, data);
     else if(reg < 0x16)
-        outb(channel->busMastering + reg - 0x0E, data);
+        arch_outb(channel->busMastering + reg - 0x0E, data);
     if(reg > 0x07 && reg < 0x0C)
         ide_write_reg(channel, ATA_REG_CONTROL, channel->noInt);
 }
@@ -40,13 +40,13 @@ uint8_t ide_read_reg(ide_channel_t* channel, unsigned char reg){
     if(reg > 0x07 && reg < 0x0C)
         ide_write_reg(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
     if(reg < 0x08)
-        result = inb(channel->iobase + reg - 0x00);
+        result = arch_inb(channel->iobase + reg - 0x00);
     else if(reg < 0x0C)
-        result = inb(channel->iobase  + reg - 0x06);
+        result = arch_inb(channel->iobase  + reg - 0x06);
     else if(reg < 0x0E)
-        result = inb(channel->control  + reg - 0x0A);
+        result = arch_inb(channel->control  + reg - 0x0A);
     else if(reg < 0x16)
-        result = inb(channel->busMastering + reg - 0x0E);
+        result = arch_inb(channel->busMastering + reg - 0x0E);
     if(reg > 0x07 && reg < 0x0C)
         ide_write_reg(channel, ATA_REG_CONTROL, channel->noInt);
     return result;
@@ -248,7 +248,7 @@ bool attach(device_t* device){
             uint16_t idSpaceBuf[256];
 
             for(uint16_t k = 0; k < 256; k++){
-                idSpaceBuf[k] = inw(currentChannel->iobase);
+                idSpaceBuf[k] = arch_inw(currentChannel->iobase);
             }
 
             memcpy((void*)&currentDrive->idSpace, (void*)idSpaceBuf, 512);

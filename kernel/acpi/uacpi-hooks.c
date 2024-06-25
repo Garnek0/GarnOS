@@ -11,7 +11,7 @@
 #include <uacpi/sleep.h>
 #include <uacpi/types.h>
 #include <garn/kernel.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <garn/mm.h>
 #include <garn/hw/pci.h>
 #include <garn/timer.h>
@@ -62,13 +62,13 @@ uacpi_status uacpi_kernel_raw_memory_write(uacpi_phys_addr address, uacpi_u8 byt
 uacpi_status uacpi_kernel_raw_io_read(uacpi_io_addr address, uacpi_u8 byte_width, uacpi_u64 *out_value){
     switch(byte_width){
         case 1:
-            *out_value = (uacpi_u64)inb((uint16_t)address);
+            *out_value = (uacpi_u64)arch_inb((uint16_t)address);
             break;
         case 2:
-            *out_value = (uacpi_u64)inw((uint16_t)address);
+            *out_value = (uacpi_u64)arch_inw((uint16_t)address);
             break;
         case 4:
-            *out_value = (uacpi_u64)inl((uint16_t)address);
+            *out_value = (uacpi_u64)arch_inl((uint16_t)address);
             break;
         default:
             break;
@@ -79,13 +79,13 @@ uacpi_status uacpi_kernel_raw_io_read(uacpi_io_addr address, uacpi_u8 byte_width
 uacpi_status uacpi_kernel_raw_io_write(uacpi_io_addr address, uacpi_u8 byte_width, uacpi_u64 in_value){
     switch(byte_width){
         case 1:
-            outb((uint16_t)address, (uint8_t)in_value);
+            arch_outb((uint16_t)address, (uint8_t)in_value);
             break;
         case 2:
-            outw((uint16_t)address, (uint16_t)in_value);
+            arch_outw((uint16_t)address, (uint16_t)in_value);
             break;
         case 4:
-            outl((uint16_t)address, (uint32_t)in_value);
+            arch_outl((uint16_t)address, (uint32_t)in_value);
             break;
         default:
             break;

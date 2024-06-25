@@ -41,6 +41,7 @@ typedef struct _process {
 
 void process_init();
 void process_terminate(process_t* process);
+void process_terminate_exception(process_t* process, stack_frame_t* regs,  const char* message);
 void process_free(process_t* process);
 
 int sys_fork(stack_frame_t* regs);

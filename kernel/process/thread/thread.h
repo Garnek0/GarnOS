@@ -23,7 +23,7 @@ typedef struct _thread {
     int status;
 
     stack_frame_t regs;
-    uint64_t fsbase;
+    uint64_t tsp; //thread-self-pointer
 
     void* kernelStack;
     void* kernelStackDeallocAddress;

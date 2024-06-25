@@ -10,7 +10,7 @@
 #include <module/module-internals.h>
 #include <exec/elf.h>
 #include <garn/mm.h>
-#include <garn/hw/ports.h>
+#include <garn/arch.h>
 #include <sys/fal/initrd/initrd.h>
 #include <garn/fal/file.h>
 #include <garn/spinlock.h>

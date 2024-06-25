@@ -10,16 +10,15 @@
 #include "process.h"
 #include <mem/mm-internals.h>
 #include <process/thread/thread.h>
+#include <arch/arch-internals.h>
 #include <sys/term/tty.h>
 #include <process/sched/sched.h>
 #include <garn/input.h>
-#include <cpu/gdt/gdt.h>
-#include <cpu/user.h>
 #include <exec/elf.h>
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 #include <garn/kernel.h>
-
+#include <garn/arch.h>
 
 #define PUSH(type,val,stack) do { \
 	stack -= sizeof(type); \
@@ -68,7 +67,7 @@ void process_create_init(){
     //returned by kmalloc() are already 16-byte aligned
     thread->kernelStackDeallocAddress = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1);
     thread->kernelStack = thread->kernelStackDeallocAddress + VMM_INIT_KERNEL_STACK_SIZE;
-    thread->fsbase = 0;
+    thread->tsp = 0;
 
     vaspace_create_thread_user_stack(thread);
 
@@ -117,8 +116,8 @@ void process_create_init(){
 
     sched_add_thread(initProcess->mainThread);
 
-    tss_set_rsp(0, (uint64_t)initProcess->mainThread->kernelStack);
-    user_jump((void*)initProcess->mainThread->regs.rip, (void*)initProcess->mainThread->regs.rsp);
+    arch_set_kernel_stack(0, (uint64_t)initProcess->mainThread->kernelStack);
+    arch_usermode_enter((void*)initProcess->mainThread->regs.rip, (void*)initProcess->mainThread->regs.rsp);
 }
 
 void process_init(){
@@ -134,6 +133,18 @@ void process_terminate(process_t* process){
             break;
         }
     }
+}
+
+void process_terminate_exception(process_t* process, stack_frame_t* regs, const char* message){
+    //FIXME: MIGHT BREAK WITH MULTIPROCESSING
+    kernel_screen_output_enable();
+    kprintf("PID %d (%s): Process terminated due to exception. (%s)\n\n", process->pid, process->name, message);
+    arch_dump_cpu_state(regs);
+    kernel_screen_output_disable();
+    process_terminate(process);
+
+    arch_enable_interrupts();
+    while(1) arch_no_op(); //Wait for reschedule
 }
 
 void process_free(process_t* process){
@@ -190,7 +201,7 @@ int sys_fork(stack_frame_t* regs){
     newProcess->mainThread = kmalloc(sizeof(thread_t));
     memset(newProcess->mainThread, 0, sizeof(thread_t));
     memcpy((void*)&newProcess->mainThread->regs, (void*)&currentProcess->mainThread->regs, sizeof(stack_frame_t));
-    newProcess->mainThread->fsbase = currentProcess->mainThread->fsbase;
+    newProcess->mainThread->tsp = currentProcess->mainThread->tsp;
 
     newProcess->mainThread->kernelStackDeallocAddress = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1);
     newProcess->mainThread->kernelStack = newProcess->mainThread->kernelStackDeallocAddress + VMM_INIT_KERNEL_STACK_SIZE;
@@ -217,7 +228,7 @@ void sys_exit(stack_frame_t* regs, int status){
     currentProcess->exitStatus = status;
     process_terminate(currentProcess);
 
-    while(1) asm volatile("nop"); //wait for reschedule
+    while(1) arch_no_op(); //wait for reschedule
 
     __builtin_unreachable();
 }
@@ -291,7 +302,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     vaspace_clear(currentProcess->pml4);
 
-    asm volatile("cli"); //Stop interrupts from messing up the thread state
+    arch_disable_interrupts(); //Stop interrupts from messing up the thread state
 
     vaspace_create_thread_user_stack(currentProcess->mainThread);
 
@@ -333,8 +344,8 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     klog("execve'd Process '%s'. Jumping to entry point...\n", KLOG_OK, "proc", currentProcess->name);
 
-    tss_set_rsp(0, (uint64_t)currentProcess->mainThread->kernelStack);
-    user_jump((void*)currentProcess->mainThread->regs.rip, (void*)currentProcess->mainThread->regs.rsp);
+    arch_set_kernel_stack(0, (uint64_t)currentProcess->mainThread->kernelStack);
+    arch_usermode_enter((void*)currentProcess->mainThread->regs.rip, (void*)currentProcess->mainThread->regs.rsp);
 
     __builtin_unreachable();
 
