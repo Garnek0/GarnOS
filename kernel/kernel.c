@@ -20,6 +20,7 @@
 #include <garn/fal/file.h>
 #include <garn/fal/filesys.h>
 #include <garn/config.h>
+#include <garn/arch.h>
 
 #include <mem/mm-internals.h>
 
@@ -53,9 +54,7 @@ uint64_t kernelStack;
 uint64_t hhdmOffset;
 
 static void halt(void) {
-    for (;;) {
-        asm ("hlt");
-    }
+    arch_stop();
 }
 
 // If you want to rename _start(), make sure to change the linker script accordingly.

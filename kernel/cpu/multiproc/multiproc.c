@@ -28,7 +28,7 @@ static void multiproc_configure_cpu_device(){
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
     cpuDevice->id = 0;
 
-    //Using CPUID to get the CPU brand name
+    //Use CPUID to get the CPU brand name
 
     //50 chars (plus NULL) should be enough
     cpuDevice->name = kmalloc(51);

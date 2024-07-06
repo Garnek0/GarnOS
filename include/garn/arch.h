@@ -13,8 +13,6 @@
 #include <garn/irq.h>
 #include <garn/config.h>
 
-#ifdef CONFIG_ARCH_X86
-
 #define PUSH(type,val,stack) do { \
 	stack -= sizeof(type); \
 	while(stack & (sizeof(type)-1)) stack--; \
@@ -28,12 +26,6 @@
 		l--; \
 	} while (l>=0); \
 } while (0)
-
-#elif CONFIG_ARCH_DUMMY
-
-;
-
-#endif
 
 void arch_disable_interrupts();
 void arch_enable_interrupts();
