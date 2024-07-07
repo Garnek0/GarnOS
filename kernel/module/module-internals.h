@@ -23,5 +23,6 @@ void module_init();
 bool module_list_search(char* name);
 loaded_mod_list_entry_t* module_list_get(char* name);
 void module_list_add(loaded_mod_list_entry_t entry);
+void module_shutdown();
 
 #endif //MODMGR_INTERNALS_H

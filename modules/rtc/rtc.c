@@ -116,6 +116,8 @@ void init(){
 }
 
 void fini(){
+	irq_remove_handler(8, rtc_handler);
+	klog("No longer receiving RTC interrupts\n", KLOG_OK, "RTC");
     return;
 }
 
@@ -177,7 +179,7 @@ bool attach(device_t* device){
 }
 
 bool remove(device_t* device){
-    irq_remove_handler(8, rtc_handler);
+	fini();
     return true;
 }
 

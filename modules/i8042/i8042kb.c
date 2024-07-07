@@ -134,4 +134,5 @@ void i8042_kb_init(){
 
 void i8042_kb_fini(){
     irq_remove_handler(1, keyboard_handler);
+	klog("Keyboard Deinitialised\n", KLOG_OK, "i8042");
 }

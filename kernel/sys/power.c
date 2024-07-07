@@ -11,6 +11,9 @@
 
 #include <garn/power.h>
 #include <garn/kstdio.h>
+#include <module/module-internals.h>
+#include <garn/kstdio.h>
+#include <sys/term/term-internals.h>
 
 power_t power;
 
@@ -19,15 +22,29 @@ int power_shutdown(){
         klog("Shutdown Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
+
+	term_clear();
+	kernel_screen_output_enable();
+	module_shutdown();
+
+	klog("Reached shutdown\n", KLOG_OK, "Power");
+
     return power.shutdown();
 }
 
-int power_restart(){
-    if(power.restart == NULL){
-        klog("Restart Not Implemented!\n", KLOG_FAILED, "Power");
+int power_reboot(){
+    if(power.reboot == NULL){
+        klog("Reboot Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
-    return power.restart();
+
+	term_clear();
+	kernel_screen_output_enable();
+	module_shutdown();
+
+	klog("Reached reboot\n", KLOG_OK, "Power");
+
+    return power.reboot();
 }
 
 int power_suspend(){
@@ -35,6 +52,9 @@ int power_suspend(){
         klog("Suspend Not Implemented!\n", KLOG_FAILED, "Power");
         return -1;
     }
+
+	klog("Reached suspend\n", KLOG_OK, "Power");
+
     return power.suspend();
 }
 
@@ -42,8 +62,8 @@ inline void power_set_shutdown(void* func){
     power.shutdown = func;
 }
 
-inline void power_set_restart(void* func){
-    power.restart = func;
+inline void power_set_reboot(void* func){
+    power.reboot = func;
 }
 
 inline void power_set_suspend(void* func){
@@ -59,7 +79,7 @@ static int _power_shutdown_default(){
     __builtin_unreachable();
 }
 
-static int _power_restart_default(){
+static int _power_reboot_default(){
     kprintf("You may now *manually* restart your computer ;)");
     arch_disable_interrupts();
     for(;;){
@@ -70,7 +90,7 @@ static int _power_restart_default(){
 
 void power_init(){
     power.shutdown = _power_shutdown_default;
-    power.restart = _power_restart_default;
+    power.reboot = _power_reboot_default;
 
     klog("Power Initialised.\n", KLOG_OK, "Power");
 }

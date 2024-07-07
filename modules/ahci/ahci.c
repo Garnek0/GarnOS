@@ -49,6 +49,7 @@ void init(){
 }
 
 void fini(){
+	//TODO: Make devices spin down or something
     return;
 }
 

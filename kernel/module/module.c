@@ -74,3 +74,14 @@ void module_list_add(loaded_mod_list_entry_t entry){
         list_insert(moduleList, (void*)newModListEntry);
     });
 }
+
+void module_shutdown(){
+	loaded_mod_list_entry_t* entry;
+	lock(moduleListLock, {
+		foreach(item, moduleList){
+			entry = (loaded_mod_list_entry_t*)item->value;
+			entry->metadata->fini();
+		}
+	});
+	return;
+}

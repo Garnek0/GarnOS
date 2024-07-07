@@ -45,6 +45,6 @@ void acpi_init(){
         panic("uACPI GPE initialization error: %s. Your system's ACPI implementation may be quirky.", "uACPI", uacpi_status_to_string(ret));
     }
 
-    power_set_restart(uacpi_reboot);
+    power_set_reboot(uacpi_reboot);
     power_set_shutdown(uacpi_shutdown);
 }

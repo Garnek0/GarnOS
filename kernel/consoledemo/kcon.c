@@ -126,7 +126,7 @@ static void console_shutdown(){
 }
 
 static void console_reboot(){
-    power_restart();
+    power_reboot();
 }
 
 void kcon_add_command(char* cmd, void* function){

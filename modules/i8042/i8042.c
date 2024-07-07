@@ -48,6 +48,7 @@ void init(){
 }
 
 void fini(){
+	i8042_kb_fini();
     return;
 }
 

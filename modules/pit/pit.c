@@ -41,6 +41,7 @@ void init(){
 }
 
 void fini(){
+	irq_remove_handler(0, pit_handler);
     return;
 }
 
@@ -64,6 +65,7 @@ bool attach(device_t* device){
 }
 
 bool remove(device_t* device){
+	irq_remove_handler(0, pit_handler);
     return true;
 }
 

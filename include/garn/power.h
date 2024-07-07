@@ -12,16 +12,16 @@
 
 typedef struct _power {
     int (*shutdown)();
-    int (*restart)();
+    int (*reboot)();
     int (*suspend)();
 } power_t;
 
 int power_shutdown();
-int power_restart();
+int power_reboot();
 int power_suspend();
 
 void power_set_shutdown(void* func);
-void power_set_restart(void* func);
+void power_set_reboot(void* func);
 void power_set_suspend(void* func);
 
 #endif //POWER_H
