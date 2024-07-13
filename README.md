@@ -6,7 +6,7 @@
 
 GarnOS is A Simple, Open-Source, Hobby Operating System.
 
-The main goals of GarnOS are support and modularity.
+The main goals of GarnOS are compatibility and modularity.
 
 ## Notable Features
 

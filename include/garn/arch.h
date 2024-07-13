@@ -36,6 +36,7 @@ void arch_get_cpu_model_name(char* str);
 
 void arch_no_op();
 void arch_stop();
+void arch_pause();
 
 void arch_outb(uint32_t port, uint8_t data);
 uint8_t arch_inb(uint32_t port);

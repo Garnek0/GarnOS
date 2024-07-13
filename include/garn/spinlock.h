@@ -9,6 +9,7 @@
 #define SPINLOCK_H
 
 #include <garn/types.h>
+#include <garn/arch.h>
 
 typedef uint64_t spinlock_t;
 
@@ -19,12 +20,13 @@ typedef uint64_t spinlock_t;
     releaseLock(&l);   \
 }
 
+// Implemented in each architecture's arch/*/ subdirectory
 void releaseLock(spinlock_t *lock);
 void acquireLock(spinlock_t *lock);
 
 #define pause()             \
 {                           \
-    asm volatile("pause");  \
+    arch_pause();           \
 }                           \
 
 #endif //SPINLOCK_H

@@ -42,8 +42,6 @@
 
 #include <exec/elf.h>
 
-#include <hw/pit/pit.h>
-
 #include <module/module-internals.h>
 
 #include <process/sched/sched.h>

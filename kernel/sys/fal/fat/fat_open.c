@@ -11,17 +11,32 @@
 #include <garn/mm.h>
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
+#include <stdint.h>
 
 file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
     kerrno = 0;
 
+	// Get the FS context.
     fat_context_t* context = (fat_context_t*)self->context;
+
     fat_directory_t* currentDir = NULL;
     fat_lfn_t* currentLFN = NULL;
     bcache_buf_t* buf = NULL;
+
     bool hasEndSlash = false;
+	
+	// Use a secondary path pointer, because the initial pointer will be changed
+	// and invalidated.
     char* pathTmp = kmalloc(strlen(path)+1);
     memcpy(pathTmp, path, strlen(path)+1);
+
+	char dir[256]; // Holds the filename of the current object.
+	bool isTargetObject = false; 
+	size_t strptr = 0; // Used for getting filenames from the path string.
+	size_t partitionOffset = self->drive->partitions[self->partition].startLBA; // Must be added to read from the correct partition.
+
+	size_t currentSector;
+	uint32_t currentCluster;
 
     if(!strcmp(self->type, FILESYS_TYPE_FAT12)){
         //TODO: This
@@ -29,38 +44,34 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
         //TODO: This
     } else {
         fat32_ebpb_t* fat32ebpb = (fat32_ebpb_t*)context->ebpb;
-        
-        char dir[256]; //holds the filename of the current object
-        bool isTargetObject = false;
-        size_t strptr = 0; //used for getting filenames from the path string
 
-        const size_t partitionOffset = self->drive->partitions[self->partition].startLBA; //must be added to read from the correct partition
-        size_t currentSector = partitionOffset + context->firstRootDirSector;
-        uint32_t currentCluster = fat32ebpb->rootDirCluster;
+        currentSector = partitionOffset + context->firstRootDirSector;
+        currentCluster = fat32ebpb->rootDirCluster;
 
         bool found;
         bool isLFNDirectory;
         bool foundByLFN;
 
-        //This is a path to the root dir
+        // If path is NULL, then we must get the root dir.
         if(strlen(path) == 0){
-            if(!(flags &O_DIRECTORY) || ((flags & O_WRONLY) || ((flags & O_RDWR)))){
-                kerrno = ENOENT;
-                goto fail;
-            }
+			// Allocate the file structure
             file_t* file = kmalloc(sizeof(file_t));
             memset(file, 0, sizeof(file_t));
+
             fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
+
+			// This block of code calculates the size of the root dir.
             {
-                int e = 0;
+                int clusCount = 0;
                 int clus = fat32ebpb->rootDirCluster;
                 while(clus){
                     clus = fat32_next_cluster(self, context, clus);
-                    e++;
+                    clusCount++;
                 }
-                file->size = e*context->sectorsPerCluster*context->bytesPerSector;
+                file->size = clusCount*context->sectorsPerCluster*context->bytesPerSector;
             }
-            
+
+			// Fill in file struct fields and allocate the fsData struct
             file->mode = mode;
             file->flags = flags;
             file->fs = self;

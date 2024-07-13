@@ -14,7 +14,7 @@
 
 //TODO: Support sector sizes != 512 Bytes ???????
 
-size_t fat12_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
+size_t fat12_next_cluster(filesys_t* ilesys, fat_context_t* context, size_t cluster){
     //TODO: Do this
     return 0;
 }

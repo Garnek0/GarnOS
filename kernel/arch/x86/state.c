@@ -52,3 +52,7 @@ void arch_stop(){
 void arch_no_op(){
     asm volatile("nop");
 }
+
+void arch_pause(){
+	asm volatile("pause");
+}
