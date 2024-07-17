@@ -36,11 +36,11 @@ run-uefi: ovmf $(IMAGE_NAME).iso
 
 .PHONY: run-hdd
 run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -enable-kvm -m 2G -vga std -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -smp 4 -enable-kvm -debugcon stdio -m 2G -vga std -hda $(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -enable-kvm -m 2G -cpu max -vga std -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -m 2G -enable-kvm -cpu max -vga std -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf
@@ -86,26 +86,20 @@ sysroot:
 
 	cp -f release sysroot/release
 
-.PHONY: libc
-libc: export DESTDIR=../../hosttools
-libc: 
+.PHONY: all-toolchain
+all-toolchain: toolchain libc
+
+.PHONY: libc-headers
+libc-headers: export DESTDIR=../../hosttools
+libc-headers: 
 	rm -rf mlibc
 	git clone -b release-4.0 https://github.com/Garnek0/mlibc-garn mlibc
-	cd mlibc; meson setup build -Ddefault_library=static --cross-file garn.cross-file --prefix / && ninja -C build install
+	cd mlibc; meson setup build -Dheaders_only=true --cross-file ci/garn-x86_64.cross-file --prefix / && ninja -C build install
 
-# I know this is not a very futureproof/ethical way of
-# doing this :). I may use an actual fetch/patch/compile tool
-# In the future such as jinx
-.PHONY: toolchain
-toolchain: libc
-	rm -rf toolchain
-	mkdir toolchain
-	git clone https://github.com/Garnek0/gcc-garn toolchain/gcc
-	git clone https://github.com/Garnek0/binutils-gdb-garn toolchain/binutils
-	cd toolchain && mkdir -p binutils-build && mkdir -p ../hosttools
-	cd toolchain/binutils-build && ../binutils/configure --disable-shared --target=x86_64-pc-garn-mlibc --prefix=$(shell pwd)/hosttools --with-build-sysroot=$(shell pwd)/hosttools --disable-nls --disable-werror && make && make install
-	cd toolchain && mkdir -p gcc-build
-	cd toolchain/gcc-build && ../gcc/configure --disable-shared --target=x86_64-pc-garn-mlibc --with-headers=$(shell pwd)/hosttools/include --prefix=$(shell pwd)/hosttools --disable-nls --enable-languages=c --with-build-sysroot=$(shell pwd)/hosttools --enable-initfini-array --disable-shared && make all-gcc && make all-target-libgcc && make install-gcc && make install-target-libgcc
+.PHONY: libc
+libc: export DESTDIR=../../hosttools
+libc:
+	export PATH=$(shell pwd)/hosttools/bin/:$$PATH; cd mlibc; rm -rf build; meson setup build -Ddefault_library=static -Dmlibc_no_headers=true --cross-file ci/garn-x86_64.cross-file --prefix / && ninja -C build install
 	mv hosttools/lib/crt0.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 	mv hosttools/lib/crti.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 	mv hosttools/lib/crtn.o hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
@@ -117,6 +111,21 @@ toolchain: libc
 	mv hosttools/lib/libresolv.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 	mv hosttools/lib/librt.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
 	mv hosttools/lib/libutil.a hosttools/lib/gcc/x86_64-pc-garn-mlibc/13.2.0/
+
+# I know this is not a very futureproof/ethical way of
+# doing this :). I may use an actual fetch/patch/compile tool
+# In the future such as jinx
+.PHONY: toolchain
+toolchain: export DESTDIR=
+toolchain: libc-headers
+	rm -rf toolchain
+	mkdir toolchain
+	git clone https://github.com/Garnek0/gcc-garn toolchain/gcc
+	git clone https://github.com/Garnek0/binutils-gdb-garn toolchain/binutils
+	cd toolchain && mkdir -p binutils-build && mkdir -p ../hosttools
+	cd toolchain/binutils-build && ../binutils/configure --disable-shared --target=x86_64-pc-garn-mlibc --prefix=$(shell pwd)/hosttools --with-build-sysroot=$(shell pwd)/hosttools --disable-nls --disable-werror && make && make install
+	cd toolchain && mkdir -p gcc-build
+	cd toolchain/gcc-build && ../gcc/configure --disable-shared --target=x86_64-pc-garn-mlibc --with-headers=$(shell pwd)/hosttools/include --prefix=$(shell pwd)/hosttools --disable-nls --enable-languages=c,c++ --with-build-sysroot=$(shell pwd)/hosttools --enable-initfini-array --disable-shared && make all-gcc && make all-target-libgcc && make install-gcc && make install-target-libgcc	
 
 $(IMAGE_NAME).iso: sysroot limine kernel modules programs
 	rm -rf iso_root

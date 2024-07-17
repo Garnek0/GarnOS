@@ -52,16 +52,10 @@ void vaspace_create_thread_user_stack(thread_t* thread){
     //FIXME:
     //FIXME: VERY IMPORTANT! This will blow up when creating more than 1 thread/process.
 #ifdef CONFIG_ARCH_X86
-#ifdef CONFIG_ARCH_64BIT
 
     thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pt, (VMM_USER_END - VMM_INIT_USER_STACK_SIZE),
                                         VMM_INIT_USER_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER) + ((VMM_INIT_USER_STACK_SIZE - 1) - 15);
-                                
-#else
-
-;
-
-#endif
+                            
 #elif CONFIG_ARCH_DUMMY
 
 ;
@@ -84,11 +78,8 @@ void* vaspace_create_area(page_table_t* pml4, uint64_t virtAddr, size_t size, ui
 
 void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int flags, int fd, uint64_t offset){
     if(length == 0) return (void*)-EINVAL;
-#ifdef CONFIG_ARCH_64BIT
+
     if((uint64_t)addr > VMM_USER_END) return (void*)-ENOMEM;
-#else
-    if((uint32_t)addr > VMM_USER_END_32BIT) return (void*)-ENOMEM;
-#endif
 
     //We dont support shared mappings yet
     if(flags & MAP_SHARED) return (void*)-EINVAL;
@@ -108,7 +99,7 @@ void* sys_mmap(stack_frame_t* regs, void* addr, size_t length, int prot, int fla
     size_t npages = 0;
 
     uint64_t userEnd = VMM_USER_END;
-    if(flags & MAP_32BIT) userEnd = VMM_USER_END_32BIT;
+    if(flags & MAP_32BIT) userEnd = 0x80000000;
 
     for(uint64_t i = (uint64_t)addr; i < userEnd; i+=PAGE_SIZE){
         

@@ -12,8 +12,6 @@
 #include <acpi/uacpi/internal-inc/event.h>
 #include <acpi/uacpi/internal-inc/osi.h>
 
-#include <garn/kstdio.h>
-
 struct uacpi_runtime_context g_uacpi_rt_ctx = { 0 };
 
 void uacpi_context_set_loop_timeout(uacpi_u32 seconds)
@@ -185,6 +183,7 @@ static uacpi_status enter_mode(enum hw_mode mode)
         return UACPI_STATUS_OK;
 
     mode_str = mode == HW_MODE_LEGACY ? "legacy" : "acpi";
+
     if (read_mode() == mode) {
         uacpi_trace("%s mode already enabled\n", mode_str);
         return UACPI_STATUS_OK;
@@ -318,7 +317,7 @@ uacpi_status uacpi_initialize(const uacpi_init_params *params)
     }
 
     uacpi_kernel_unmap(rsdp, sizeof(struct acpi_rsdp));
-    
+
     if (!rxsdt) {
         uacpi_error("both RSDT & XSDT tables are NULL!\n");
         return UACPI_STATUS_INVALID_ARGUMENT;
@@ -434,6 +433,7 @@ uacpi_status uacpi_namespace_load(void)
         uacpi_warn("event initialization failed: %s\n",
                    uacpi_status_to_string(ret));
     }
+
     g_uacpi_rt_ctx.init_level = UACPI_INIT_LEVEL_NAMESPACE_LOADED;
     return ret;
 }

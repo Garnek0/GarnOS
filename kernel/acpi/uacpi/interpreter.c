@@ -1259,6 +1259,7 @@ static uacpi_status do_load_table(
 {
     struct uacpi_control_method method = { 0 };
     uacpi_status ret;
+
     prepare_table_load(tbl, cause, &method);
 
     ret = uacpi_execute_control_method(parent, &method, UACPI_NULL, UACPI_NULL);
@@ -2306,7 +2307,7 @@ static uacpi_status handle_ref_or_deref_of(struct execution_context *ctx)
 
         if (!was_a_reference) {
             uacpi_error(
-                "Invalid DerefOf argument: %s, expected a reference\n",
+                "invalid DerefOf argument: %s, expected a reference\n",
                 uacpi_object_type_to_string(src->type)
             );
             return UACPI_STATUS_AML_INCOMPATIBLE_OBJECT_TYPE;

@@ -3,11 +3,7 @@ CFLAGS := \
     -Wextra \
     -fno-lto \
 	-fno-PIE \
-    -mabi=sysv \
-    -mno-80387 \
-    -mno-mmx \
-    -mno-sse \
-    -mno-sse2
+    -mabi=sysv 
 
 CC = ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
 LD = ../hosttools/bin/x86_64-pc-garn-mlibc-ld

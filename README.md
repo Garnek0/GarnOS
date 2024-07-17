@@ -4,7 +4,7 @@
 
 <img width="256" height="256" src="GarnOS.svg">
 
-GarnOS is A Simple, Open-Source, Hobby Operating System.
+GarnOS is a simple, open-source, 64-bit hobby operating system.
 
 The main goals of GarnOS are compatibility and modularity.
 
@@ -33,7 +33,7 @@ The main goals of GarnOS are compatibility and modularity.
 
 First of all, you need to build the toolchain:
 ```
-make toolchain
+make all-toolchain
 ``` 
 
 Once you've done that, you must configure the kernel:
@@ -89,10 +89,9 @@ See LICENSE for details.
 
 ## Known Bugs
 
-- APIC implementation doesn't work properly on some systems.
 - Disk access doesnt work properly on "large" drives (> ~512 MiB).
 - Disk access is EXTREMELY slow. It's so slow it takes 2-4 seconds to load a simple program such as `ls`.
-- AHCI Driver doesn't work on real hardware.
+- AHCI driver doesn't work on real hardware.
 - mlibc sometimes panics when running user programs.
 
 ## Support

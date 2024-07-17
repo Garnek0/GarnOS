@@ -5,7 +5,6 @@
 #include <acpi/uacpi/internal-inc/registers.h>
 #include <acpi/uacpi/internal-inc/event.h>
 #include <uacpi/platform/arch_helpers.h>
-#include <garn/arch.h>
 
 #ifndef UACPI_REDUCED_HARDWARE
 #define CALL_SLEEP_FN(name, state)                       \

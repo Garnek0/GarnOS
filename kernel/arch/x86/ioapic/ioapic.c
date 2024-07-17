@@ -18,6 +18,8 @@
 #include <arch/x86/apic/apic.h>
 #include <garn/config.h>
 
+#ifdef CONFIG_X86_IOAPIC
+
 uint8_t ioapicCount;
 uint8_t ioapicIDs[256];
 void* ioapicAddresses[256];
@@ -72,11 +74,9 @@ ioapic_redirection_entry_t ioapic_get_redirection(uint32_t entry){
     return red;
 }
 
-void ioapic_init(){
-    uacpi_table MADTTable;
-    uacpi_table_find_by_signature(ACPI_MADT_SIGNATURE, &MADTTable);
-    struct acpi_madt* MADT = (struct acpi_madt*)MADTTable.virt_addr;
+#endif //CONFIG_X86_IOAPIC
 
+void ioapic_init(){  
     asm volatile("cli");
 
     arch_outb(0x20, 0x20); //PIC EOI
@@ -131,6 +131,10 @@ void ioapic_init(){
     arch_io_wait();
     arch_outb(PIC2_DATA, 0xff);
     arch_io_wait();
+
+	uacpi_table MADTTable;
+    uacpi_table_find_by_signature(ACPI_MADT_SIGNATURE, &MADTTable);
+    struct acpi_madt* MADT = (struct acpi_madt*)MADTTable.virt_addr;
 
     struct acpi_entry_hdr* hdr = MADT->entries;
     struct acpi_madt_ioapic* ioapicRec;

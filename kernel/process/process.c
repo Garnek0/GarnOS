@@ -20,6 +20,7 @@
 #include <garn/kernel.h>
 #include <garn/arch.h>
 #include <garn/config.h>
+#include <garn/mm.h>
 
 process_t* processList;
 process_t* processListLast;
@@ -44,6 +45,7 @@ void process_create_init(){
     initProcess->pt = vaspace_new();
 
     thread_t* thread = kmalloc(sizeof(thread_t));
+	memset(thread, 0, sizeof(thread_t));
     thread->process = initProcess;
     thread->status = THREAD_STATUS_READY;
 
@@ -92,8 +94,8 @@ void process_create_init(){
 
 #ifdef CONFIG_ARCH_X86
 
-#ifdef CONFIG_ARCH_64BIT
-
+	//NOTE: if changing any of these, dont forget to check the stack alignment!!
+	PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); //push this for alignment
     PUSHSTR("./bin/init.elf", initProcess->mainThread->regs.rsp);
     argvPtrs[0] = (char*)initProcess->mainThread->regs.rsp;
     PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // Aux vector null
@@ -103,17 +105,13 @@ void process_create_init(){
     PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
     PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
 
-#else
-
-;
-
-#endif //CONFIG_ARCH_64BIT
-
 #elif CONFIG_ARCH_DUMMY
 
 ;
 
 #endif
+
+	arch_prepare_fpu();
 
     klog("Spawned init process. Jumping into userspace. Bye!\n", KLOG_OK, "proc");
 
@@ -204,6 +202,7 @@ int sys_fork(stack_frame_t* regs){
     newProcess->mainThread = kmalloc(sizeof(thread_t));
     memset(newProcess->mainThread, 0, sizeof(thread_t));
     memcpy((void*)&newProcess->mainThread->regs, (void*)&currentProcess->mainThread->regs, sizeof(stack_frame_t));
+	memcpy((void*)newProcess->mainThread->fpRegs, (void*)currentProcess->mainThread->fpRegs, 512);
     newProcess->mainThread->tsp = currentProcess->mainThread->tsp;
 
     newProcess->mainThread->kernelStackDeallocAddress = kmalloc(VMM_INIT_KERNEL_STACK_SIZE+1);
@@ -284,7 +283,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     if(!file) return -kerrno;
     file_close(file);
 
-    //Count and realloc args anv env vars
+    //Count and realloc args and env vars
 
     size_t envc = 0, argc = 0;
     while(argv[argc] != NULL){
@@ -294,7 +293,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     while(envp[envc] != NULL){
         envp[envc] = strdup(envp[envc]);
         envc++;   
-    }
+    }	
 
     //Reallocate argv and envp in kernel space
 
@@ -312,8 +311,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     //Push argv and envp strings
 
 #ifdef CONFIG_ARCH_X86
-#ifdef CONFIG_ARCH_64BIT
-
+	
     for(size_t i = 0; i < argc; i++){
         PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
         kmfree(newArgv[i]);
@@ -326,6 +324,23 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
         newEnvp[i] = (char*)currentProcess->mainThread->regs.rsp;
     }
 
+	if(currentProcess->mainThread->regs.rsp%16 !=0){
+		currentProcess->mainThread->regs.rsp -= currentProcess->mainThread->regs.rsp%16;
+	}
+
+	size_t stackAlign = 0;
+
+	stackAlign += 8; //auxv NULL
+	stackAlign += 8; //envp NULL
+	stackAlign += envc*8; //env pointers
+	stackAlign += 8; //argv NULL
+	stackAlign += argc*8; //arg pointers
+	stackAlign += 8; //argc
+
+	if(stackAlign%16!=0){
+		currentProcess->mainThread->regs.rsp -= stackAlign%16;
+	}
+
     //Create initial process stack
     PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //Aux vector NULL
     PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //envp NULL
@@ -333,12 +348,6 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //argv NULL
     for(ssize_t i = argc-1; i >= 0; i--) PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
     PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
-
-#else
-
-;
-
-#endif //CONFIG_ARCH_64BIT
 
 #elif CONFIG_ARCH_DUMMY
 
@@ -359,6 +368,8 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     kmfree(newEnvp);
 
     *regs = currentProcess->mainThread->regs;
+
+	arch_prepare_fpu();
 
     klog("execve'd Process '%s'. Jumping to entry point...\n", KLOG_OK, "proc", currentProcess->name);
 

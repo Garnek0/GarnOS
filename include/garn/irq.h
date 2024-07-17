@@ -17,7 +17,6 @@ int irq_add_handler(uint8_t irq, void* handler, uint32_t flags);
 void irq_remove_handler(uint8_t irq, void* handler);
 
 #ifdef CONFIG_ARCH_X86
-#ifdef CONFIG_ARCH_64BIT
 
 //x86_64 stack frame
 typedef struct {
@@ -27,12 +26,6 @@ typedef struct {
    uint64_t intn, errCode;
    uint64_t rip, cs, rflags, rsp, ss;
 } stack_frame_t;
-
-#else
-
-;
-
-#endif //CONFIG_ARCH_64BIT
 
 #elif CONFIG_ARCH_DUMMY
 

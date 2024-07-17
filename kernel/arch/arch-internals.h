@@ -18,6 +18,8 @@ void arch_init_full(int cpu);
 void arch_init_early(int cpu);
 void arch_init_late(int cpu);
 
+void arch_prepare_fpu();
+
 void arch_syscall_init();
 int arch_syscall_number(stack_frame_t* regs);
 void arch_syscall_return(stack_frame_t* regs, long value);

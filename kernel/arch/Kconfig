@@ -5,16 +5,10 @@ prompt "Architecture"
 	default ARCH_X86
 
 	config ARCH_X86
-		bool "x86"
+		bool "x86-64"
 	config ARCH_DUMMY
 		bool "dummy arch (Dont select)"
 endchoice
-
-config ARCH_64BIT
-	bool "64-bit Support"
-	default y
-	help
-		"Enable 64-bit support (if applicable)"
 
 source "kernel/arch/x86/Kconfig"
 

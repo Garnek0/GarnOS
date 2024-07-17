@@ -11,6 +11,7 @@
 #include <arch/x86/gdt/gdt.h>
 #include <arch/x86/interrupts/interrupt-internals.h>
 #include <arch/x86/apic/apic.h>
+#include <arch/x86/fpu/fpu.h>
 #include <garn/arch.h>
 
 bool interruptsInitialised = false;
@@ -28,6 +29,8 @@ void arch_init_early(int cpu){
         interrupts_init();
         interruptsInitialised = true;
     }
+
+	fpu_init();
 }
 
 void arch_init_late(int cpu){
