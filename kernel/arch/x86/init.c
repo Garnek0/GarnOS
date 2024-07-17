@@ -10,7 +10,7 @@
 #include <arch/arch-internals.h>
 #include <arch/x86/gdt/gdt.h>
 #include <arch/x86/interrupts/interrupt-internals.h>
-#include <arch/x86/apic/apic.h>
+#include <arch/x86/interrupts/apic/apic.h>
 #include <arch/x86/fpu/fpu.h>
 #include <garn/arch.h>
 

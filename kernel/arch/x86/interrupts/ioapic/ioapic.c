@@ -15,7 +15,7 @@
 #include <cpu/multiproc/multiproc-internals.h>
 #include <garn/mm.h>
 #include <sys/bootloader.h>
-#include <arch/x86/apic/apic.h>
+#include <arch/x86/interrupts/apic/apic.h>
 #include <garn/config.h>
 
 #ifdef CONFIG_X86_IOAPIC

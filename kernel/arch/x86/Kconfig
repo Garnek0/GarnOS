@@ -1,5 +1,5 @@
 config X86_IOAPIC
-	bool "Enable I/O APIC Support"
+	bool "I/O APIC Support"
 	depends on ARCH_X86
 	default y
 	help

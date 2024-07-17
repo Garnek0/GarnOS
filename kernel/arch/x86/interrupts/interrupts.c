@@ -10,7 +10,7 @@
 #include "interrupt-internals.h"
 #include <arch/x86/interrupts/idt.h>
 #include <arch/arch-internals.h>
-#include <arch/x86/apic/apic.h>
+#include <arch/x86/interrupts/apic/apic.h>
 #include <sys/syscall_internals.h>
 #include <garn/kstdio.h>
 

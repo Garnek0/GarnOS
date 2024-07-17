@@ -3,7 +3,7 @@
 *
 *	Author: Garnek 
 *
-*	Description: Support for x87, MMX and SSE
+*	Description: Support for the x87 FPU and SSE
 */
 // SPDX-License-Identifier: BSD-2-Clause
 

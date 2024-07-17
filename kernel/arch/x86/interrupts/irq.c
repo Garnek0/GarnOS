@@ -9,7 +9,7 @@
 
 #include "interrupt-internals.h"
 #include <garn/arch.h>
-#include <arch/x86/apic/apic.h>
+#include <arch/x86/interrupts/apic/apic.h>
 #include <garn/mm.h>
 #include <arch/x86/interrupts/idt.h>
 #include <garn/kstdio.h>
