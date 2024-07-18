@@ -11,7 +11,7 @@
 #include <garn/kstdio.h>
 #include <sys/bootloader.h>
 #include <garn/mm.h>
-#include <cpu/multiproc/multiproc-internals.h>
+#include <cpu/smp/smp.h>
 #include <garn/irq.h>
 #include <garn/arch.h>
 #include <garn/kernel.h>

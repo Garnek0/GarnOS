@@ -8,7 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "gdt.h"
-#include <cpu/multiproc/multiproc-internals.h>
+#include <cpu/smp/smp.h>
 #include <arch/arch-internals.h>
 
 gdt_t gdt[MAX_CPUS];

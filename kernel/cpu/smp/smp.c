@@ -1,5 +1,5 @@
 /*  
-*   File: multiproc.c
+*   File: smp.c
 *
 *   Author: Garnek
 *   
@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "multiproc-internals.h"
+#include "smp.h"
 #include <sys/bootloader.h>
 #include <garn/kstdio.h>
 #include <garn/dal/dal.h>
@@ -20,7 +20,7 @@
 #include <cpuid.h>
 #include <garn/kerrno.h>
 
-static void multiproc_configure_cpu_device(){
+static void smp_register_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
     cpuDevice->bus = DEVICE_BUS_NONE;
     cpuDevice->data = NULL;
@@ -41,7 +41,7 @@ static void multiproc_configure_cpu_device(){
 volatile size_t CPUInitCount;
 spinlock_t InitCountLock;
 
-void ready_cpus(struct limine_smp_info* cpuinfo){
+void smp_cpu_entry(struct limine_smp_info* cpuinfo){
     //boot the other cpus
 
     //Load Kernel Address Space
@@ -51,11 +51,11 @@ void ready_cpus(struct limine_smp_info* cpuinfo){
     arch_init_full(cpuinfo->processor_id);
 
     //CPU device
-    multiproc_configure_cpu_device();
+    smp_register_cpu_device();
 
     //Report Initialisation Completion
     lock(InitCountLock, {
-        klog("Processor %u Initialised.\n", KLOG_OK, "multiproc", cpuinfo->processor_id);
+        klog("Processor %u initialised.\n", KLOG_OK, "SMP", cpuinfo->processor_id);
         CPUInitCount++;
     });
 
@@ -63,14 +63,14 @@ void ready_cpus(struct limine_smp_info* cpuinfo){
     while(1) arch_stop();
 }
 
-void multiproc_init(){
-    klog("Initialising Processors...\n", KLOG_INFO, "multiproc");
+void smp_init(){
+    klog("Initialising processors...\n", KLOG_INFO, "SMP");
 
     arch_init_late(0); //Initialise CPU 0 (late)
 
-    multiproc_configure_cpu_device();
+    smp_register_cpu_device();
 
-    klog("Bootstrap Processor Initialised (CPU 0).\n", KLOG_OK, "multiproc");
+    klog("Bootstrap processor initialised (CPU 0).\n", KLOG_OK, "SMP");
 
     CPUInitCount++;
 
@@ -79,12 +79,12 @@ void multiproc_init(){
     struct limine_smp_info* cpuinfo;
     for(size_t i = 0; i < bl_get_cpu_count(); i++){
         cpuinfo = bl_get_cpu_info(i);
-        cpuinfo->goto_address = ready_cpus;
+        cpuinfo->goto_address = smp_cpu_entry;
     }
 
     size_t CPUCount = bl_get_cpu_count();
 
     while(CPUInitCount != CPUCount) arch_no_op();
 
-    klog("Processors Initialised Successfully. (%d CPUs)\n", KLOG_OK, "multiproc", CPUInitCount);
+    klog("All processors initialised successfully. (%d CPUs)\n", KLOG_OK, "SMP", CPUInitCount);
 }

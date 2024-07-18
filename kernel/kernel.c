@@ -38,7 +38,7 @@
 
 #include <arch/arch-internals.h>
 
-#include <cpu/multiproc/multiproc-internals.h>
+#include <cpu/smp/smp.h>
 
 #include <exec/elf.h>
 

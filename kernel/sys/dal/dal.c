@@ -18,7 +18,7 @@ void dal_init(){
 
     bcache_init(); //Initialise buffer cache
 
-    multiproc_init(); //Initialize CPUs
+    smp_init(); //Initialize CPUs
 
     driver_init(); //Initialise device driver manager
     module_init(); //Initialise module manager

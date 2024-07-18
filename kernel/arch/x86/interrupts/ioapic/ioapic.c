@@ -12,7 +12,7 @@
 #include <uacpi/tables.h>
 #include <garn/kstdio.h>
 #include <garn/arch.h>
-#include <cpu/multiproc/multiproc-internals.h>
+#include <cpu/smp/smp.h>
 #include <garn/mm.h>
 #include <sys/bootloader.h>
 #include <arch/x86/interrupts/apic/apic.h>

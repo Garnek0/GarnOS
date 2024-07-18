@@ -137,7 +137,7 @@ void process_terminate(process_t* process){
 }
 
 void process_terminate_exception(process_t* process, stack_frame_t* regs, const char* message){
-    //FIXME: MIGHT BREAK WITH MULTIPROCESSING
+    //FIXME: MIGHT BREAK WITH SMPESSING
     kernel_screen_output_enable();
     kprintf("PID %d (%s): Process terminated due to exception. (%s)\n\n", process->pid, process->name, message);
     arch_dump_cpu_state(regs);
