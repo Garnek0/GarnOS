@@ -49,8 +49,15 @@ int device_driver_register(const char* path){
         return -1;
     }
 
+	//TODO: This may be slow with large drivers. Maybe add some way to load only part of the executable?
+
     void* elf = kmalloc(file->size);
     file_read(file, file->size, elf, 0);
+
+	if(!elf_validate((Elf64_Ehdr*)elf, ET_REL)){
+		klog("Failed to register driver \'%s\': Executable validation failed!\n", KLOG_FAILED, "DAL", path);
+		goto fail;
+	}
 
     device_driver_t* driver = elf_find_symbol(elf, "driver_metadata");
     if(!driver){
@@ -63,8 +70,14 @@ int device_driver_register(const char* path){
         goto fail;
     }
 
+	//calculate relocations (to get the strings)
+	if(elf_calculate_relocations((Elf64_Ehdr*)elf, elf) != 0){
+		klog("Failed to register driver \'%s\': %s\n", KLOG_FAILED, "DAL", path, kstrerror(kerrno));
+		goto fail;
+	}
+
     size_t idListSize = 0;
-    while(driverIDs[idListSize] != 0) idListSize++;
+    while(driverIDs[idListSize].class != DEVICE_ID_CLASS_NONE) idListSize++;
     if(idListSize == 0){
         klog("Failed to register driver \'%s\': No IDs in ID List!\n", KLOG_FAILED, "DAL", path);
         goto fail;
@@ -74,6 +87,21 @@ int device_driver_register(const char* path){
     device_id_t* driverIDsStore = kmalloc(sizeof(device_id_t) * idListSize);
 
     memcpy(driverIDsStore, driverIDs, sizeof(device_id_t) * idListSize);
+
+	char* newStr;
+	for(int i = 0; i < idListSize; i++){
+		if(driverIDsStore[i].string[0] != NULL){
+			newStr = kmalloc(strlen(driverIDsStore[i].string[0])+1);
+			memcpy(newStr, driverIDsStore[i].string[0], strlen(driverIDsStore[i].string[0])+1);
+			driverIDsStore[i].string[0] = newStr;
+		}
+
+		if(driverIDsStore[i].string[1] != NULL){
+			newStr = kmalloc(strlen(driverIDsStore[i].string[1])+1);
+			memcpy(newStr, driverIDsStore[i].string[1], strlen(driverIDsStore[i].string[1])+1);
+			driverIDsStore[i].string[1] = newStr;
+		}
+	}
 
     driver_node_t* driverNode = kmalloc(sizeof(driver_node_t));
     driverNode->driver = NULL;
@@ -135,36 +163,19 @@ bool device_driver_attach(device_t* device){
         node = (driver_node_t*)item->value;
         if(!node || !node->ids) continue;
 
-        for(;; i++){
-            if(node->ids[i] == 0) break;
-            switch(DEVICE_ID_CLASS(node->ids[i])){
-                case DEVICE_ID_CLASS_PS2:
-                case DEVICE_ID_CLASS_TIMER:
-                case DEVICE_ID_CLASS_BUS:
-                {
-                    if(node->ids[i] == device->id) status = true;
-                    break;
-                }
-                case DEVICE_ID_CLASS_PCI:
-                {
-                    if((DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR(device->id) || DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR_ANY) &&
-                    (DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE(device->id) || DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE_ANY) &&
-                    DEVICE_ID_PCI_CLASS(node->ids[i]) == DEVICE_ID_PCI_CLASS(device->id) &&
-                    DEVICE_ID_PCI_SUBCLASS(node->ids[i]) == DEVICE_ID_PCI_SUBCLASS(device->id) &&
-                    (DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF(device->id) || DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF_ANY)) status = true;
-                    break;
-                }
-                default:
-                    break;
-
-            }
-            if(status){
-                klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
-                if(!node->loaded) elf_load_driver(node);
-                break;
-            }
+		for(;; i++){
+			if(node->ids[i].class == DEVICE_ID_CLASS_NONE) break;
+			foreach(id, device->idList){
+				status = device_match_ids(node->ids[i], *((device_id_t*)id->value));
+				if(status){
+					klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
+					if(!node->loaded) elf_load_driver(node);
+    	            break;
+				}
+			}
+			if(status) break;
         }
-        if(!status) continue;
+
 
         driver = (device_driver_t*)node->driver;
         if(!driver || !driver->probe){

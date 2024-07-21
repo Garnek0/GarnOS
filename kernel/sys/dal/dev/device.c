@@ -65,6 +65,57 @@ device_t device_get_device(size_t i){
     return *device;
 }
 
+// id1 should always be the driver's devid.
+bool device_match_ids(device_id_t id1, device_id_t id2){
+	if(DEVICE_ID_CLASS(id1) != DEVICE_ID_CLASS(id2)) return false;
+	switch(DEVICE_ID_CLASS(id1)){
+		case DEVICE_ID_CLASS_PS2:
+		{
+			return true;
+			break;
+		}
+        case DEVICE_ID_CLASS_TIMER:
+		{
+            if(DEVICE_ID_TIMER_TYPE(id1) == DEVICE_ID_TIMER_TYPE(id2)) return true;
+            break;
+		}
+        case DEVICE_ID_CLASS_BUS:
+        {
+            if(DEVICE_ID_BUS_TYPE(id1) == DEVICE_ID_BUS_TYPE(id2)) return true;
+            break;
+		}
+        case DEVICE_ID_CLASS_PCI:
+		{
+            if((DEVICE_ID_PCI_VENDOR(id1) == DEVICE_ID_PCI_VENDOR(id2) || DEVICE_ID_PCI_VENDOR(id1) == DEVICE_ID_PCI_VENDOR_ANY) &&
+            (DEVICE_ID_PCI_DEVICE(id1) == DEVICE_ID_PCI_DEVICE(id2) || DEVICE_ID_PCI_DEVICE(id1) == DEVICE_ID_PCI_DEVICE_ANY) &&
+            DEVICE_ID_PCI_CLASS(id1) == DEVICE_ID_PCI_CLASS(id2) &&
+        	DEVICE_ID_PCI_SUBCLASS(id1) == DEVICE_ID_PCI_SUBCLASS(id2) &&
+            (DEVICE_ID_PCI_PROGIF(id1) == DEVICE_ID_PCI_PROGIF(id2) || DEVICE_ID_PCI_PROGIF(id1) == DEVICE_ID_PCI_PROGIF_ANY)) return true;
+            break;
+        }
+		case DEVICE_ID_CLASS_ACPI:
+		{
+			if(DEVICE_ID_ACPI_ID(id1) && DEVICE_ID_ACPI_ID(id2) && !strcmp(DEVICE_ID_ACPI_ID(id1), DEVICE_ID_ACPI_ID(id2))) return true;
+			break;
+		}
+        default:
+			return false;
+            break;
+	}
+	return false;
+}
+
+void device_id_initialise(device_t* device){
+	device->idList = list_create();
+}
+
+void device_id_add(device_t* device, device_id_t devid){
+	device_id_t* newDevID = kmalloc(sizeof(device_id_t));
+	*newDevID = devid;
+
+	list_insert(device->idList, (void*)newDevID);
+}
+
 bool device_attach_to_driver(driver_node_t* node){
     if(deviceCount == 0) return false;
 
@@ -79,39 +130,23 @@ bool device_attach_to_driver(driver_node_t* node){
         device = (device_t*)item->value;
         if(!device) continue;
 
-        for(;; i++){        
-            if(node->ids[i] == 0) break;
-            switch(DEVICE_ID_CLASS(node->ids[i])){
-                case DEVICE_ID_CLASS_PS2:
-                case DEVICE_ID_CLASS_TIMER:
-                case DEVICE_ID_CLASS_BUS:
-                {
-                    if(node->ids[i] == device->id) status = true;
-                    break;
-                }
-                case DEVICE_ID_CLASS_PCI:
-                {
-                    if((DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR(device->id) || DEVICE_ID_PCI_VENDOR(node->ids[i]) == DEVICE_ID_PCI_VENDOR_ANY) &&
-                    (DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE(device->id) || DEVICE_ID_PCI_DEVICE(node->ids[i]) == DEVICE_ID_PCI_DEVICE_ANY) &&
-                    DEVICE_ID_PCI_CLASS(node->ids[i]) == DEVICE_ID_PCI_CLASS(device->id) &&
-                    DEVICE_ID_PCI_SUBCLASS(node->ids[i]) == DEVICE_ID_PCI_SUBCLASS(device->id) &&
-                    (DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF(device->id) || DEVICE_ID_PCI_PROGIF(node->ids[i]) == DEVICE_ID_PCI_PROGIF_ANY)) status = true;
-                    break;
-                }
-                default:
-                    break;
-
-            }
-            if(status){
-                klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
-                if(!node->loaded) elf_load_driver(node);
-                break;
-            }
+        for(;; i++){
+			if(node->ids[i].class == DEVICE_ID_CLASS_NONE) break;
+			foreach(id, device->idList){
+				status = device_match_ids(node->ids[i], *((device_id_t*)id->value));
+				if(status){
+					klog("Found Possible Driver for %s\n", KLOG_OK, "DAL", device->name);
+					if(!node->loaded) elf_load_driver(node);
+    	            break;
+				}
+			}
+			if(status) break;
         }
         if(!status) continue;
 
         driver = (device_driver_t*)node->driver;
-        if(!driver || !driver->probe){
+
+		if(!driver || !driver->probe){
             continue;
         }
 

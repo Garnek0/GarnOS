@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "elf.h"
+#include "elfabi.h"
 #include <garn/fal/file.h>
 #include <garn/panic.h>
 #include <garn/ksym.h>
@@ -87,6 +88,52 @@ bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype){
 	return true;
 }
 
+int elf_calculate_relocations(Elf64_Ehdr* h, void* elf_module){
+	for(size_t i = 0; i < h->e_shnum; i++){
+		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
+		if(sh->sh_type != SHT_RELA) continue;
+
+		Elf64_Rela* table = (Elf64_Rela*)sh->sh_addr;
+
+		Elf64_Shdr* targetSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_info);
+
+		Elf64_Shdr* symbolSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
+		Elf64_Sym* symbolTable = (Elf64_Sym*)symbolSection->sh_addr;
+
+#define S (symbolTable[ELF64_R_SYM(table[rela].r_info)].st_value)
+#define A (table[rela].r_addend)
+#define P  ((uint64_t)target)
+
+		for (size_t rela = 0; rela < sh->sh_size / sizeof(Elf64_Rela); rela++) {
+			void* target = (void*)(table[rela].r_offset + targetSection->sh_addr);
+			uint64_t Relx86_64_64 = S + A;
+			uint32_t Relx86_64_32 = S + A;
+			uint32_t Relx86_64_PC32 = S + A - P;
+			switch (ELF64_R_TYPE(table[rela].r_info)) {
+				case R_X86_64_64:
+					memcpy(target, &Relx86_64_64, sizeof(uint64_t));
+					break;
+				case R_X86_64_32:
+					memcpy(target, &Relx86_64_32, sizeof(uint32_t));
+					break;
+				case R_X86_64_PC32:
+					memcpy(target, &Relx86_64_PC32, sizeof(uint32_t));
+					break;
+				default:
+					kerrno = ENOEXEC;
+					return -1;
+					break;
+			}
+		}
+	}
+
+#undef S
+#undef A
+#undef P
+
+	return 0;
+}
+
 //Common between elf_load_module() and elf_load_driver().
 static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* path, module_t** modData, device_driver_t** driverData){
 	kerrno = 0;
@@ -117,7 +164,6 @@ static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* p
 		Elf64_Sym* symTable = (Elf64_Sym*)sh->sh_addr;
 
 		for(size_t sym = 0; sym < sh->sh_size / sizeof(Elf64_Sym); sym++) {
-
 			if(symTable[sym].st_shndx != SHN_UNDEF && symTable[sym].st_shndx < SHN_LORESERVE) {
 				Elf64_Shdr* sh_hdr = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * symTable[sym].st_shndx);
 				symTable[sym].st_value = symTable[sym].st_value + sh_hdr->sh_addr;
@@ -158,49 +204,11 @@ static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* p
 	}
 
 	//calculate relocations
-	for(size_t i = 0; i < h->e_shnum; i++){
-		Elf64_Shdr* sh = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * i);
-		if(sh->sh_type != SHT_RELA) continue;
-
-		Elf64_Rela* table = (Elf64_Rela*)sh->sh_addr;
-
-		Elf64_Shdr* targetSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_info);
-
-		Elf64_Shdr* symbolSection = (Elf64_Shdr*)(elf_module + h->e_shoff + h->e_shentsize * sh->sh_link);
-		Elf64_Sym* symbolTable = (Elf64_Sym*)symbolSection->sh_addr;
-
-#define S (symbolTable[ELF64_R_SYM(table[rela].r_info)].st_value)
-#define A (table[rela].r_addend)
-#define P  ((uint64_t)target)
-
-		for (size_t rela = 0; rela < sh->sh_size / sizeof(Elf64_Rela); rela++) {
-			void* target = (void*)(table[rela].r_offset + targetSection->sh_addr);
-			uint64_t Relx86_64_64 = S + A;
-			uint32_t Relx86_64_32 = S + A;
-			uint32_t Relx86_64_PC32 = S + A - P;
-			switch (ELF64_R_TYPE(table[rela].r_info)) {
-				case R_X86_64_64:
-					memcpy(target, &Relx86_64_64, sizeof(uint64_t));
-					break;
-				case R_X86_64_32:
-					memcpy(target, &Relx86_64_32, sizeof(uint32_t));
-					break;
-				case R_X86_64_PC32:
-					memcpy(target, &Relx86_64_PC32, sizeof(uint32_t));
-					break;
-				default:
-					kerrno = ENOEXEC;
-					if(driverData) klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno), KLOG_FAILED);
-					else klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno), KLOG_FAILED);
-					return -1;
-					break;
-			}
-		}
+	if(elf_calculate_relocations(h, elf_module) != 0){
+		if(driverData) klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno));
+		else klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", path, kstrerror(kerrno));
+		return -1;
 	}
-
-#undef S
-#undef A
-#undef P
 
 	return 0;
 }
@@ -214,7 +222,7 @@ int elf_load_module(char* modulePath){
 	err = kerrno;
 
 	if(!file){
-		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(err), KLOG_FAILED);
+		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(err));
 		kmfree(h);
 		return -1;
 	}
@@ -223,7 +231,7 @@ int elf_load_module(char* modulePath){
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
-		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno), KLOG_FAILED);
+		klog("Could not load Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno));
 		kmfree(h);
 		return -1;
 	}
@@ -258,7 +266,7 @@ int elf_load_module(char* modulePath){
 				}
 			}
 			kerrno = EEXIST;
-			klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno), KLOG_FAILED);
+			klog("Could not load Kernel Module \'%s\': %s\n", KLOG_FAILED, "ML", modulePath, kstrerror(kerrno));
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}
@@ -292,7 +300,7 @@ int elf_load_driver(driver_node_t* node){
 	err = kerrno;
 
 	if(!file){
-		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(err), KLOG_FAILED);
+		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(err));
 		kmfree(h);
 		return -1;
 	}
@@ -301,7 +309,7 @@ int elf_load_driver(driver_node_t* node){
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){
-		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno), KLOG_FAILED);
+		klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno));
 		kmfree(h);
 		return -1;
 	}
@@ -337,7 +345,7 @@ int elf_load_driver(driver_node_t* node){
 				}
 			}
 			kerrno = EEXIST;
-			klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno), KLOG_FAILED);
+			klog("Could not load Driver \'%s\': %s\n", KLOG_FAILED, "ML", node->path, kstrerror(kerrno));
 			releaseLock(&moduleLoaderLock);
 			goto unload;
 		}

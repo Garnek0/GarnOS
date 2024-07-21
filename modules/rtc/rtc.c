@@ -23,6 +23,7 @@
 
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>
+#include <uacpi/uacpi.h>
 
 rtc_t rtc;
 
@@ -122,7 +123,15 @@ void fini(){
 }
 
 bool probe(device_t* device){
-    if(!(device->type == DEVICE_TYPE_SYSTEM_DEVICE) || !(device->bus == DEVICE_BUS_NONE)) return false;
+    if(!(device->type == DEVICE_TYPE_SYSTEM_DEVICE) || !(device->bus == DEVICE_BUS_ACPI)) return false;
+
+	uacpi_table FADTTable;
+    uacpi_table_find_by_signature(ACPI_FADT_SIGNATURE, &FADTTable);
+    struct acpi_fadt* FADT = (struct acpi_fadt*)FADTTable.virt_addr;
+
+	if(FADT!=NULL && (FADT->iapc_boot_arch & (1 << 5))){
+		return false;
+	}
 
     //Check for any CMOS POST errors (errors may also mean the RTC is missing)
     if(!(rtc_read_register(RTC_STATUS_D) & (1 << 7))){
@@ -148,6 +157,8 @@ bool probe(device_t* device){
 //initialise the rtc
 bool attach(device_t* device){
     if(!probe(device)) return false;
+
+	device->name = "Real-Time Clock";
 
     arch_disable_interrupts();
 
@@ -196,6 +207,6 @@ device_driver_t driver_metadata = {
 };
 
 device_id_t driver_ids[] = {
-    DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_RTC),
-    0
+    DEVICE_CREATE_ID_ACPI("PNP0B00"),
+    DEVICE_ID_LIST_END
 };

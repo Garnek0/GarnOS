@@ -53,6 +53,8 @@ bool probe(device_t* device){
 bool attach(device_t* device){
     if(!probe(device)) return false;
 
+	device->name = "Programmable Interval Timer";
+
     arch_outb(PIT_MODE_OR_COMMAND, 0b00110100);
 
     pit_set_frequency(1000); //1ms per tick
@@ -83,5 +85,5 @@ device_driver_t driver_metadata = {
 
 device_id_t driver_ids[] = {
     DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT),
-    0
+    DEVICE_ID_LIST_END
 };

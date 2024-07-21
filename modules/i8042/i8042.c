@@ -60,6 +60,8 @@ bool probe(device_t* device){
 bool attach(device_t* device){
     if(!probe(device)) return false;
 
+	device->name = "i8042 PS/2 Controller";
+
     uint8_t configByte; //used to store the configuration byte
     uint8_t res; //used to store test results
     bool dualChannel = false; //self explanatory
@@ -135,5 +137,5 @@ device_driver_t driver_metadata = {
 
 device_id_t driver_ids[] = {
     DEVICE_CREATE_ID_PS2,
-    0
+    DEVICE_ID_LIST_END
 };

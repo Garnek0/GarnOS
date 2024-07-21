@@ -11,6 +11,7 @@
 #include <garn/types.h>
 #include <garn/spinlock.h>
 #include <garn/dal/device-types.h>
+#include <garn/ds/list.h>
 
 #define MAX_PARTITIONS 128
 #define MAX_DRIVES 256
@@ -30,7 +31,13 @@
 struct _driver_node;
 struct _device;
 
-typedef uint64_t device_id_t;
+typedef struct {
+	uint8_t class;
+	uint8_t value8[4];
+	uint16_t value16[4];
+	uint32_t value32[4];
+ 	char* string[2];
+} device_id_t;
 
 typedef struct _device {
     char* name;
@@ -38,7 +45,7 @@ typedef struct _device {
     uint16_t type;
     void* data; //Data of the device
     void* driverData; //Drivers can store their own data in this field
-    device_id_t id;
+    list_t* idList;
     struct _driver_node* node;
 } device_t;
 
@@ -97,6 +104,9 @@ size_t device_get_device_count();
 device_t device_get_device(size_t i);
 bool device_attach_to_driver(struct _driver_node* node);
 int device_remove(device_t* device);
+bool device_match_ids(device_id_t id1, device_id_t id2);
+void device_id_initialise(device_t* device);
+void device_id_add(device_t* device, device_id_t devid);
 
 //driver
 

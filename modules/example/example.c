@@ -25,7 +25,7 @@ void fini(){
 //
 // Invalid devices for a certain driver are rarely
 // encountered due to the use of device IDs, but it is
-// still good practice to implement this function.
+// still good practice to properly implement this function.
 bool probe(device_t* device){
 	return false;
 }
@@ -35,6 +35,9 @@ bool probe(device_t* device){
 // This function should contain code for initialising
 // the device and return true if everything went well, 
 // or false otherwise.
+//
+// At this point, the driver should also set the name of the device, because it is
+// not guaranteed that the kernel will do this.
 bool attach(device_t* device){
 	return false;
 }
@@ -69,12 +72,12 @@ device_driver_t driver_metadata = {
 // Contains the driver's device IDs. If the module is not a
 // driver, then this array MUST NOT be defined. If the module
 // is a driver, then this array MUST be defined and the last element
-// MUST be 0.
+// MUST be DEVICE_ID_LIST_END.
 // This array MUST be named "driver_ids"
 device_id_t driver_ids[] = {
 	// Device IDs go here, for example:
 	// DEVICE_CREATE_ID_FOO(DEVICE_ID_FOO_BAR),
 	// DEVICE_CREATE_ID_FOO(DEVICE_ID_FOO_BAZ),
-	0
+	DEVICE_ID_LIST_END
 };
 

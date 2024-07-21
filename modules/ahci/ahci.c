@@ -77,6 +77,9 @@ bool attach(device_t* device){
 
     pci_config_write_word(pciConfig->location, 0x4, pciConfig->hdr.command);
 
+	//Set device name
+	device->name = "AHCI Controller";
+
     //Get ABAR and disable caching
 
     ahci_mem_t* abar = (ahci_mem_t*)((pciConfig->BAR5 & 0xFFFFFFF0) + hhdmOffset);
@@ -331,5 +334,5 @@ device_driver_t driver_metadata = {
 
 device_id_t driver_ids[] = {
     DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY,PCI_CLASS_STORAGE_CONTROLLER, PCI_SUBCLASS_SATA, 0x01),
-    0
+    DEVICE_ID_LIST_END
 };

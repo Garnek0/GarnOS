@@ -20,6 +20,7 @@
 #define DEVICE_BUS_UNDEFINED 0
 #define DEVICE_BUS_NONE 1
 #define DEVICE_BUS_PCI 2
+#define DEVICE_BUS_ACPI 3
 
 #define DEVICE_TYPE_UNDEFINED 0
 #define DEVICE_TYPE_STORAGE_CONTROLLER 1
@@ -42,45 +43,57 @@
 #define DEVICE_TYPE_SERIAL_BUS 18
 #define DEVICE_TYPE_DRIVE 19
 
-#define DEVICE_ID_CLASS(x) ((x & 0xFF00000000000000) >> 56)
+#define DEVICE_ID_CLASS(x) x.class
 #define DEVICE_ID_CLASS_NONE 0
+#define DEVICE_CREATE_ID_NONE (device_id_t){ .class = DEVICE_ID_CLASS_NONE }
+
+#define DEVICE_ID_LIST_END DEVICE_CREATE_ID_NONE
 
 //PS/2 Class
 
-#define DEVICE_ID_CLASS_PS2 0x01ull
+#define DEVICE_ID_CLASS_PS2 0x01
 
-#define DEVICE_CREATE_ID_PS2 (DEVICE_ID_CLASS_PS2 << 56)
+#define DEVICE_CREATE_ID_PS2 (device_id_t){ .class = DEVICE_ID_CLASS_PS2 }
 
 //PCI Class
 
-#define DEVICE_ID_CLASS_PCI 0x02ull
+#define DEVICE_ID_CLASS_PCI 0x02
 
-#define DEVICE_ID_PCI_VENDOR(x) ((x & 0x00FFFF0000000000) >> 40)
+#define DEVICE_ID_PCI_VENDOR(x) x.value16[0]
 #define DEVICE_ID_PCI_VENDOR_ANY 0xFFFF
-#define DEVICE_ID_PCI_DEVICE(x) ((x & 0x000000FFFF000000) >> 24)
+#define DEVICE_ID_PCI_DEVICE(x) x.value16[1]
 #define DEVICE_ID_PCI_DEVICE_ANY 0xFFFF
-#define DEVICE_ID_PCI_CLASS(x) ((x & 0x0000000000FF0000) >> 16)
-#define DEVICE_ID_PCI_SUBCLASS(x) ((x & 0x000000000000FF00) >> 8)
-#define DEVICE_ID_PCI_PROGIF(x) ((x & 0x00000000000000FF))
+#define DEVICE_ID_PCI_CLASS(x) x.value16[2]
+#define DEVICE_ID_PCI_SUBCLASS(x) x.value16[3]
+#define DEVICE_ID_PCI_PROGIF(x) x.value8[0]
 #define DEVICE_ID_PCI_PROGIF_ANY 0xFF
 
-#define DEVICE_CREATE_ID_PCI(vid, did, cls, scls, progif) ((DEVICE_ID_CLASS_PCI << 56) | ((uint64_t)vid << 40) | ((uint64_t)did << 24) | ((uint64_t)cls << 16) | ((uint64_t)scls << 8) | ((uint64_t)progif))
+#define DEVICE_CREATE_ID_PCI(vid, did, cls, scls, progif) (device_id_t){ .class = DEVICE_ID_CLASS_PCI, .value16[0] = vid, .value16[1] = did, .value16[2] = cls, .value16[3] = scls, .value8[0] = progif }
 
-//Timer Class
+//ACPI Class
 
-#define DEVICE_ID_CLASS_TIMER 0x03ull
+#define DEVICE_ID_CLASS_ACPI 0x03
 
-#define DEVICE_ID_TIMER_PIT 0x00ull
-#define DEVICE_ID_TIMER_RTC 0x01ull
+#define DEVICE_ID_ACPI_ID(x) x.string[0]
 
-#define DEVICE_CREATE_ID_TIMER(timer) ((DEVICE_ID_CLASS_TIMER << 56) | (uint64_t)timer)
+#define DEVICE_CREATE_ID_ACPI(id) (device_id_t){ .class = DEVICE_ID_CLASS_ACPI, .string[0] = id }
 
 //Bus Class
 
-#define DEVICE_ID_CLASS_BUS 0x04ull
+#define DEVICE_ID_CLASS_BUS 0x04
 
-#define DEVICE_ID_BUS_PCI 0x00ull
+#define DEVICE_ID_BUS_TYPE(x) x.value8[0]
+#define DEVICE_ID_BUS_PCI 0x00
 
-#define DEVICE_CREATE_ID_BUS(bustype) ((DEVICE_ID_CLASS_BUS << 56) | (uint64_t)bustype)
+#define DEVICE_CREATE_ID_BUS(bus) (device_id_t){ .class = DEVICE_ID_CLASS_BUS, .value8[0] = bus }
+
+//Timer Class
+
+#define DEVICE_ID_CLASS_TIMER 0x05
+
+#define DEVICE_ID_TIMER_TYPE(x) x.value8[0]
+#define DEVICE_ID_TIMER_PIT 0x00
+
+#define DEVICE_CREATE_ID_TIMER(timer) (device_id_t){ .class = DEVICE_ID_CLASS_TIMER, .value8[0] = timer }
 
 #endif //DAL_DEVICE_TYPES_H

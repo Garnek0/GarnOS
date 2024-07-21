@@ -26,7 +26,8 @@ static void smp_register_cpu_device(){
     cpuDevice->data = NULL;
     cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
-    cpuDevice->id = 0;
+	device_id_initialise(cpuDevice);
+	device_id_add(cpuDevice, DEVICE_CREATE_ID_NONE);
 
     //Use CPUID to get the CPU brand name
 

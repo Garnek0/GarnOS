@@ -101,6 +101,10 @@ bool attach(device_t* device){
 
     pci_config_write_word(pciConfig->location, 0x4, pciConfig->hdr.command);
 
+	//Set device name
+	
+	device->name = "IDE Controller";
+
     ide_channel_t* channelPrimary = kmalloc(sizeof(ide_channel_t));
     memset(channelPrimary, 0, sizeof(ide_channel_t));
     ide_channel_t* channelSecondary = kmalloc(sizeof(ide_channel_t));
@@ -314,5 +318,5 @@ device_driver_t driver_metadata = {
 
 device_id_t driver_ids[] = {
     DEVICE_CREATE_ID_PCI(DEVICE_ID_PCI_VENDOR_ANY, DEVICE_ID_PCI_DEVICE_ANY, PCI_CLASS_STORAGE_CONTROLLER, PCI_SUBCLASS_IDE, DEVICE_ID_PCI_PROGIF_ANY),
-    0
+    DEVICE_ID_LIST_END
 };

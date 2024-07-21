@@ -13,7 +13,7 @@
 #include <garn/types.h>
 
 typedef struct {
-	char* name;
+	const char* name;
 	void (*init)(void);
 	void (*fini)(void);
 } module_t;
