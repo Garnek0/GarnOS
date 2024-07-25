@@ -77,46 +77,48 @@ bool fat_attach(drive_t* drive, size_t partition){
     memcpy(fat12_16ebpb, (void*)buf->data, sizeof(fat12_16_ebpb_t));
     memcpy(fat32ebpb, (void*)buf->data, sizeof(fat32_ebpb_t));
 
-    vfs_t filesys;
-    filesys.drive = drive;
-    filesys.partition = partition;
-    filesys.fsOperations.open = fat_open;
-    filesys.fsOperations.close = fat_close;
-    filesys.fsOperations.write = fat_write;
-    filesys.fsOperations.read = fat_read;
-    filesys.fsOperations.mkdir = fat_mkdir;
-    filesys.fsOperations.rmdir = fat_rmdir;
+    vfs_t* filesys = kmalloc(sizeof(vfs_t));
+	memset(filesys, 0, sizeof(vfs_t));
+
+    filesys->drive = drive;
+    filesys->partition = partition;
+    filesys->fsOperations.open = fat_open;
+    filesys->fsOperations.close = fat_close;
+    filesys->fsOperations.write = fat_write;
+    filesys->fsOperations.read = fat_read;
+    filesys->fsOperations.mkdir = fat_mkdir;
+    filesys->fsOperations.rmdir = fat_rmdir;
 
     if(bpb->bytesPerSector != 512){
         klog("Filesystem on drive \"%s\" partition %d has an unsupported sector size of %d Bytes per secotr!\n", KLOG_WARNING, "FAT", drive->name, partition, bpb->bytesPerSector);
         goto fail;
     }
 
-    if(bpb->totalSects16) filesys.size = bpb->totalSects16*bpb->bytesPerSector;
-    else filesys.size = bpb->totalSects32*bpb->bytesPerSector;
+    if(bpb->totalSects16) filesys->size = bpb->totalSects16*bpb->bytesPerSector;
+    else filesys->size = bpb->totalSects32*bpb->bytesPerSector;
 
-    context->totalSectors = filesys.size/bpb->bytesPerSector;
+    context->totalSectors = filesys->size/bpb->bytesPerSector;
     context->FATSize = (bpb->sectsPerFAT == 0) ? fat32ebpb->sectsPerFAT : bpb->sectsPerFAT;
     context->rootDirSectors = ((bpb->rootDirEntryCount * 32) + (bpb->bytesPerSector - 1)) / bpb->bytesPerSector; //FAT12 and FAT16 only
     context->firstDataSector = bpb->reservedSectors + (context->FATSize * bpb->FATCount) + context->rootDirSectors;
     context->firstRootDirSector = bpb->reservedSectors + (context->FATSize * bpb->FATCount);
     context->firstFATSector = bpb->reservedSectors;
     context->dataSectors = context->totalSectors - (bpb->reservedSectors + (bpb->FATCount * context->FATSize) + context->rootDirSectors);
-    context->clusterCount = (filesys.size - (bpb->reservedSectors + context->FATSize + context->rootDirSectors))/bpb->sectsPerCluster;
+    context->clusterCount = (filesys->size - (bpb->reservedSectors + context->FATSize + context->rootDirSectors))/bpb->sectsPerCluster;
     context->clusterSize = bpb->sectsPerCluster * bpb->bytesPerSector;
     context->sectorsPerCluster = bpb->sectsPerCluster;
     context->bytesPerSector = bpb->bytesPerSector;
 
     //correct size
-    filesys.size = context->dataSectors*512;
+    filesys->size = context->dataSectors*512;
 
     if(context->clusterCount < 4085){
-        memcpy(filesys.type, FILESYS_TYPE_FAT12, strlen(FILESYS_TYPE_FAT12)+1);
+        memcpy(filesys->type, FILESYS_TYPE_FAT12, strlen(FILESYS_TYPE_FAT12)+1);
         context->ebpb = (void*)fat12_16ebpb;
-        filesys.context = (void*)context;
+        filesys->context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            memcpy(&filesys.name, "No Label", 9);
+            memcpy(&filesys->name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -129,7 +131,7 @@ bool fat_attach(drive_t* drive, size_t partition){
                 else break;
             }
 
-            memcpy(filesys.name, tempLabel, 11);
+            memcpy(filesys->name, tempLabel, 11);
 
             goto success;
         } else {
@@ -137,12 +139,12 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
     } else if(context->clusterCount < 65525){
-        memcpy(filesys.type, FILESYS_TYPE_FAT16, strlen(FILESYS_TYPE_FAT16)+1);
+        memcpy(filesys->type, FILESYS_TYPE_FAT16, strlen(FILESYS_TYPE_FAT16)+1);
         context->ebpb = (void*)fat12_16ebpb;
-        filesys.context = (void*)context;
+        filesys->context = (void*)context;
         kmfree(fat32ebpb);
         if(fat12_16ebpb->signature == 0x28){
-            memcpy(&filesys.name, "No Label", 9);
+            memcpy(&filesys->name, "No Label", 9);
 
             goto success;
         } else if(fat12_16ebpb->signature == 0x29){
@@ -155,7 +157,7 @@ bool fat_attach(drive_t* drive, size_t partition){
                 else break;
             }
 
-            memcpy(filesys.name, tempLabel, 11);
+            memcpy(filesys->name, tempLabel, 11);
 
             goto success;
         } else {
@@ -163,16 +165,16 @@ bool fat_attach(drive_t* drive, size_t partition){
             goto fail;
         }
     } else {
-        memcpy(filesys.type, FILESYS_TYPE_FAT32, strlen(FILESYS_TYPE_FAT32)+1);
+        memcpy(filesys->type, FILESYS_TYPE_FAT32, strlen(FILESYS_TYPE_FAT32)+1);
         context->ebpb = (void*)fat32ebpb;
-        filesys.context = (void*)context;
+        filesys->context = (void*)context;
         kmfree(fat12_16ebpb);
         if(fat32ebpb->fatVer != 0){
             klog("Filesystem on drive \"%s\" partition %d is Corrupted or Unsupported!\n", KLOG_WARNING, "FAT", drive->name, partition);
             goto fail;
         }
         if(fat32ebpb->signature == 0x28){
-            memcpy(&filesys.name, "No Label", 9);
+            memcpy(&filesys->name, "No Label", 9);
 
             goto success;
         } else if(fat32ebpb->signature == 0x29){
@@ -185,7 +187,7 @@ bool fat_attach(drive_t* drive, size_t partition){
                 else break;
             }
 
-            memcpy(filesys.name, tempLabel, 11);
+            memcpy(filesys->name, tempLabel, 11);
 
             goto success;
         } else {
@@ -199,7 +201,7 @@ fail:
     return false;
 
 success:
-    klog("Found FAT system on drive \"%s\" partition %d. (FAT Version: %s)\n", KLOG_OK, "FAT", drive->name, partition, filesys.type);
+    klog("Found FAT system on drive \"%s\" partition %d. (FAT Version: %s)\n", KLOG_OK, "FAT", drive->name, partition, filesys->type);
     bcache_release(buf);
     vfs_mount(filesys);
     return true;

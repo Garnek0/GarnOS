@@ -13,9 +13,8 @@
 #include <garn/kstdio.h>
 
 bool checksysfs_check(){
-    vfs_t* sysfs = vfs_get(0);
+    vfs_t* sysfs = vfs_get_by_fid(0);
     if(!sysfs) return false;
-    if(!sysfs->_valid) return false;
     if(!sysfs->drive) return false;
     if(!sysfs->drive->partitions[sysfs->partition].isSystemPartition){
         klog("System FS is not Present!\n", KLOG_FAILED, "checksysfs");

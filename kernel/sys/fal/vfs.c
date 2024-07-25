@@ -14,61 +14,83 @@
 #include <garn/mm.h>
 #include <garn/kstdio.h>
 
-vfs_t vfs[MAX_VFS];
-size_t nextAvailFSIndex;
+vfs_t* rootVFS;
+vfs_t* lastVFS;
 
-static size_t _vfs_get_next_avail_index(){
-    for(size_t i = 0; i < MAX_VFS; i++){
-        if(!vfs[i]._valid) return i;
-    }
-
-    panic("Too many filesystems mounted! Limit of %d Filesystems exceeded!", "FAL", MAX_VFS);
-    return (size_t)-1;
+static int _vfs_gen_fid(){
+	static size_t fid = 0;
+	return fid++;
 }
 
-vfs_t* vfs_mount(vfs_t filesys){
-    filesys._valid = true;
-    
-    vfs_t* fsAddr;
+int vfs_mount(vfs_t* vfs){
 
-    filesys.lock = 0;
+	// If vfs is the system partition FS, then we need to make sure it has fid 0
+	if(vfs->drive && vfs->drive->partitions[vfs->partition].isSystemPartition){
+        vfs->fid = 0;
 
-    if(filesys.drive && filesys.drive->partitions[filesys.partition].isSystemPartition){
-        vfs[0] = filesys;
-        vfs[0].mountNumber = 0;
-        fsAddr = &vfs[0];
+		//FIXME: This has the same problem as vfs_unmount()
+		vfs->next = rootVFS->next;
+		if(rootVFS == lastVFS) lastVFS = vfs;
+		if(!rootVFS) kmfree(rootVFS);
+		rootVFS = vfs;
 
-        klog("Mounted system FS %d:/ (%s).\n", KLOG_OK, "FAL", vfs[0].mountNumber, vfs[0].name);
+        klog("Mounted system FS \"%s\" (fid: 0).\n", KLOG_OK, "FAL", vfs->name);
 
         if(device_driver_autoreg("0:/drv/autoreg.txt") != 0){
             panic("autoreg.txt not found on system fs!", "FAL");
         }
 
-        return fsAddr;
+        return 0;
     }
 
-	vfs[nextAvailFSIndex] = filesys;
-    vfs[nextAvailFSIndex].mountNumber = nextAvailFSIndex;
-    fsAddr = &vfs[nextAvailFSIndex];
+	if(!rootVFS){
+		rootVFS = lastVFS = vfs;
+		rootVFS->next = NULL;
+	} else {
+		lastVFS->next = vfs;
+	}
 
-    klog("Mounted FS %d:/ (%s).\n", KLOG_OK, "FAL", vfs[nextAvailFSIndex].mountNumber, vfs[nextAvailFSIndex].name);
+    vfs->fid = _vfs_gen_fid();
 
-    nextAvailFSIndex = _vfs_get_next_avail_index();
+    klog("Mounted FS \"%s\" (fid: %d).\n", KLOG_OK, "FAL", vfs->name, vfs->fid);
 
-    return fsAddr;
+    return 0;
 }
 
-void vfs_unmount(vfs_t* filesys){
-    lock(filesys->lock, {
-        filesys->_valid = false;
-        nextAvailFSIndex = _vfs_get_next_avail_index();
-    });
+int vfs_unmount(vfs_t* vfs){
+	//FIXME: This just destroys the vfs. Maybe not the safest approach.
+	vfs_t* prev = NULL;
+	for(vfs_t* i = rootVFS; i; i = i->next){
+		if(i == vfs){
+			vfs_t* next = i->next;
+			if(prev){
+				lock(prev->lock, {
+					prev->next = i->next;
+				});
+			} else {
+				// Something really bad happened if there's an attempt to unmount the ROOT VFS!!
+				klog("Attempt to unmount the root VFS!\n", KLOG_WARNING, "FAL");
+				return 1;
+			}
+			kmfree(i);
+			return 0;
+		}
+		prev = i;
+	}
+
+	return 1;	
 }
 
-vfs_t* vfs_get(size_t index){
-    return &vfs[index];
+vfs_t* vfs_get_by_fid(size_t fid){
+    for(vfs_t* i = rootVFS; i; i = i->next){
+		if(i->fid == fid){
+			return i;
+		}
+	}
+
+	return NULL;
 }
 
-vfs_t* vfs_get_all(){
-    return vfs;
+vfs_t* vfs_get_root(){
+	return rootVFS;
 }

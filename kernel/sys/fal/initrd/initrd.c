@@ -114,17 +114,17 @@ int initrd_mkdir(vfs_t* fs, char* path){
 
 //initialise initrd
 void initrd_init(){
-    vfs_t initrdFS;
-    memset(&initrdFS, 0, sizeof(vfs_t));
+    vfs_t* initrdFS = kmalloc(sizeof(vfs_t));
+    memset(initrdFS, 0, sizeof(vfs_t));
 
-    memcpy(initrdFS.name, "init", 5);
-    memcpy(initrdFS.type, FILESYS_TYPE_INIT_USTAR, strlen(FILESYS_TYPE_INIT_USTAR)+1);
-    initrdFS.fsOperations.open = initrd_open;
-    initrdFS.fsOperations.close = initrd_close;
-    initrdFS.fsOperations.read = initrd_read;
-    initrdFS.fsOperations.write = initrd_write;
-    initrdFS.fsOperations.mkdir = initrd_mkdir;
-    initrdFS.fsOperations.rmdir = initrd_rmdir;
+    memcpy(initrdFS->name, "init", 5);
+    memcpy(initrdFS->type, FILESYS_TYPE_INIT_USTAR, strlen(FILESYS_TYPE_INIT_USTAR)+1);
+    initrdFS->fsOperations.open = initrd_open;
+    initrdFS->fsOperations.close = initrd_close;
+    initrdFS->fsOperations.read = initrd_read;
+    initrdFS->fsOperations.write = initrd_write;
+    initrdFS->fsOperations.mkdir = initrd_mkdir;
+    initrdFS->fsOperations.rmdir = initrd_rmdir;
 
     //fetch module address from limine
     initrd = (initrd_tar_header_t*)(module_request.response->modules[0]->address);
@@ -132,8 +132,8 @@ void initrd_init(){
         panic(INITRD_FILENAME" not found!", "initrd");
     }
 
-    initrdFS.context = (void*)initrd;
-    initrdFS.size = initrd_tar_conv_number(initrd->size, 11);
+    initrdFS->context = (void*)initrd;
+    initrdFS->size = initrd_tar_conv_number(initrd->size, 11);
 
     vfs_mount(initrdFS);
 }

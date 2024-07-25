@@ -69,8 +69,8 @@ __attribute__((packed))
 #endif
 dirent_t;
 
-void vnode_list_add(vnode_t* file);
-void vnode_list_remove(vnode_t* file);
+void vnode_list_add(vnode_t* vnode);
+void vnode_list_remove(vnode_t* vnode);
 
 //open file
 vnode_t* vnode_open(char* path, int flags, int mode);

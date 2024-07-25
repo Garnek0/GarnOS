@@ -34,14 +34,12 @@ int tty_close(vfs_t* self, vnode_t* file){
 void tty_init(){
     vfs_t* ttyfs = kmalloc(sizeof(vfs_t));
     memset(ttyfs, 0, sizeof(vfs_t));
-    ttyfs->_valid = true;
+
     ttyfs->size = 0;
 
     ttyfs->fsOperations.write = tty_write;
     ttyfs->fsOperations.read = tty_read;
     ttyfs->fsOperations.close = tty_close;
-
-    ttyfs->mountNumber = 0;
 
     tty = kmalloc(sizeof(vnode_t));
     memset(tty, 0, sizeof(vnode_t));

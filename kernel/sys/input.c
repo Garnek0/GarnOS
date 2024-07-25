@@ -48,13 +48,10 @@ void input_init(){
 
     vfs_t* kbdfs = kmalloc(sizeof(vfs_t));
     memset(kbdfs, 0, sizeof(vfs_t));
-    kbdfs->_valid = true;
     kbdfs->size = INPUT_RB_SIZE;
 
     kbdfs->fsOperations.read = input_rb_read;
     kbdfs->fsOperations.close = input_rb_close;
-
-    kbdfs->mountNumber = 0;
 
     kbd = kmalloc(sizeof(vnode_t));
     memset(kbd, 0, sizeof(vnode_t));

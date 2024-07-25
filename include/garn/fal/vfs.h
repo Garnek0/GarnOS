@@ -8,8 +8,6 @@
 #ifndef VFS_H
 #define VFS_H
 
-#define MAX_VFS 256
-
 #include <garn/types.h>
 #include <garn/dal/dal.h>
 #include <garn/spinlock.h>
@@ -47,9 +45,7 @@ typedef struct _vfs {
 
     vfs_operations_t fsOperations;
 
-    //should not be touched by drivers
-    bool _valid;
-    size_t mountNumber;
+	size_t fid; //Filesystem ID
 
     struct _drive* drive;
     size_t partition; //partition index in the drive
@@ -57,11 +53,13 @@ typedef struct _vfs {
     spinlock_t lock;
 
     void* context;
+
+	struct _vfs* next;
 } vfs_t;
 
-vfs_t* vfs_mount(vfs_t filesys);
-void vfs_unmount(vfs_t* filesys);
-vfs_t* vfs_get(size_t index);
-vfs_t* vfs_get_all();
+int vfs_mount(vfs_t* vfs);
+int vfs_unmount(vfs_t* vfs);
+vfs_t* vfs_get_by_fid(size_t fid);
+vfs_t* vfs_get_root();
 
 #endif //VFS_H

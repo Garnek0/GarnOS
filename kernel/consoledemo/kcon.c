@@ -89,11 +89,9 @@ static void console_cpu(){
 }
 
 static void console_fs(){
-    vfs_t* vfs = vfs_get_all();
-    for(size_t i = 0; i < MAX_VFS; i++){
-        if(!vfs[i]._valid) continue;
-        kprintf("%d: %s - Size: %dKiB (%d Bytes)\n", vfs[i].mountNumber, vfs[i].name, vfs[i].size/1024, vfs[i].size);
-    }
+	for(vfs_t* i = vfs_get_root(); i; i = i->next){
+		 kprintf("FID=%d: %s - Size: %dKiB (%d Bytes)\n", i->fid, i->name, i->size/1024, i->size);
+	}
 }
 
 static void console_drives(){

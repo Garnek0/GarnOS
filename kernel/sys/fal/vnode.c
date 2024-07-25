@@ -18,57 +18,59 @@
 vnode_t* openFiles;
 vnode_t* openFileLast;
 
-void vnode_list_add(vnode_t* file){
+void vnode_list_add(vnode_t* vnode){
     if(openFiles == NULL){
-        openFileLast = openFiles = file;
+        openFileLast = openFiles = vnode;
         openFiles->next = NULL;
         openFiles->prev = NULL;
     } else {
-        openFileLast->next = file;
-        file->prev = openFileLast;
-        openFileLast = file;
+        openFileLast->next = vnode;
+        vnode->prev = openFileLast;
+        openFileLast = vnode;
         openFileLast->next = NULL;
     }
 }
 
-void vnode_list_remove(vnode_t* file){
-    if(openFileLast == file) openFileLast = file->prev;
-    if(openFiles == file) openFiles = file->next;
+void vnode_list_remove(vnode_t* vnode){
+    if(openFileLast == vnode) openFileLast = vnode->prev;
+    if(openFiles == vnode) openFiles = vnode->next;
 
-    if(file->next) file->next->prev = file->prev;
-    if(file->prev) file->prev->next = file->next;
+    if(vnode->next) vnode->next->prev = vnode->prev;
+    if(vnode->prev) vnode->prev->next = vnode->next;
 }
 
 //open file
 vnode_t* vnode_open(char* path, int flags, int mode){
     kerrno = 0;
 
-    uint8_t fsNumber = 0;
+    size_t fid = 0;
 
     if(path[0] > '9' || path[0] < '0'){
-        goto invalidfsindex;
+        goto invalidfid;
     }
 
     while(path[0] <= '9' && path[0] >= '0'){
-        fsNumber *= 10;
-        fsNumber += (uint8_t)(path[0] - '0');
+        fid *= 10;
+        fid += (uint8_t)(path[0] - '0');
         path++;
     }
     //drive number should be followed by ":/"
     if(path[0] != ':'){
-        goto invalidfsindex;
+        goto invalidfid;
     }
     path++;
     if(path[0] != '/'){
-        goto invalidfsindex;
+        goto invalidfid;
     }
     path++;
-    //make sure the filesystem exists
-    vfs_t* fs = vfs_get(fsNumber);
-	if(!fs->_valid){
+
+    //get the vfs
+    vfs_t* fs = vfs_get_by_fid(fid);
+	if(!fs){
 		kerrno = ENOENT;
 		return NULL;
 	}
+
     lock(fs->lock, {
         for(vnode_t* i = openFiles; i != NULL; i = i->next){
             if(i->fs == fs && !strcmp(i->filename, path)){
@@ -111,7 +113,7 @@ vnode_t* vnode_open(char* path, int flags, int mode){
         return file;
     });
 
-invalidfsindex:
+invalidfid:
     kerrno = ENOENT;
     return NULL;
 }
