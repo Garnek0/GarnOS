@@ -46,7 +46,11 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
                 i->drive = drive;
                 i->valid = true;
                 i->dirty = false;
-                bcache_read(i);
+                if(bcache_read(i) != 0){
+					i->refCount = 0;
+					releaseLock(&bcache.spinlock);
+					return NULL;
+				}
                 releaseLock(&bcache.spinlock);
                 return i;
             }

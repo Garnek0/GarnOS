@@ -14,15 +14,19 @@
 
 //TODO: Support sector sizes != 512 Bytes ???????
 
-size_t fat12_next_cluster(filesys_t* ilesys, fat_context_t* context, size_t cluster){
+size_t fat12_next_cluster(vfs_t* ilesys, fat_context_t* context, size_t cluster){
     //TODO: Do this
     return 0;
 }
 
-size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
+size_t fat16_next_cluster(vfs_t* vfs, fat_context_t* context, size_t cluster){
     size_t sectorOffset = cluster/256;
 
-    bcache_buf_t* buf = bcache_get(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+    bcache_buf_t* buf = bcache_get(vfs->drive, vfs->drive->partitions[vfs->partition].startLBA + context->firstFATSector + sectorOffset);
+	if(!buf){
+		klog("Could not get next cluster!\n", KLOG_FAILED, "FAT");
+		return 0;
+	}
 
     uint16_t* fatBuf = (uint16_t*)buf->data;
 
@@ -34,10 +38,14 @@ size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t clu
     return fatBuf[cluster%256];
 }
 
-size_t fat32_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster){
+size_t fat32_next_cluster(vfs_t* vfs, fat_context_t* context, size_t cluster){
     size_t sectorOffset = cluster/128;
 
-    bcache_buf_t* buf = bcache_get(filesys->drive, filesys->drive->partitions[filesys->partition].startLBA + context->firstFATSector + sectorOffset);
+    bcache_buf_t* buf = bcache_get(vfs->drive, vfs->drive->partitions[vfs->partition].startLBA + context->firstFATSector + sectorOffset);
+	if(!buf){
+		klog("Could not get next cluster!\n", KLOG_FAILED, "FAT");
+		return 0;
+	}
 
     uint32_t* fatBuf = (uint32_t*)buf->data;
 

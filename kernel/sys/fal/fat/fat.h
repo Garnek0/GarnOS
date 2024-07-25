@@ -7,8 +7,8 @@
 #ifndef FAT_H
 #define FAT_H
 
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <garn/dal/dal.h>
 #include <garn/dal/bcache.h>
 
@@ -127,23 +127,23 @@ fat_lfn_t;
 
 typedef struct {
     size_t startCluster;
-} fat_file_fs_data_t;
+} fat_vnode_fs_data_t;
 
-size_t fat12_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster);
-size_t fat16_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster);
-size_t fat32_next_cluster(filesys_t* filesys, fat_context_t* context, size_t cluster);
+size_t fat12_next_cluster(vfs_t* filesys, fat_context_t* context, size_t cluster);
+size_t fat16_next_cluster(vfs_t* filesys, fat_context_t* context, size_t cluster);
+size_t fat32_next_cluster(vfs_t* filesys, fat_context_t* context, size_t cluster);
 char* fat_parse_sfn(fat_directory_t* sd1);
 bool fat_parse_and_compare_sfn(fat_directory_t* sd1, char* s2);
 char* fat_parse_lfn(fat_lfn_t* lfn);
 
 bool fat_parse_and_compare_lfn(fat_lfn_t* lfn, char* s2);
 
-file_t* fat_open(filesys_t* self, char* path, int flags, int mode);
-ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset);
-ssize_t fat_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset);
-int fat_close(filesys_t* self, file_t* file);
-int fat_mkdir(filesys_t* self, char* path);
-int fat_rmdir(filesys_t* self, char* path);
+vnode_t* fat_open(vfs_t* self, char* path, int flags, int mode);
+ssize_t fat_read(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offset);
+ssize_t fat_write(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offset);
+int fat_close(vfs_t* self, vnode_t* file);
+int fat_mkdir(vfs_t* self, char* path);
+int fat_rmdir(vfs_t* self, char* path);
 
 bool fat_probe(drive_t* drive, size_t partition);
 bool fat_attach(drive_t* drive, size_t partition);

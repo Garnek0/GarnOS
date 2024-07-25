@@ -15,7 +15,7 @@
 #include <garn/term/term.h>
 #include <garn/dal/dal.h>
 #include <garn/ds/list.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vfs.h>
 #include <garn/power.h>
 
 list_t* commandList;
@@ -46,9 +46,8 @@ static void console_mm(){
     size_t usablePages = pmm_get_usable_pages_count();
     size_t usedPages = pmm_get_used_pages_count();
     size_t freePages = pmm_get_free_pages_count();
-    kprintf("available pages: %d (%uKiB free memory)\n"
-            "used pages: %d (%uKiB used memory)\n"
-            "kheap size: %uKiB\n", usablePages, (usablePages*PAGE_SIZE/1024), usedPages, (usedPages*PAGE_SIZE/1024), (kheap_get_size()/1024));
+    kprintf("%dMiB/%dMiB used\n"
+            "kheap size: %dMiB\n", (usedPages*PAGE_SIZE/1024/1024), (usablePages*PAGE_SIZE/1024/1024), (kheap_get_size()/1024/1024));
 }
 
 static void console_ver(){
@@ -90,10 +89,10 @@ static void console_cpu(){
 }
 
 static void console_fs(){
-    filesys_t* filesys = filesys_get_all();
-    for(size_t i = 0; i < MAX_FILESYSTEMS; i++){
-        if(!filesys[i]._valid) continue;
-        kprintf("%d: %s - Size: %dKiB (%d Bytes)\n", filesys[i].mountNumber, filesys[i].name, filesys[i].size/1024, filesys[i].size);
+    vfs_t* vfs = vfs_get_all();
+    for(size_t i = 0; i < MAX_VFS; i++){
+        if(!vfs[i]._valid) continue;
+        kprintf("%d: %s - Size: %dKiB (%d Bytes)\n", vfs[i].mountNumber, vfs[i].name, vfs[i].size/1024, vfs[i].size);
     }
 }
 

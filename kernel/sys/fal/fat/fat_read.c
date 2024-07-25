@@ -12,8 +12,8 @@
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
 
-ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
-    fat_file_fs_data_t* fsData = (fat_file_fs_data_t*)file->fsData;
+ssize_t fat_read(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offset){
+    fat_vnode_fs_data_t* fsData = (fat_vnode_fs_data_t*)file->fsData;
     fat_context_t* context = self->context;
 
     const size_t partitionOffset = self->drive->partitions[self->partition].startLBA; //must be added to read from the correct partition
@@ -36,7 +36,7 @@ ssize_t fat_read(filesys_t* self, file_t* file, size_t size, void* buf, size_t o
         uint64_t recordOffset = 0;
         dirent_t dirent;
 
-        fat_file_fs_data_t* fsData = (fat_file_fs_data_t*)file->fsData;
+        fat_vnode_fs_data_t* fsData = (fat_vnode_fs_data_t*)file->fsData;
         dirent.inode = fsData->startCluster;
 
         size_t trueOffset = 0;

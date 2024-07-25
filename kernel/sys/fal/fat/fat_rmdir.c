@@ -12,6 +12,6 @@
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
 
-int fat_rmdir(filesys_t* self, char* path){
+int fat_rmdir(vfs_t* self, char* path){
     return 0;
 }

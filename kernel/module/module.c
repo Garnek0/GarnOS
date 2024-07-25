@@ -12,7 +12,7 @@
 #include <garn/mm.h>
 #include <garn/arch.h>
 #include <sys/fal/initrd/initrd.h>
-#include <garn/fal/file.h>
+#include <garn/fal/vnode.h>
 #include <garn/spinlock.h>
 #include <garn/ds/list.h>
 #include <garn/kstdio.h>

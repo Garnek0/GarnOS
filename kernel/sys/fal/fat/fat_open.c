@@ -13,7 +13,7 @@
 #include <garn/kstdio.h>
 #include <stdint.h>
 
-file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
+vnode_t* fat_open(vfs_t* self, char* path, int flags, int mode){
     kerrno = 0;
 
 	// Get the FS context.
@@ -55,10 +55,10 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
         // If path is NULL, then we must get the root dir.
         if(strlen(path) == 0){
 			// Allocate the file structure
-            file_t* file = kmalloc(sizeof(file_t));
-            memset(file, 0, sizeof(file_t));
+            vnode_t* file = kmalloc(sizeof(vnode_t));
+            memset(file, 0, sizeof(vnode_t));
 
-            fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
+            fat_vnode_fs_data_t* fsData = kmalloc(sizeof(fat_vnode_fs_data_t));
 
 			// This block of code calculates the size of the root dir.
             {
@@ -173,9 +173,9 @@ file_t* fat_open(filesys_t* self, char* path, int flags, int mode){
                     kerrno = ENOTDIR;
                     goto fail;
                 }
-                file_t* file = kmalloc(sizeof(file_t));
-                memset(file, 0, sizeof(file_t));
-                fat_file_fs_data_t* fsData = kmalloc(sizeof(fat_file_fs_data_t));
+                vnode_t* file = kmalloc(sizeof(vnode_t));
+                memset(file, 0, sizeof(vnode_t));
+                fat_vnode_fs_data_t* fsData = kmalloc(sizeof(fat_vnode_fs_data_t));
                 if(flags & O_DIRECTORY){
                     int e = 0;
                     int clus = currentCluster;

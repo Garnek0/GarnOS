@@ -12,6 +12,6 @@
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
 
-ssize_t fat_write(filesys_t* self, file_t* file, size_t size, void* buf, size_t offset){
+ssize_t fat_write(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offset){
     return 0;
 }

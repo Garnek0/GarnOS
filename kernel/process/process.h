@@ -14,7 +14,7 @@
 #include <garn/types.h>
 #include <process/thread/thread.h>
 #include <sys/fal/fal-internals.h>
-#include <garn/fal/file.h>
+#include <garn/fal/vnode.h>
 #include <garn/mm.h>
 
 #define PROCESS_STATUS_RUNNING 0

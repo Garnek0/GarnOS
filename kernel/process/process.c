@@ -64,7 +64,7 @@ void process_create_init(){
 
     //Create fd table
     initProcess->fdMax = PROCESS_INIT_FD-1;
-    initProcess->fdTable = file_alloc_fd_table(PROCESS_INIT_FD);
+    initProcess->fdTable = vnode_alloc_fd_table(PROCESS_INIT_FD);
     
     //Set rootDir and cwd
     initProcess->cwd = strdup("0:/");
@@ -190,7 +190,7 @@ int sys_fork(stack_frame_t* regs){
     newProcess->status = PROCESS_STATUS_RUNNING;
 
     newProcess->fdMax = currentProcess->fdMax;
-    newProcess->fdTable = file_alloc_fd_table(newProcess->fdMax+1);
+    newProcess->fdTable = vnode_alloc_fd_table(newProcess->fdMax+1);
 
     newProcess->cwd = strdup(currentProcess->cwd);
 
@@ -271,7 +271,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     klog("execveing Process '%s'...\n", KLOG_INFO, "proc", currentProcess->name);
 
-    path = file_get_absolute_path(currentProcess->cwd, (char*)path);
+    path = vnode_get_absolute_path(currentProcess->cwd, (char*)path);
     if(!path) return -kerrno;
 
     currentProcess->name = strdup(path);
@@ -279,9 +279,9 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     //Check if 'path' is valid
 
-    file_t* file = file_open((char*)path, O_RDONLY, 0);
+    vnode_t* file = vnode_open((char*)path, O_RDONLY, 0);
     if(!file) return -kerrno;
-    file_close(file);
+    vnode_close(file);
 
     //Count and realloc args and env vars
 

@@ -17,8 +17,8 @@
 #include <garn/dal/dal.h>
 #include <garn/term/term.h>
 #include <garn/input.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <garn/config.h>
 #include <garn/arch.h>
 

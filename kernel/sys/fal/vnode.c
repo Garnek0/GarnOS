@@ -1,24 +1,24 @@
 /*  
-*   File: file.c
+*   File: vnode.c
 *
 *   Author: Garnek
 *   
-*   Description: File Abstraction
+*   Description: Vnode Implementation (File abstraction)
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "fal-internals.h"
 
-#include <garn/fal/file.h>
+#include <garn/fal/vnode.h>
 #include <garn/mm.h>
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 #include <process/sched/sched.h>
 
-file_t* openFiles;
-file_t* openFileLast;
+vnode_t* openFiles;
+vnode_t* openFileLast;
 
-void file_list_add(file_t* file){
+void vnode_list_add(vnode_t* file){
     if(openFiles == NULL){
         openFileLast = openFiles = file;
         openFiles->next = NULL;
@@ -31,7 +31,7 @@ void file_list_add(file_t* file){
     }
 }
 
-void file_list_remove(file_t* file){
+void vnode_list_remove(vnode_t* file){
     if(openFileLast == file) openFileLast = file->prev;
     if(openFiles == file) openFiles = file->next;
 
@@ -40,7 +40,7 @@ void file_list_remove(file_t* file){
 }
 
 //open file
-file_t* file_open(char* path, int flags, int mode){
+vnode_t* vnode_open(char* path, int flags, int mode){
     kerrno = 0;
 
     uint8_t fsNumber = 0;
@@ -64,9 +64,13 @@ file_t* file_open(char* path, int flags, int mode){
     }
     path++;
     //make sure the filesystem exists
-    filesys_t* fs = filesys_get(fsNumber);
+    vfs_t* fs = vfs_get(fsNumber);
+	if(!fs->_valid){
+		kerrno = ENOENT;
+		return NULL;
+	}
     lock(fs->lock, {
-        for(file_t* i = openFiles; i != NULL; i = i->next){
+        for(vnode_t* i = openFiles; i != NULL; i = i->next){
             if(i->fs == fs && !strcmp(i->filename, path)){
                 if((i->flags & O_DIRECTORY) && !(flags & O_DIRECTORY)){
                     kerrno = EISDIR;
@@ -90,7 +94,7 @@ file_t* file_open(char* path, int flags, int mode){
             return NULL;
         }
         //open the file
-        file_t* file;
+        vnode_t* file;
         file = fs->fsOperations.open(fs, path, flags, mode);
         if(file == NULL){
             //kerrno should have already been set by the fs driver
@@ -101,7 +105,7 @@ file_t* file_open(char* path, int flags, int mode){
         file->refCount = 1;
         
 
-        file_list_add(file);
+        vnode_list_add(file);
 
         releaseLock(&fs->lock);
         return file;
@@ -113,7 +117,7 @@ invalidfsindex:
 }
 
 //close file
-int file_close(file_t* file){
+int vnode_close(vnode_t* file){
     lock(file->lock, {
         file->refCount--;
         if(file->refCount == 0){
@@ -122,7 +126,7 @@ int file_close(file_t* file){
                 return -EINVAL;
             }
 
-            file_list_remove(file);
+            vnode_list_remove(file);
 
             int res = file->fs->fsOperations.close(file->fs, file);
             return res;
@@ -132,7 +136,7 @@ int file_close(file_t* file){
 }
 
 //read from file
-ssize_t file_read(file_t* file, size_t size, void* buf, size_t offset){
+ssize_t vnode_read(vnode_t* file, size_t size, void* buf, size_t offset){
     lock(file->lock, {
         if(!file->fs->fsOperations.read){
             releaseLock(&file->lock);
@@ -145,7 +149,7 @@ ssize_t file_read(file_t* file, size_t size, void* buf, size_t offset){
 }
 
 //write to file
-ssize_t file_write(file_t* file, size_t size, void* buf, size_t offset){
+ssize_t vnode_write(vnode_t* file, size_t size, void* buf, size_t offset){
     lock(file->lock, {
         if(!file->fs->fsOperations.write){
             releaseLock(&file->lock);
@@ -157,14 +161,14 @@ ssize_t file_write(file_t* file, size_t size, void* buf, size_t offset){
     });
 }
 
-fd_t* file_alloc_fd_table(size_t size){
+fd_t* vnode_alloc_fd_table(size_t size){
     fd_t* fd = (fd_t*)kmalloc(sizeof(fd_t)*size); 
     memset(fd, 0, sizeof(fd_t)*size);
 
     return fd;
 }
 
-fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
+fd_t* vnode_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
     if(prevSize == newSize) return fd;
 
     fd_t* newfd = (fd_t*)kmalloc(sizeof(fd_t)*newSize);
@@ -175,7 +179,7 @@ fd_t* file_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
     return newfd;
 }
 
-char* file_get_absolute_path(char* root, char* relative){
+char* vnode_get_absolute_path(char* root, char* relative){
     kerrno = 0;
 
     //Check if path is absolute
@@ -280,13 +284,13 @@ checkpath:
 int sys_open(stack_frame_t* regs, char* path, int flags, int mode){
     process_t* currentProcess = sched_get_current_process();
 
-    char* absPath = file_get_absolute_path(currentProcess->cwd, path);
+    char* absPath = vnode_get_absolute_path(currentProcess->cwd, path);
 
 findfd:
 
     for(size_t i = 0; i < currentProcess->fdMax; i++){
         if(!currentProcess->fdTable[i].file){
-            currentProcess->fdTable[i].file = file_open(absPath, flags, mode);
+            currentProcess->fdTable[i].file = vnode_open(absPath, flags, mode);
             if(currentProcess->fdTable[i].file == NULL) return -kerrno;
             if(flags & O_APPEND) currentProcess->fdTable[i].offset = currentProcess->fdTable[i].file->size;
             else currentProcess->fdTable[i].offset = 0;
@@ -299,7 +303,7 @@ findfd:
 
     //no available fd found, try to realloc fd table
     if((currentProcess->fdMax+1) >= PROCESS_MAX_FD) return -EMFILE;
-    file_realloc_fd_table(currentProcess->fdTable, currentProcess->fdMax+1, (currentProcess->fdMax+1)*2);
+    vnode_realloc_fd_table(currentProcess->fdTable, currentProcess->fdMax+1, (currentProcess->fdMax+1)*2);
     currentProcess->fdMax = (currentProcess->fdMax+1)*2-1;
     goto findfd;
 }
@@ -313,7 +317,7 @@ ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
 
     if(!(currentfd->flags & O_RDONLY) && !(currentfd->flags & O_RDWR)) return (ssize_t)-EACCES;
 
-    size_t res = file_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
+    size_t res = vnode_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
     if(res > 0) currentProcess->fdTable[fd].offset += res;
 
     return res;
@@ -328,7 +332,7 @@ ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count){
 
     if(!(currentfd->flags & O_WRONLY) && !(currentfd->flags & O_RDWR)) return (ssize_t)-EACCES;
 
-    size_t res = file_write(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
+    size_t res = vnode_write(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
     if(res > 0) currentProcess->fdTable[fd].offset += res;
 
     return res;
@@ -359,7 +363,7 @@ int sys_chdir(stack_frame_t* regs, const char* path){
 
     process_t* currentProcess = sched_get_current_process();
 
-    char* str = file_get_absolute_path(currentProcess->cwd, (char*)path);
+    char* str = vnode_get_absolute_path(currentProcess->cwd, (char*)path);
     if(str == NULL) return -kerrno;
     if(str[strlen(str)-1]!='/'){
         char* strOk = kmalloc(strlen(str)+2);
@@ -370,7 +374,7 @@ int sys_chdir(stack_frame_t* regs, const char* path){
         str = strOk;
     }
 
-    file_t* file = file_open(str, O_DIRECTORY | O_RDONLY, 0);
+    vnode_t* file = vnode_open(str, O_DIRECTORY | O_RDONLY, 0);
     if(!file){
         kmfree(str);
         return -kerrno;
@@ -389,7 +393,7 @@ ssize_t sys_getdents(stack_frame_t* regs, int fd, void* dirp, size_t count){
     if(!currentProcess->fdTable[fd].file) return -EBADF;
     if(!(currentProcess->fdTable[fd].file->flags & O_DIRECTORY)) return -ENOTDIR;
 
-    ssize_t bytesRead = file_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
+    ssize_t bytesRead = vnode_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
 
     currentProcess->fdTable[fd].offset += bytesRead;
 

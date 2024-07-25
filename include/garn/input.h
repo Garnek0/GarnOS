@@ -19,8 +19,8 @@
 #define INPUT_RB_SIZE 32
 
 #include <garn/types.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 
 typedef struct _input_kb_rb_entry {
     char chr;
@@ -46,7 +46,7 @@ typedef struct {
 
 extern char keyBuffer;
 
-extern file_t* kbd;
+extern vnode_t* kbd;
 
 void input_send_key(kb_input_t input);
 

@@ -9,12 +9,10 @@
 #define TTY_H
 
 #include <garn/types.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 
-struct _filesys;
-
-extern file_t* tty;
+extern vnode_t* tty;
 
 void tty_init();
 

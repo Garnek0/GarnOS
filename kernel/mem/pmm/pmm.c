@@ -162,7 +162,7 @@ void pmm_free(void* base, int npages){
 
 void pmm_init(){
     bitmapSize = ALIGN_UP(memmap_get_highest_usable_address(), PAGE_SIZE) / PAGE_SIZE / 8;
-    usedPages = bitmapSize*8;
+	usedPages = bitmapSize*8;
 
     memmap_entry_t current_entry;
     for(int i = 0; i < memmap_get_entry_count(); i++){

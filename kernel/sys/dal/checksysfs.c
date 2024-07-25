@@ -8,12 +8,12 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include <sys/dal/dal-internals.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <garn/kstdio.h>
 
 bool checksysfs_check(){
-    filesys_t* sysfs = filesys_get(0);
+    vfs_t* sysfs = vfs_get(0);
     if(!sysfs) return false;
     if(!sysfs->_valid) return false;
     if(!sysfs->drive) return false;

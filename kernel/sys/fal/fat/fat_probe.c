@@ -36,6 +36,7 @@ bool fat_probe(drive_t* drive, size_t partition){
     fat_bpb_t* probeBPB;
 
     bcache_buf_t* buf = bcache_get(drive, drive->partitions[partition].startLBA);
+	if(!buf) return false;
 
     probeBPB = (fat_bpb_t*)buf->data;
 
@@ -68,6 +69,7 @@ bool fat_attach(drive_t* drive, size_t partition){
     fat32_ebpb_t* fat32ebpb;
 
     buf = bcache_get(drive, drive->partitions[partition].startLBA);
+	if(!buf) return false;
     bpb = kmalloc(sizeof(fat_bpb_t));
     fat12_16ebpb = kmalloc(sizeof(fat12_16_ebpb_t));
     fat32ebpb = kmalloc(sizeof(fat32_ebpb_t));
@@ -75,7 +77,7 @@ bool fat_attach(drive_t* drive, size_t partition){
     memcpy(fat12_16ebpb, (void*)buf->data, sizeof(fat12_16_ebpb_t));
     memcpy(fat32ebpb, (void*)buf->data, sizeof(fat32_ebpb_t));
 
-    filesys_t filesys;
+    vfs_t filesys;
     filesys.drive = drive;
     filesys.partition = partition;
     filesys.fsOperations.open = fat_open;
@@ -199,6 +201,6 @@ fail:
 success:
     klog("Found FAT system on drive \"%s\" partition %d. (FAT Version: %s)\n", KLOG_OK, "FAT", drive->name, partition, filesys.type);
     bcache_release(buf);
-    filesys_mount(filesys);
+    vfs_mount(filesys);
     return true;
 }

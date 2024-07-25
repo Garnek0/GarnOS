@@ -8,8 +8,8 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 #include "initrd.h"
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <garn/kstdio.h>
 #include <garn/panic.h>
 #include <sys/bootloader.h>
@@ -36,7 +36,7 @@ static uint64_t initrd_tar_conv_number(char* str, size_t size){
     return n;
 }
 
-file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
+vnode_t* initrd_open(vfs_t* fs, char* path, int flags, int mode){
 
     initrd_tar_header_t* h = initrd;
     uint64_t haddr = (uint64_t)h;
@@ -53,8 +53,8 @@ file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
         } else if (!strcmp(path, h->filename)){
             size = (size_t)initrd_tar_conv_number(h->size, 11);
 
-            file_t* file = kmalloc(sizeof(file_t));
-            memset(file, 0, sizeof(file_t));
+            vnode_t* file = kmalloc(sizeof(vnode_t));
+            memset(file, 0, sizeof(vnode_t));
             initrd_file_fs_data_t* fsData = kmalloc(sizeof(initrd_file_fs_data_t));
             file->filename = kmalloc(strlen(path)+1);
             memcpy(file->filename, path, strlen(path)+1);
@@ -80,13 +80,13 @@ file_t* initrd_open(filesys_t* fs, char* path, int flags, int mode){
     }
 }
 
-int initrd_close(filesys_t* fs, file_t* file){
+int initrd_close(vfs_t* fs, vnode_t* file){
     kmfree((void*)file->fsData);
     kmfree((void*)file);
     return 0;
 }
 
-ssize_t initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf, size_t offset){
+ssize_t initrd_read(vfs_t* fs, vnode_t* file, size_t size, void* buf, size_t offset){
     initrd_file_fs_data_t* fsData = (initrd_file_fs_data_t*)file->fsData;
 
     for(size_t i = 0; i < size; i++){
@@ -97,25 +97,25 @@ ssize_t initrd_read(filesys_t* fs, file_t* file, size_t size, void* buf, size_t 
     return size;
 }
 
-ssize_t initrd_write(filesys_t* fs, file_t* file, size_t size, void* buf, size_t offset){
+ssize_t initrd_write(vfs_t* fs, vnode_t* file, size_t size, void* buf, size_t offset){
     kerrno = EINVAL;
     return -EINVAL; //no need to write to the initrd
 }
 
-int initrd_rmdir(filesys_t* fs, char* path){
+int initrd_rmdir(vfs_t* fs, char* path){
     kerrno = EINVAL;
     return -1; //no need to remove directories from the initrd
 }
 
-int initrd_mkdir(filesys_t* fs, char* path){
+int initrd_mkdir(vfs_t* fs, char* path){
     kerrno = EINVAL;
     return -1; //no need to make directories inside the initrd
 }
 
 //initialise initrd
 void initrd_init(){
-    filesys_t initrdFS;
-    memset(&initrdFS, 0, sizeof(filesys_t));
+    vfs_t initrdFS;
+    memset(&initrdFS, 0, sizeof(vfs_t));
 
     memcpy(initrdFS.name, "init", 5);
     memcpy(initrdFS.type, FILESYS_TYPE_INIT_USTAR, strlen(FILESYS_TYPE_INIT_USTAR)+1);
@@ -135,5 +135,5 @@ void initrd_init(){
     initrdFS.context = (void*)initrd;
     initrdFS.size = initrd_tar_conv_number(initrd->size, 11);
 
-    filesys_mount(initrdFS);
+    vfs_mount(initrdFS);
 }

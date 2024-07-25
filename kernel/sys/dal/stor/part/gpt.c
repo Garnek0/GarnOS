@@ -11,8 +11,8 @@
 #include <garn/mm.h>
 #include <garn/spinlock.h>
 #include <sys/bootloader.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <garn/kstdio.h>
 #include <garn/dal/bcache.h>
 
@@ -27,6 +27,10 @@ bool gpt_validate_drive(drive_t* drive){
 
     lock(gptLock, {
         buf = bcache_get(drive, 1);
+		if(!buf){
+			releaseLock(&gptLock);
+			return false;
+		}
         partHeader = (gpt_header_t*)buf->data;
 
         uint64_t* bootDiskGUID = bl_get_gpt_system_disk_uuid();

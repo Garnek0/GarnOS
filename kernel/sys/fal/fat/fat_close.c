@@ -12,7 +12,7 @@
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
 
-int fat_close(filesys_t* self, file_t* file){
+int fat_close(vfs_t* self, vnode_t* file){
     if(file->fsData) kmfree(file->fsData);
     kmfree(file);
     return 0;

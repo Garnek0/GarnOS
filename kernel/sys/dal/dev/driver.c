@@ -14,7 +14,7 @@
 #include <garn/ds/list.h>
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
-#include <garn/fal/file.h>
+#include <garn/fal/vnode.h>
 #include <exec/elf.h>
 
 spinlock_t driverManagerLock;
@@ -42,7 +42,7 @@ int device_driver_register(const char* path){
         }
     }
 
-    file_t* file = file_open((char*)path, O_RDONLY, 0);
+    vnode_t* file = vnode_open((char*)path, O_RDONLY, 0);
 
     if(!file){
         klog("Failed to register driver \'%s\': %s!\n", KLOG_FAILED, "DAL", path, kstrerror(kerrno));
@@ -52,7 +52,7 @@ int device_driver_register(const char* path){
 	//TODO: This may be slow with large drivers. Maybe add some way to load only part of the executable?
 
     void* elf = kmalloc(file->size);
-    file_read(file, file->size, elf, 0);
+    vnode_read(file, file->size, elf, 0);
 
 	if(!elf_validate((Elf64_Ehdr*)elf, ET_REL)){
 		klog("Failed to register driver \'%s\': Executable validation failed!\n", KLOG_FAILED, "DAL", path);
@@ -114,7 +114,7 @@ int device_driver_register(const char* path){
 
     klog("Registered Driver \'%s\'.\n", KLOG_OK, "DAL", path);
     kmfree(elf);
-    file_close(file);
+    vnode_close(file);
 
     device_attach_to_driver(driverNode);
 
@@ -122,7 +122,7 @@ int device_driver_register(const char* path){
 
 fail:
     kmfree(elf);
-    file_close(file);
+    vnode_close(file);
     return -1;
 }
 
@@ -201,7 +201,7 @@ bool device_driver_attach(device_t* device){
 }
 
 int device_driver_autoreg(const char* path){
-    file_t* file = file_open((char*)path, O_RDONLY, 0);
+    vnode_t* file = vnode_open((char*)path, O_RDONLY, 0);
     
     if(!file){
         klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, "DAL", path);
@@ -215,7 +215,7 @@ int device_driver_autoreg(const char* path){
     size_t tempPtr = 0;
 
     for(size_t i = 0; i < file->size; i++){
-        file_read(file, 1, &str[ptr], i);
+        vnode_read(file, 1, &str[ptr], i);
         if(str[ptr] == '\n'){
             if(ptr <= 0) continue;
             str[ptr] = 0;
@@ -240,7 +240,7 @@ int device_driver_autoreg(const char* path){
         ptr++;
         if(ptr >= 128) ptr = 0;
     }
-    file_close(file);
+    vnode_close(file);
     return 0;
 }
 

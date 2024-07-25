@@ -12,8 +12,8 @@
 #include <sys/uname-internals.h>
 #include <sys/dal/dal-internals.h>
 #include <garn/dal/dal.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 #include <mem/mm-internals.h>
 #include <process/process.h>
 #include <process/sched/sched.h>

@@ -10,8 +10,8 @@
 #include <sys/dal/dal-internals.h>
 #include <garn/mm.h>
 #include <garn/panic.h>
-#include <garn/fal/file.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 
 drive_t drives[MAX_DRIVES];
 size_t driveCount;

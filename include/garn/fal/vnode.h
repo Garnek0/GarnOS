@@ -1,12 +1,12 @@
 /*  
-*   File: file.h
+*   File: vnode.h
 *
 *   Author: Garnek
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#ifndef FILE_H
-#define FILE_H
+#ifndef VNODE_H
+#define VNODE_H
 
 #define O_RDONLY    0
 #define O_WRONLY    1
@@ -40,22 +40,22 @@
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
-#include <garn/fal/filesys.h>
+#include <garn/fal/vfs.h>
 
-typedef struct _file {
+typedef struct _vnode {
     char* filename;
     int mode;
     int flags;
     int refCount;
     size_t size;
-    struct _filesys* fs;
+    struct _vfs* fs;
     void* fsData;
 
     spinlock_t lock;
 
-    struct _file* next;
-    struct _file* prev;
-} file_t;
+    struct _vnode* next;
+    struct _vnode* prev;
+} vnode_t;
 
 typedef struct _dirent {
     long inode;
@@ -69,19 +69,19 @@ __attribute__((packed))
 #endif
 dirent_t;
 
-void file_list_add(file_t* file);
-void file_list_remove(file_t* file);
+void vnode_list_add(vnode_t* file);
+void vnode_list_remove(vnode_t* file);
 
 //open file
-file_t* file_open(char* path, int flags, int mode);
+vnode_t* vnode_open(char* path, int flags, int mode);
 
 //close file
-int file_close(file_t* file);
+int vnode_close(vnode_t* file);
 
 //read from file
-ssize_t file_read(file_t* file, size_t size, void* buf, size_t offset);
+ssize_t vnode_read(vnode_t* file, size_t size, void* buf, size_t offset);
 
 //write to file
-ssize_t file_write(file_t* file, size_t size, void* buf, size_t offset);
+ssize_t vnode_write(vnode_t* file, size_t size, void* buf, size_t offset);
 
-#endif //FILE_H
+#endif //VNODE_H
