@@ -49,9 +49,8 @@ int main(int argc, char** argv){
                 break;
             case 'a':
                 printf("%s %s %s %s %s %s\n", name.sysname, name.nodename, name.version, name.release, name.machine, "GarnOS");
-                return 0;
+                break;
             default:
-                printf("%s\n", name.sysname);
                 break;
         }
     }

@@ -135,7 +135,7 @@ ssize_t fat_read(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offs
         }
     } else {
         if(!strcmp(self->type, FILESYS_TYPE_FAT32)){
-            while(p != size && currentCluster){
+            while(p != size && currentCluster && p != file->size){
                 for(size_t i = 0; i < context->sectorsPerCluster; i++){
                     self->drive->read(self->drive, currentSector+i, 1, sectBuf);
                     for(size_t k = 0; k < context->bytesPerSector; k++){
@@ -146,7 +146,7 @@ ssize_t fat_read(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offs
                         ((uint8_t*)buf)[p] = sectBuf[k];
                         offset++;
                         p++; j++;
-                        if(p == size) break;
+                        if(p >= size || p >= file->size) break;
                     }
                 }
                 currentCluster = fat32_next_cluster(self, context, currentCluster);

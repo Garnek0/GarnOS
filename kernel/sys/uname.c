@@ -22,14 +22,14 @@ int sys_uname(stack_frame_t* regs, utsname_t* buf){
     memcpy(buf->nodeName, UNAME_DEFAULT_NODE_NAME, strlen(UNAME_DEFAULT_NODE_NAME)+1);
     memcpy(buf->release, KERNEL_VER, strlen(KERNEL_VER)+1);
 
-    vnode_t* file = vnode_open("0:/release", O_RDONLY, 0);
+	vnode_t* file = vnode_open("0:/release", O_RDONLY, 0);
     if(!file){
         memcpy(buf->version, "unknown", 8);
     } else {
         int status = vnode_read(file, 64, buf->version, 0);
         if(status < 0) memcpy(buf->version, "unknown", 8);
 
-        buf->version[status] = 0;
+        buf->version[status-1] = 0;
 
         vnode_close(file);
     }
