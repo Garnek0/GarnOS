@@ -69,7 +69,6 @@ int bcache_read(bcache_buf_t* buf){
             kerrno = ENOSYS;
             releaseLock(&buf->lock);
             return -1;
-
         }
     });
 

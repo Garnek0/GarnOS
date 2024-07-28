@@ -40,7 +40,7 @@ run-hdd: $(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
 run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -m 2G -enable-kvm -cpu max -vga std -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -smp 4 -debugcon stdio -m 2G -enable-kvm -cpu max -bios ovmf/OVMF.fd -vga std -hda $(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf

@@ -58,7 +58,7 @@ bool gpt_initialise_drive(drive_t* drive){
         bcache_release(buf);    
 
         if(!partHeader->gptArrayStartLBA) partHeader->gptArrayStartLBA = 2;
-        
+
         uint64_t* bootPartGUID = bl_get_gpt_system_partition_uuid();
         for(size_t i = 0; i < (partHeader->partCount/(512/(partHeader->entrySize))); i++){
             buf = bcache_get(drive, partHeader->gptArrayStartLBA + i);

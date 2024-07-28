@@ -86,7 +86,7 @@ bool probe(device_t* device){
     return true;
 }
 
-drive_t drive;
+drive_t* drive;
 
 bool attach(device_t* device){
     if(!probe(device)) return false;
@@ -275,23 +275,27 @@ bool attach(device_t* device){
                 else break;
             }
 
-            drive.context = currentDrive;
-            drive.interface = DRIVE_IF_IDE;
-            drive.name = currentDrive->model;
-            drive.size = currentDrive->size;
-            drive.blockSize = 512;
+			drive = kmalloc(sizeof(drive_t));
+			memset(drive, 0, sizeof(drive_t));
+
+            drive->context = currentDrive;
+            drive->interface = DRIVE_IF_IDE;
+            drive->name = currentDrive->model;
+            drive->size = currentDrive->size;
+            drive->blockSize = 512;
 
             if(currentDrive->type == IDE_ATA){
-                drive.read = ide_ata_read;
-                drive.write = ide_ata_write;
-                drive.type = DRIVE_TYPE_DISK;
+                drive->read = ide_ata_read;
+                drive->write = ide_ata_write;
+                drive->type = DRIVE_TYPE_DISK;
             } else {
                 //ATAPI read/write not implemented
-                drive.read = NULL;
-                drive.write = NULL;
-                drive.type = DRIVE_TYPE_OPTICAL;
+                drive->read = NULL;
+                drive->write = NULL;
+                drive->type = DRIVE_TYPE_OPTICAL;
             }
-            currentDrive->drive = drive_add(drive);
+            currentDrive->drive = drive;
+			drive_add(drive);
         }
     }
 

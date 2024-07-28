@@ -17,13 +17,12 @@
 vfs_t* rootVFS;
 vfs_t* lastVFS;
 
-static int _vfs_gen_fid(){
+static size_t _vfs_gen_fid(){
 	static size_t fid = 0;
 	return fid++;
 }
 
 int vfs_mount(vfs_t* vfs){
-
 	// If vfs is the system partition FS, then we need to make sure it has fid 0
 	if(vfs->drive && vfs->drive->partitions[vfs->partition].isSystemPartition){
         vfs->fid = 0;
@@ -48,6 +47,7 @@ int vfs_mount(vfs_t* vfs){
 		rootVFS->next = NULL;
 	} else {
 		lastVFS->next = vfs;
+		lastVFS = vfs;
 	}
 
     vfs->fid = _vfs_gen_fid();
@@ -62,7 +62,6 @@ int vfs_unmount(vfs_t* vfs){
 	vfs_t* prev = NULL;
 	for(vfs_t* i = rootVFS; i; i = i->next){
 		if(i == vfs){
-			vfs_t* next = i->next;
 			if(prev){
 				lock(prev->lock, {
 					prev->next = i->next;

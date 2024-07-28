@@ -95,20 +95,18 @@ static void console_fs(){
 }
 
 static void console_drives(){
-    drive_t* drives = drive_get_all();
-    for(size_t i = 0; i < MAX_DRIVES; i++){
-        if(!drives[i]._valid) continue;
-        kprintf("%d) %s\n", i, drives[i].name);
-        if(drives[i].type == DRIVE_TYPE_OPTICAL) {
+    for(drive_t* i = drive_get_list(); i; i = i->next){
+        kprintf("driveID %d: %s\n", i->driveid, i->name);
+        if(i->type == DRIVE_TYPE_OPTICAL) {
             kprintf("   (Optical Media does not support Partitions)\n");
             return;
         }
-        if(drives[i].partitionCount == 0){
+        if(i->partitionCount == 0){
             kprintf("   (Drive not Partitioned)\n");
             return;
         }
-        for(size_t j = 0; j < drives[i].partitionCount; j++){
-            kprintf("   Partition %d: Start LBA: 0x%x, End LBA: 0x%x, Size: %dKiB (%d Bytes)\n", j, drives[i].partitions[j].startLBA, drives[i].partitions[j].endLBA, drives[i].partitions[j].size/1024, drives[i].partitions[j].size);
+        for(size_t j = 0; j < i->partitionCount; j++){
+            kprintf("   Partition %d: Start LBA: 0x%x, End LBA: 0x%x, Size: %dKiB (%d Bytes)\n", j, i->partitions[j].startLBA, i->partitions[j].endLBA, i->partitions[j].size/1024, i->partitions[j].size);
         }
     }
 }

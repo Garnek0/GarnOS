@@ -14,7 +14,6 @@
 #include <garn/ds/list.h>
 
 #define MAX_PARTITIONS 128
-#define MAX_DRIVES 256
 
 #define DRIVE_IF_UNDEFINED 0
 #define DRIVE_IF_IDE 1
@@ -83,18 +82,21 @@ typedef struct _drive {
     size_t size;
     size_t blockSize;
 
+	size_t driveid;
+
     int (*read)(struct _drive* self, uint64_t startLBA, size_t blocks, void* buf);
     int (*write)(struct _drive* self, uint64_t startLBA, size_t blocks, void* buf);
 
     //automatically set by the DAL. should not be touched
     //by drivers.
-    bool _valid;
     size_t partitionCount;
     partition_t partitions[MAX_PARTITIONS];
 
     spinlock_t lock;
 
     void* context;
+
+	struct _drive* next;
 } drive_t;
 
 //device
@@ -121,8 +123,8 @@ device_driver_t device_driver_get_driver(size_t i);
 
 //drive
 
-drive_t* drive_add(drive_t drive);
+int drive_add(drive_t* drive);
 void drive_remove(drive_t* drive);
-drive_t* drive_get_all();
+drive_t* drive_get_list();
 
 #endif //DAL_H

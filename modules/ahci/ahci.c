@@ -117,8 +117,7 @@ bool attach(device_t* device){
     //Start port initialisation and device detection
 
     ahci_drive_t* ahciDrive;
-    drive_t drive;
-    memset((void*)&drive, 0, sizeof(drive_t));
+    drive_t* drive;
 
     for(int i = 0; i < 32; i++){
         if(abar->pi & (1 << i)){
@@ -290,17 +289,20 @@ bool attach(device_t* device){
                     if(ahciDrive->idSpace.commandSets[1] & (1 << 10)) ahciDrive->size = ahciDrive->idSpace.sectorsLBA48;
                     else ahciDrive->size = ahciDrive->idSpace.sectorsLBA28;
 
-                    ahciDrive->size *= 512;
+            		ahciDrive->size *= 512;
 
-                    drive.context = (void*)ahciDrive;
-                    drive.blockSize = 512;
-                    drive.interface = DRIVE_IF_AHCI;
-                    drive.name = ahciDrive->model;
-                    drive.size = ahciDrive->size;
-                    drive.type = abar->ports[i].sig == SATA_SIG_ATA ? DRIVE_TYPE_DISK : DRIVE_TYPE_OPTICAL;
+					drive = kmalloc(sizeof(drive_t));
+					memset(drive, 0, sizeof(drive_t));
+
+                    drive->context = (void*)ahciDrive;
+                    drive->blockSize = 512;
+                    drive->interface = DRIVE_IF_AHCI;
+                    drive->name = ahciDrive->model;
+                    drive->size = ahciDrive->size;
+                    drive->type = abar->ports[i].sig == SATA_SIG_ATA ? DRIVE_TYPE_DISK : DRIVE_TYPE_OPTICAL;
                     //ATAPI access not implemented
-                    drive.read = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_read : NULL;
-                    drive.write = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_write : NULL;
+                    drive->read = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_read : NULL;
+                    drive->write = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_write : NULL;
 
                     pmm_free(buf, 1);
 
