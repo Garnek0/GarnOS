@@ -10,7 +10,7 @@
 #ifndef KERNEL_H
 #define KERNEL_H
 
-#include <garn/types.h>;
+#include <garn/types.h>
 #include <garn/kstdio.h>
 #include <garn/spinlock.h>
 #include <garn/kerrno.h>

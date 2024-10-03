@@ -18,8 +18,8 @@ typedef struct {
     void* handler;
 } irq_t;
 
-list_t* irqHandlerLists[224];
-uint32_t irqFlags[224];
+list_t* irqHandlerLists[IRQ_MAX];
+uint32_t irqFlags[IRQ_MAX];
 
 int irq_add_handler(uint8_t irq, void* handler, uint32_t flags){
     irq_t* irqStruct = kmalloc(sizeof(irq_t));

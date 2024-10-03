@@ -22,7 +22,7 @@
 
 typedef struct _process {
     char* name;
-    int pid;
+    pid_t pid;
     int exitStatus;
     uint8_t status;
 
@@ -46,7 +46,7 @@ void process_free(process_t* process);
 
 int sys_fork(stack_frame_t* regs);
 void sys_exit(stack_frame_t* regs, int status);
-int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options);
+pid_t sys_waitpid(stack_frame_t* regs, pid_t pid, int* status, int options);
 int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const char* envp[]);
 
 #endif //PROCESS_H

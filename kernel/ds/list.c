@@ -62,7 +62,7 @@ int list_index_of(list_t* list, void* value){
     return -1;
 }
 
-void* list_index(list_t* list, size_t index){
+void* list_get(list_t* list, size_t index){
     size_t i = 0;
 
     lock(list->lock, {

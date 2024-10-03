@@ -62,30 +62,8 @@ You can also run GarnOS in an EFI environment by appending `-uefi` to the comman
 
 For debugging, it is recommended to append `DEBUG=y"` to whatever make command you're using.
 
-# License
+## License
 See LICENSE for details.
-
-# Milestones
-
-- [x] RTC
-- [x] SMP
-- [x] APIC, I/O APIC
-- [x] Timer
-- [x] PCI Driver
-- [x] AHCI driver
-- [x] IDE driver
-- [x] FAT Driver
-- [ ] Ext2 Driver
-- [x] Userland
-- [x] Scheduler
-- [x] Processes and Threads
-- [x] Syscalls
-- [x] libc
-- [ ] Driver interface (Custom or UDI)
-- [ ] GUI
-- [ ] USB Driver
-- [ ] Sound
-- [ ] Networking
 
 ## Known Bugs
 
@@ -103,3 +81,8 @@ See LICENSE for details.
 **Graphics**: Standard Graphics
 
 <img src="shell.png">
+
+## Acknowledgements
+
+- Limine Bootloader (mintsuki et al.)
+- uACPI (d-tatianin and DataBeaver)

@@ -33,6 +33,7 @@ void device_driver_add(driver_node_t* node){
 }
 
 int device_driver_register(const char* path){
+	kerrno = 0;
 
     if(driverCount != 0){
         driver_node_t* node;
@@ -42,7 +43,7 @@ int device_driver_register(const char* path){
         }
     }
 
-    vnode_t* file = vnode_open((char*)path, O_RDONLY, 0);
+    vnode_t* file = vnode_open(path, O_RDONLY, 0);
 
     if(!file){
         klog("Failed to register driver \'%s\': %s!\n", KLOG_FAILED, "DAL", path, kstrerror(kerrno));
@@ -51,7 +52,7 @@ int device_driver_register(const char* path){
 
 	//TODO: This may be slow with large drivers. Maybe add some way to load only part of the executable?
 
-    void* elf = kmalloc(file->size);
+	void* elf = kmalloc(file->size);
     vnode_read(file, file->size, elf, 0);
 
 	if(!elf_validate((Elf64_Ehdr*)elf, ET_REL)){
@@ -175,7 +176,7 @@ bool device_driver_attach(device_t* device){
 			}
 			if(status) break;
         }
-
+		if(!status) continue;
 
         driver = (device_driver_t*)node->driver;
         if(!driver || !driver->probe){
@@ -200,13 +201,13 @@ bool device_driver_attach(device_t* device){
     return false;
 }
 
-int device_driver_autoreg(const char* path){
-    vnode_t* file = vnode_open((char*)path, O_RDONLY, 0);
-    
-    if(!file){
-        klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, "DAL", path);
-        return -1;
-    }
+int device_driver_autoreg(const char* path){   
+	vnode_t* file = vnode_open(path, O_RDONLY, 0);
+
+	if(!file){
+		klog("Failed to load autoreg \'%s\'!\n", KLOG_FAILED, "DAL", path);
+		return -1;
+	}
 
     char str[128]; //should be enough for a single filename
     char* regPath;
@@ -240,6 +241,9 @@ int device_driver_autoreg(const char* path){
         ptr++;
         if(ptr >= 128) ptr = 0;
     }
+
+	klog("Loaded autoreg \"%s\".\n", KLOG_OK, "DAL", path);
+
     vnode_close(file);
     return 0;
 }
@@ -248,7 +252,7 @@ size_t device_driver_get_driver_count(){
     return driverCount;
 }
 
-device_driver_t device_driver_get_driver(size_t i){
+device_driver_t* device_driver_get_driver(size_t i){
     device_driver_t* driver = NULL;
     size_t count = 0;
 
@@ -262,5 +266,5 @@ device_driver_t device_driver_get_driver(size_t i){
         }
     });
 
-    return *driver;
+    return driver;
 }

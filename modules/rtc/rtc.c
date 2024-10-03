@@ -109,7 +109,7 @@ void rtc_handler(stack_frame_t* regs){
     time.month = rtc.month;
     time.year = rtc.century*100 + rtc.year;
 
-    time_set(time);
+    time_set64(time_conv_to_unix64(time));
 }
 
 void init(){

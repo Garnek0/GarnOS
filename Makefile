@@ -47,9 +47,9 @@ ovmf:
 	cd ovmf && curl -o OVMF.fd https://retrage.github.io/edk2-nightly/bin/RELEASEX64_OVMF.fd
 
 limine:
-	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
+	git clone https://github.com/limine-bootloader/limine.git --branch=v8.x-binary --depth=1
 	$(MAKE) -C limine CC="$(HOST_CC)"
-	cp -v limine.cfg limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin sysroot
+	cp -v limine.conf limine/limine-bios.sys limine/limine-bios-cd.bin limine/limine-uefi-cd.bin sysroot
 	mkdir -p sysroot/efi/boot
 	cp -v limine/BOOTX64.EFI sysroot/efi/boot/BOOTX64.EFI
 	
@@ -83,6 +83,8 @@ sysroot:
 	mkdir -p sysroot
 	mkdir sysroot/efi
 	mkdir sysroot/efi/boot
+	mkdir sysroot/dev
+	mkdir sysroot/proc
 
 	cp -f release sysroot/release
 

@@ -7,7 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "input-internals.h"
+#include "term-internals.h"
 
 #include <garn/input.h>
 #include <garn/mm.h>
@@ -22,7 +22,7 @@ input_kb_rb_entry_t* readRBPos;
 
 vnode_t* kbd;
 
-ssize_t input_rb_read(vfs_t* self, vnode_t* file, size_t size, void* buf, size_t offset){
+ssize_t input_rb_read(size_t size, void* buf){
     size_t i = 0;
     while(writeRBPos != readRBPos && i != size){
         ((char*)buf)[i] = readRBPos->chr;
@@ -45,23 +45,6 @@ void input_init(){
     }
     kbringbuffer[INPUT_RB_SIZE-1].next = &kbringbuffer[0];
     writeRBPos = readRBPos = &kbringbuffer[0];
-
-    vfs_t* kbdfs = kmalloc(sizeof(vfs_t));
-    memset(kbdfs, 0, sizeof(vfs_t));
-    kbdfs->size = INPUT_RB_SIZE;
-
-    kbdfs->fsOperations.read = input_rb_read;
-    kbdfs->fsOperations.close = input_rb_close;
-
-    kbd = kmalloc(sizeof(vnode_t));
-    memset(kbd, 0, sizeof(vnode_t));
-    kbd->size = 0;
-    kbd->filename = "kbd";
-    kbd->fs = kbdfs;
-    kbd->flags = O_RDONLY;
-    kbd->refCount = 1;
-
-    vnode_list_add(kbd);    
 }
 
 void input_send_key(kb_input_t input){

@@ -11,6 +11,8 @@
 #include <garn/types.h>
 #include <garn/config.h>
 
+#define IRQ_MAX 256
+
 #define IRQ_SHARED 1
 
 int irq_add_handler(uint8_t irq, void* handler, uint32_t flags);

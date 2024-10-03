@@ -23,9 +23,9 @@ spinlock_t moduleListLock;
 
 void module_init(){
     initrd_init(); //initialise initial ramdisk
-    //init should always be 0:
+    //init should always be the root fs
 
-    if(device_driver_autoreg("0:/drv/initreg.txt") != 0){
+    if(device_driver_autoreg("/drv/initreg.txt") != 0){
         panic("initreg.txt not found on initrd!", "FAL");
     } else
 

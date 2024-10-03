@@ -42,6 +42,7 @@
 #define DEVICE_TYPE_PROCESSOR 17
 #define DEVICE_TYPE_SERIAL_BUS 18
 #define DEVICE_TYPE_DRIVE 19
+#define DEVICE_TYPE_FS_PSEUDODEVICE 20
 
 #define DEVICE_ID_CLASS(x) x.class
 #define DEVICE_ID_CLASS_NONE 0
@@ -55,7 +56,7 @@
 
 #define DEVICE_CREATE_ID_PS2 (device_id_t){ .class = DEVICE_ID_CLASS_PS2 }
 
-//PCI Class
+//PCI Device Class
 
 #define DEVICE_ID_CLASS_PCI 0x02
 
@@ -95,5 +96,11 @@
 #define DEVICE_ID_TIMER_PIT 0x00
 
 #define DEVICE_CREATE_ID_TIMER(timer) (device_id_t){ .class = DEVICE_ID_CLASS_TIMER, .value8[0] = timer }
+
+//Filesystem Pseudodevice Class
+
+#define DEVICE_ID_CLASS_FS_PDEV 0x06
+
+#define DEVICE_CREATE_ID_FS_PDEV (device_id_t){ .class = DEVICE_ID_CLASS_FS_PDEV }
 
 #endif //DAL_DEVICE_TYPES_H

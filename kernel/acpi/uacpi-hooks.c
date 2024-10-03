@@ -287,7 +287,7 @@ void uacpi_kernel_free_event(uacpi_handle event){
 }
 
 uacpi_thread_id uacpi_kernel_get_thread_id(void){
-    return 1;
+    return NULL;
 }
 
 spinlock_t eventLock;

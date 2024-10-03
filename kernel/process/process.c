@@ -11,7 +11,6 @@
 #include <mem/mm-internals.h>
 #include <process/thread/thread.h>
 #include <arch/arch-internals.h>
-#include <sys/term/tty.h>
 #include <process/sched/sched.h>
 #include <garn/input.h>
 #include <exec/elf.h>
@@ -26,8 +25,8 @@ process_t* processList;
 process_t* processListLast;
 process_t* initProc;
 
-static int _process_gen_pid(){
-    static int pid = 1;
+static pid_t _process_gen_pid(){
+    static pid_t pid = 1;
     return pid++;
 }
 
@@ -60,26 +59,24 @@ void process_create_init(){
     vaspace_create_thread_user_stack(thread);
 
     //Set name
-    initProcess->name = strdup("0:/bin/init.elf");
+    initProcess->name = strdup("/bin/init.elf");
 
     //Create fd table
     initProcess->fdMax = PROCESS_INIT_FD-1;
     initProcess->fdTable = vnode_alloc_fd_table(PROCESS_INIT_FD);
     
     //Set rootDir and cwd
-    initProcess->cwd = strdup("0:/");
+    initProcess->cwd = strdup("/");
 
     //Set tty FDs
-    initProcess->fdTable[0].file = kbd;
-    initProcess->fdTable[1].file = tty;
-    initProcess->fdTable[2].file = tty;
-    initProcess->fdTable[0].flags = tty->flags;
-    initProcess->fdTable[1].flags = tty->flags;
-    initProcess->fdTable[2].flags = tty->flags;
-    tty->refCount+=2;
-    kbd->refCount++;
+    initProcess->fdTable[0].file = vnode_open("/dev/tty0", O_RDWR, 0);
+    initProcess->fdTable[1].file = vnode_open("/dev/tty0", O_RDWR, 0);
+    initProcess->fdTable[2].file = vnode_open("/dev/tty0", O_RDWR, 0);
+    initProcess->fdTable[0].flags = O_RDONLY;
+    initProcess->fdTable[1].flags = O_WRONLY;
+    initProcess->fdTable[2].flags = O_WRONLY;
 
-    if(elf_exec_load(initProcess, "0:/bin/init.elf") != 0){
+    if(elf_exec_load(initProcess, "/bin/init.elf") != 0){
         panic("Could not load init!", "proc");
     }
 
@@ -137,7 +134,7 @@ void process_terminate(process_t* process){
 }
 
 void process_terminate_exception(process_t* process, stack_frame_t* regs, const char* message){
-    //FIXME: MIGHT BREAK WITH SMPESSING
+    //FIXME: MIGHT BREAK WITH SMP WHEN DISABLING KERNEL ECHOING
     kernel_screen_output_enable();
     kprintf("PID %d (%s): Process terminated due to exception. (%s)\n\n", process->pid, process->name, message);
     arch_dump_cpu_state(regs);
@@ -227,7 +224,7 @@ __attribute__((noreturn))
 void sys_exit(stack_frame_t* regs, int status){
     process_t* currentProcess = sched_get_current_process();
 
-    currentProcess->exitStatus = status;
+    currentProcess->exitStatus = (((uint8_t)status << 8) & 0xFF00);
     process_terminate(currentProcess);
 
     while(1) arch_no_op(); //wait for reschedule
@@ -237,7 +234,7 @@ void sys_exit(stack_frame_t* regs, int status){
 
 //TODO: Make this block the process
 
-int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options){
+int sys_waitpid(stack_frame_t* regs, pid_t pid, int* status, int options){
     process_t* currentProcess = sched_get_current_process();
 
     //TODO: Implement this
@@ -245,21 +242,17 @@ int sys_waitpid(stack_frame_t* regs, int64_t pid, int* status, int options){
     if(pid == 0) return -ENOSYS;
 
     for(;;){
-        bool done = false;
         for(process_t* childProc = processList; childProc != NULL; childProc=childProc->next){
             if(childProc == NULL || childProc->status != PROCESS_STATUS_ZOMBIE) continue;
             if(childProc->parent != currentProcess) continue;
             if(pid > 0 && childProc->pid != pid) continue;
 
-            *status = childProc->exitStatus;
+            if(status) *status = childProc->exitStatus;
+			pid_t returnValue = childProc->pid;
             process_free(childProc);
-            done = true;
-            break;
+			return returnValue;
         }
-        if(done) break;
     }
-
-    return 0;
 }
 
 int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const char* envp[]){

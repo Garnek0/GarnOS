@@ -283,4 +283,16 @@ void term_set_colour(uint32_t colour, bool foreback){
         return;
     }
     tc.backgroundColour = colour;
-}   
+} 
+
+ssize_t term_read_as_file(vnode_t* self, size_t size, void* buf, size_t offset){
+	return input_rb_read(size, buf);	
+}
+
+ssize_t term_write_as_file(vnode_t* self, size_t size, void* buf, size_t offset){
+	for(size_t i = 0; i < size; i++){
+		term_putchar(((char*)buf)[i]);
+	}
+
+	return size;
+}

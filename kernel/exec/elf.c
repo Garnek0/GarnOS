@@ -149,7 +149,7 @@ static int elf_module_load_common(Elf64_Ehdr* h, void* elf_module, const char* p
 		} else {
 			sh->sh_addr = (Elf64_Addr)(elf_module + sh->sh_offset);
 			if (sh->sh_addralign && (sh->sh_addr & (sh->sh_addralign - 1))) {
-				klog("Module %s not correctly aligned!\n", KLOG_WARNING, "ML", path);
+				klog("Section of module %s not correctly aligned! (sh_addr: 0x%x, sh_addralign: %u)\n", KLOG_WARNING, "ML", path, sh->sh_addr, sh->sh_addralign);
 			}
 		}
 	}
@@ -236,6 +236,8 @@ int elf_load_module(char* modulePath){
 		return -1;
 	}
 
+	//FIXME: slapping the whole thing in memory without doing any alignment checks seems
+	//to cause some issues later on in the loading phase.
 	void* elf_module = kmalloc(file->size);
 	vnode_read(file, file->size, (void*)elf_module, 0);
 
@@ -305,7 +307,7 @@ int elf_load_driver(driver_node_t* node){
 		return -1;
 	}
 
-    vnode_read(file, sizeof(Elf64_Ehdr), h, 0);
+	vnode_read(file, sizeof(Elf64_Ehdr), h, 0);
 
 	//Validate module
 	if(!elf_validate(h, ET_REL)){

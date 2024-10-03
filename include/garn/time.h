@@ -21,7 +21,26 @@ typedef struct {
     uint64_t year;
 } systime_t;
 
-void time_set(systime_t time);
-systime_t time_get();
+typedef struct _timespec {
+	uint32_t sec;
+	uint32_t nsec;
+} timespec_t;
+
+typedef struct _timespec64 {
+	uint64_t sec;
+	uint32_t nsec;
+} timespec64_t;
+
+void time_set(timespec_t time);
+void time_set64(timespec64_t time);
+
+timespec_t time_get();
+timespec64_t time_get64();
+
+timespec_t time_conv_to_unix(systime_t time);
+timespec64_t time_conv_to_unix64(systime_t time);
+
+systime_t time_conv_to_systime(timespec_t time);
+systime_t time_conv_to_systime64(timespec64_t time);
 
 #endif //TIME_H

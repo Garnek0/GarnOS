@@ -60,9 +60,23 @@ int drive_add(drive_t* drive){
         //search for filesystems
 
         for(size_t i = 0; i < drive->partitionCount; i++){
-            if(fat_probe(drive, i)){
-                fat_attach(drive, i);
-            }
+			device_t* fsPdev = kmalloc(sizeof(device_t));
+			memset(fsPdev, 0, sizeof(device_t));
+
+			fsPdev->name = "Filesystem Pseudodevice";
+			fsPdev->bus = DEVICE_BUS_NONE;
+			fsPdev->type = DEVICE_TYPE_FS_PSEUDODEVICE;
+			
+			device_id_initialise(fsPdev);
+			device_id_add(fsPdev, DEVICE_CREATE_ID_FS_PDEV);
+
+			fs_pdev_data_t* pdevData = kmalloc(sizeof(fs_pdev_data_t));
+			pdevData->drive = drive;
+			pdevData->partitionIndex = i;
+
+			fsPdev->data = (void*)pdevData;
+
+			device_add(fsPdev);
         }
     });
 

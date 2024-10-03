@@ -7,6 +7,7 @@
 */
 // SPDX-License-Identifier: BSD-2-Clause
 
+#include "fal/fal-internals.h"
 #include "syscall_internals.h"
 
 #include <sys/uname-internals.h>

@@ -53,6 +53,7 @@ $(eval $(call DEFAULT_VAR,LDFLAGS,$(DEFAULT_LDFLAGS)))
 override CFLAGS += \
 	-Wall \
 	-Wextra \
+	-Wno-unused-parameter \
 	-std=gnu11 \
 	-ffreestanding \
 	-fno-stack-protector \

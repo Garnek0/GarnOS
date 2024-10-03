@@ -99,11 +99,16 @@ typedef struct _drive {
 	struct _drive* next;
 } drive_t;
 
+typedef struct _fs_pdev_data {
+	drive_t* drive;
+	size_t partitionIndex;
+} fs_pdev_data_t;
+
 //device
 
-void device_add(struct _device* device);
+void device_add(device_t* device);
 size_t device_get_device_count();
-device_t device_get_device(size_t i);
+device_t* device_get_device(size_t i);
 bool device_attach_to_driver(struct _driver_node* node);
 int device_remove(device_t* device);
 bool device_match_ids(device_id_t id1, device_id_t id2);
@@ -113,13 +118,13 @@ void device_id_add(device_t* device, device_id_t devid);
 //driver
 
 void device_driver_add(driver_node_t* driver);
-bool device_driver_attach(struct _device* device);
+bool device_driver_attach(device_t* device);
 int device_driver_unregister_node(driver_node_t* node);
 int device_driver_unregister(const char* path);
 int device_driver_register(const char* path);
 int device_driver_autoreg(const char* path);
 size_t device_driver_get_driver_count();
-device_driver_t device_driver_get_driver(size_t i);
+device_driver_t* device_driver_get_driver(size_t i);
 
 //drive
 

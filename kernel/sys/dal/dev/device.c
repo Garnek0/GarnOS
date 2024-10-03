@@ -48,7 +48,7 @@ size_t device_get_device_count(){
     return deviceCount;
 }
 
-device_t device_get_device(size_t i){
+device_t* device_get_device(size_t i){
     device_t* device = NULL;
     size_t count = 0;
 
@@ -62,13 +62,14 @@ device_t device_get_device(size_t i){
         }
     });
 
-    return *device;
+    return device;
 }
 
 // id1 should always be the driver's devid.
 bool device_match_ids(device_id_t id1, device_id_t id2){
 	if(DEVICE_ID_CLASS(id1) != DEVICE_ID_CLASS(id2)) return false;
 	switch(DEVICE_ID_CLASS(id1)){
+		case DEVICE_ID_CLASS_FS_PDEV:
 		case DEVICE_ID_CLASS_PS2:
 		{
 			return true;

@@ -64,7 +64,7 @@ void vmm_map(page_table_t* pt, uint64_t physAddr, uint64_t virtAddr, uint32_t fl
 }
 
 void vmm_map_range(page_table_t* pt, uint64_t physAddr, uint64_t virtAddr, size_t length, uint32_t flags){
-    for(int i = 0; i < length; i+=PAGE_SIZE){
+    for(size_t i = 0; i < length; i+=PAGE_SIZE){
         vmm_map(pt, (uint64_t)physAddr, (uint64_t)virtAddr, flags);
         physAddr += PAGE_SIZE;
         virtAddr += PAGE_SIZE;
@@ -78,7 +78,7 @@ void vmm_unmap(page_table_t* pt, uint64_t virtAddr){
 }
 
 void vmm_unmap_range(page_table_t* pt, uint64_t virtAddr, size_t length){
-    for(int i = 0; i < length; i+=PAGE_SIZE){
+    for(size_t i = 0; i < length; i+=PAGE_SIZE){
         vmm_unmap(pt, (uint64_t)virtAddr);
         virtAddr += PAGE_SIZE;
     }
@@ -91,7 +91,7 @@ void vmm_set_flags(page_table_t* pt, uint64_t virtAddr, uint32_t flags){
 }
 
 void vmm_set_flags_range(page_table_t* pt, uint64_t virtAddr, size_t length, uint32_t flags){
-    for(int i = 0; i < length; i+=PAGE_SIZE){
+    for(size_t i = 0; i < length; i+=PAGE_SIZE){
         vmm_set_flags(pt, virtAddr, flags);
         virtAddr += PAGE_SIZE;
     }

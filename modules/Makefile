@@ -38,7 +38,7 @@ CFILES := $(shell find -L . -type f -name '*.c')
 MOD_OBJ := $(CFILES:.c=.sys)
 MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-INITRD_MODS := 
+INITRD_MODS := fat.sys
 
 ifdef CONFIG_INCLUDE_IDE_DRIVER
 INITRD_MODS += ide.sys
@@ -50,6 +50,10 @@ endif
 
 ifdef CONFIG_INCLUDE_PIT_DRIVER
 INITRD_MODS += pit.sys
+endif
+
+ifdef CONFIG_INCLUDE_RTC_DRIVER
+INITRD_MODS += rtc.sys
 endif
 
 INITRD_AUTOREG := initreg.txt

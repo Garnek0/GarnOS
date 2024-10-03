@@ -19,37 +19,7 @@ list_node_t* currentThreadNode;
 thread_t* currentThread;
 process_t* currentProcess;
 
-void sched_init(){
-    threadList = list_create();
-
-    process_init();
-}
-
-void sched_add_thread(thread_t* thread){
-    thread->status = THREAD_STATUS_READY; // just in case
-    list_insert(threadList, (void*)thread);
-
-    if(!currentThread) currentThread = thread;
-    if(!currentProcess) currentProcess = thread->process;
-    if(!currentThreadNode) currentThreadNode = threadList->head;
-}
-
-//TODO: move to thread.c
-void sched_remove_thread(thread_t* thread){
-    kmfree(thread->kernelStackDeallocAddress);
-
-    thread->status = THREAD_STATUS_DESTROYED;
-}
-
-inline process_t* sched_get_current_process(){
-    return currentProcess;
-}
-
-inline thread_t* sched_get_current_thread(){
-    return currentThread;
-}
-
-static void sched_get_next_thread(){
+static void _sched_get_next_thread(){
     if(threadList->head->next == NULL) return; // There is only one thread
 
 checkready:
@@ -70,6 +40,35 @@ checkready:
     if(currentThread->status != THREAD_STATUS_READY) goto checkready;
 }
 
+void sched_init(){
+    threadList = list_create();
+
+    process_init();
+}
+
+void sched_add_thread(thread_t* thread){
+    thread->status = THREAD_STATUS_READY; // just in case
+    list_insert(threadList, (void*)thread);
+
+    if(!currentThread) currentThread = thread;
+    if(!currentProcess) currentProcess = thread->process;
+    if(!currentThreadNode) currentThreadNode = threadList->head;
+}
+
+void sched_remove_thread(thread_t* thread){
+    kmfree(thread->kernelStackDeallocAddress);
+
+    thread->status = THREAD_STATUS_DESTROYED;
+}
+
+inline process_t* sched_get_current_process(){
+    return currentProcess;
+}
+
+inline thread_t* sched_get_current_thread(){
+    return currentThread;
+}
+
 int sys_set_tsp(stack_frame_t* regs, void* pointer){
     arch_set_tsp(pointer, regs);
     return 0;
@@ -82,7 +81,7 @@ void sched_preempt(stack_frame_t* regs){
 
     arch_store_context(regs);
 
-    sched_get_next_thread();
+    _sched_get_next_thread();
 
     arch_set_kernel_stack(0, (uint64_t)currentThread->kernelStack);
 

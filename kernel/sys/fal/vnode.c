@@ -15,152 +15,251 @@
 #include <garn/kerrno.h>
 #include <process/sched/sched.h>
 
-vnode_t* openFiles;
-vnode_t* openFileLast;
+/*TODO:
+- [x] Add proper flag-checking to all of the vnode functions (open, read, write etc)
+- [x] readdir
+- [x] Add some way to get filesystem drivers from modules
+- [ ] Add FAT(12/16/)32 support (again)
+- [ ] Add pts or something for stdin/stdout/stderr
+- [ ] Add procfs
+*/
+
+vnode_t* vnodeListHead;
+vnode_t* vnodeListTail;
 
 void vnode_list_add(vnode_t* vnode){
-    if(openFiles == NULL){
-        openFileLast = openFiles = vnode;
-        openFiles->next = NULL;
-        openFiles->prev = NULL;
+    if(vnodeListHead == NULL){
+        vnodeListHead = vnodeListTail = vnode;
+        vnodeListHead->next = NULL;
+        vnodeListHead->prev = NULL;
     } else {
-        openFileLast->next = vnode;
-        vnode->prev = openFileLast;
-        openFileLast = vnode;
-        openFileLast->next = NULL;
+        vnodeListTail->next = vnode;
+        vnode->prev = vnodeListTail;
+        vnodeListTail = vnode;
+        vnodeListTail->next = NULL;
     }
 }
 
 void vnode_list_remove(vnode_t* vnode){
-    if(openFileLast == vnode) openFileLast = vnode->prev;
-    if(openFiles == vnode) openFiles = vnode->next;
+    if(vnodeListTail == vnode) vnodeListTail = vnode->prev;
+    if(vnodeListHead == vnode) vnodeListHead = vnode->next;
 
     if(vnode->next) vnode->next->prev = vnode->prev;
     if(vnode->prev) vnode->prev->next = vnode->next;
 }
 
-//open file
-vnode_t* vnode_open(char* path, int flags, int mode){
-    kerrno = 0;
+void vnode_list_reset(){
+	vnodeListHead = vnodeListTail = NULL;
+}
 
-    size_t fid = 0;
+vnode_t* vnode_list_search_by_filename(vfs_t* vfs, const char* filename){
+	for(vnode_t* i = vnodeListHead; i; i = i->next){
+		if(i->vfs->fid == vfs->fid && !strcmp(i->filename, filename)){
+			return i;
+		}
+	}
 
-    if(path[0] > '9' || path[0] < '0'){
-        goto invalidfid;
-    }
+	return NULL;
+}
 
-    while(path[0] <= '9' && path[0] >= '0'){
-        fid *= 10;
-        fid += (uint8_t)(path[0] - '0');
-        path++;
-    }
-    //drive number should be followed by ":/"
-    if(path[0] != ':'){
-        goto invalidfid;
-    }
-    path++;
-    if(path[0] != '/'){
-        goto invalidfid;
-    }
-    path++;
+vnode_t* vnode_new(vfs_t* vfs, vnode_operations_t* vnodeops){
+	vnode_t* vnode = kmalloc(sizeof(vnode_t));
+	memset(vnode, 0, sizeof(vnode_t));
 
-    //get the vfs
-    vfs_t* fs = vfs_get_by_fid(fid);
-	if(!fs){
-		kerrno = ENOENT;
+	vnode->vfs = vfs;
+	vnode->vnodeops = vnodeops;
+
+	return vnode;
+}
+
+//lookup path name
+vnode_t* vnode_lookup(const char* path){
+	kerrno = 0;
+
+	if(!path || path[0] != '/'){
+		kerrno = EINVAL;
 		return NULL;
 	}
 
-    lock(fs->lock, {
-        for(vnode_t* i = openFiles; i != NULL; i = i->next){
-            if(i->fs == fs && !strcmp(i->filename, path)){
-                if((i->flags & O_DIRECTORY) && !(flags & O_DIRECTORY)){
-                    kerrno = EISDIR;
-                    releaseLock(&fs->lock);
-                    return NULL;   
-                }
-                if(!(i->flags & O_DIRECTORY) && (flags & O_DIRECTORY)){
-                    kerrno = ENOTDIR;
-                    releaseLock(&fs->lock);
-                    return NULL;
-                }
+	int stridx = 1;
+	int dirnameidx = 0;
+	char dirname[256];
 
-                i->refCount++;
-                releaseLock(&fs->lock);
-                return i;
-            }
-        }
-        if(!fs->fsOperations.open){
-            kerrno = EINVAL;
-            releaseLock(&fs->lock);
-            return NULL;
-        }
-        //open the file
-        vnode_t* file;
-        file = fs->fsOperations.open(fs, path, flags, mode);
-        if(file == NULL){
-            //kerrno should have already been set by the fs driver
-            releaseLock(&fs->lock);
-            return NULL;
-        }
-        file->fs = fs;
-        file->refCount = 1;
-        
+	vfs_t* vfs = vfs_get_root();
 
-        vnode_list_add(file);
+	vnode_t* currentVnode = vfs->rootVnode;
 
-        releaseLock(&fs->lock);
-        return file;
-    });
+	while(path[stridx] != 0){
+		dirnameidx = 0;
+		while(path[stridx] != '/'){
+			dirname[dirnameidx] = path[stridx];
+			dirnameidx++;
+			stridx++;
 
-invalidfid:
-    kerrno = ENOENT;
-    return NULL;
+			if(path[stridx] == 0) break;
+		}
+		if(path[stridx] == '/'){
+			dirname[dirnameidx] = '/';
+			dirnameidx++;
+			stridx++;
+		}
+		dirname[dirnameidx] = 0;
+
+		vnode_t* prevVnode = currentVnode;
+
+		lock(prevVnode->lock, {
+			if(!currentVnode->vnodeops || !currentVnode->vnodeops->vn_lookup){
+				releaseLock(&currentVnode->lock);
+				kerrno = EINVAL;
+				return NULL;
+			}
+
+			currentVnode = currentVnode->vnodeops->vn_lookup(currentVnode, dirname);
+		});	
+
+		if((prevVnode != vfs->rootVnode) && prevVnode->vnodeops->vn_inactive) prevVnode->vnodeops->vn_inactive(prevVnode);
+
+		if(!currentVnode){
+			//kerrno should be set
+			return NULL;
+		}
+
+		if(currentVnode->vfsMountedHere){
+			vfs = currentVnode->vfsMountedHere;
+			currentVnode = vfs->rootVnode;
+			//klog("DEBUG: Found new VFS in path %s\n", KLOG_INFO, "FAL", dirname);
+		}
+	}
+
+	return currentVnode;
 }
 
-//close file
-int vnode_close(vnode_t* file){
-    lock(file->lock, {
-        file->refCount--;
-        if(file->refCount == 0){
-            if(!file->fs->fsOperations.close){
-                releaseLock(&file->lock);
-                return -EINVAL;
-            }
+//open vnode
+vnode_t* vnode_open(const char* path, int flags, int mode){
+	kerrno = 0;
 
-            vnode_list_remove(file);
+	vnode_t* vnode = vnode_lookup(path);
+	if(!vnode){
+		//kerrno should be set
+		return NULL;
+	}
 
-            int res = file->fs->fsOperations.close(file->fs, file);
-            return res;
-        }
-    });
-    return 0;
+	lock(vnode->lock, {
+		if((flags & O_DIRECTORY) && (vnode->type != V_DIR)){
+			kerrno = ENOTDIR;
+			releaseLock(&vnode->lock);
+			return NULL;
+		} else if(!(flags & O_DIRECTORY) && (vnode->type == V_DIR)){
+			kerrno = EISDIR;
+			releaseLock(&vnode->lock);
+			return NULL;
+		}
+
+		if(flags & O_CREAT){
+			klog("O_CREAT Not supported! Flag ignored (this may cause issues!).\n", KLOG_WARNING, "FAL");
+		}
+
+		vnode->refCount++;
+		if(!vnode_list_search_by_filename(vnode->vfs, path)){
+			vnode_list_add(vnode);
+			vnode->flags = flags;
+			vnode->mode = mode;
+		}
+	});
+	
+	return vnode;
 }
 
-//read from file
-ssize_t vnode_read(vnode_t* file, size_t size, void* buf, size_t offset){
-    lock(file->lock, {
-        if(!file->fs->fsOperations.read){
-            releaseLock(&file->lock);
-            return -EINVAL;
-        }
-        int res = file->fs->fsOperations.read(file->fs, file, size, buf, offset);
-        releaseLock(&file->lock);
-        return res;
-    });
+//close vnode
+int vnode_close(vnode_t* vnode){
+    kerrno = 0;
+
+	int status = 0;
+
+	lock(vnode->lock, {
+		vnode->refCount--;
+		if(vnode->refCount == 0){
+			vnode_list_remove(vnode);
+			if(vnode->vnodeops->vn_inactive) status = vnode->vnodeops->vn_inactive(vnode);
+			else kmfree(vnode);
+		}
+	});
+	return status;
 }
 
-//write to file
-ssize_t vnode_write(vnode_t* file, size_t size, void* buf, size_t offset){
-    lock(file->lock, {
-        if(!file->fs->fsOperations.write){
-            releaseLock(&file->lock);
-            return -EINVAL;
-        }
-        int res = file->fs->fsOperations.write(file->fs, file, size, buf, offset);
-        releaseLock(&file->lock);
-        return res;
-    });
+//read from vnode
+ssize_t vnode_read(vnode_t* vnode, size_t size, void* buf, size_t offset){
+	kerrno = 0;
+
+	ssize_t bytesRead;
+
+	lock(vnode->lock, {
+		if(!vnode->vnodeops || !vnode->vnodeops->vn_read){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		//vnode_readdir should be used instead for directories
+		if(vnode->type == V_DIR){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		bytesRead = vnode->vnodeops->vn_read(vnode, size, buf, offset);	
+	});
+
+	return bytesRead;
+}
+
+//write to vnode
+ssize_t vnode_write(vnode_t* vnode, size_t size, void* buf, size_t offset){
+	kerrno = 0;
+
+	ssize_t bytesWritten;
+
+	lock(vnode->lock, {
+		if(vnode->type == V_DIR){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		if(!vnode->vnodeops || !vnode->vnodeops->vn_write){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		bytesWritten = vnode->vnodeops->vn_write(vnode, size, buf, offset);	
+	});
+
+	return bytesWritten;
+}
+
+ssize_t vnode_readdir(vnode_t* vnode, size_t count, void* buf, size_t offset){
+	kerrno = 0;
+
+	ssize_t bytesReturned;
+
+	lock(vnode->lock, {
+		if(vnode->type != V_DIR){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		if(!vnode->vnodeops || !vnode->vnodeops->vn_readdir){
+			kerrno = EINVAL;
+			releaseLock(&vnode->lock);
+			return -EINVAL;
+		}
+
+		bytesReturned = vnode->vnodeops->vn_readdir(vnode, count, buf, offset);
+	});
+
+	return bytesReturned;
 }
 
 fd_t* vnode_alloc_fd_table(size_t size){
@@ -184,48 +283,22 @@ fd_t* vnode_realloc_fd_table(fd_t* fd, size_t prevSize, size_t newSize){
 char* vnode_get_absolute_path(char* root, char* relative){
     kerrno = 0;
 
-    //Check if path is absolute
-    bool absolute = false;
-    if(relative[0] == '/') absolute = true;
-    else {
-        char* relativeTmp = relative;
-        while(relativeTmp[0] != 0){
-            if(relativeTmp[0] == ':'){
-                absolute = true;
-                break;
-            } else if(relativeTmp[0] == '/') break;
-            relativeTmp++;
-        }
-    }
-    
-    size_t size = 0;
+	char* buf = kmalloc(PATH_MAX+1);
+	size_t size = 0;
     size_t sptr = 0;
 
-    char* buf = kmalloc(PATH_MAX+1);
-
-    if(absolute && relative[0] != '/'){
-        memcpy(buf, relative, strlen(relative)+1);
-        goto checkpath;
-    }
-    else if(absolute && relative[0] == '/'){
-        size = sizeof(relative)+2;
-        if(size > PATH_MAX){
-            kerrno = ENAMETOOLONG;
-            return NULL;
-        }
-
-        memcpy(&buf[2], relative, strlen(relative)+1);
-        buf[0] = '0';
-        buf[1] = ':';
-        goto checkpath;
-    }
-
-    size = strlen(root)+strlen(relative);
+	size = strlen(root)+strlen(relative);
     if(size > PATH_MAX){
         kerrno = ENAMETOOLONG;
         return NULL;
     }
 
+    //Check if path is absolute
+    if(relative[0] == '/'){
+		memcpy(buf, relative, strlen(relative)+1);
+        goto checkpath;
+	}
+	  
     memcpy(buf, root, strlen(root));
     sptr = strlen(root);
     if(root[sptr-1]!='/'){
@@ -247,7 +320,7 @@ checkpath:
     for(uint32_t i = 0; i < strlen(buf); i++){
         if(buf[i] == '/') dirindex++;
         if(!strncmp(&buf[i], "/../", 4)){
-            if(dirindex < 2){
+			if(dirindex < 2){
                 memcpy(&buf[i], &buf[i+3], strlen(&buf[i+3])+1);
                 continue;
             }
@@ -259,7 +332,7 @@ checkpath:
                 }
             }
         } else if(!strncmp(&buf[i], "/..", 3)){
-            if(dirindex < 2){
+			if(dirindex < 2){
                 memcpy(&buf[i], &buf[i+3], strlen(&buf[i+3])+1);
                 continue;
             }
@@ -317,7 +390,7 @@ ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
 
     fd_t* currentfd = &currentProcess->fdTable[fd];
 
-    if(!(currentfd->flags & O_RDONLY) && !(currentfd->flags & O_RDWR)) return (ssize_t)-EACCES;
+    if((currentfd->flags & O_WRONLY) && !(currentfd->flags & O_RDWR)) return (ssize_t)-EACCES;
 
     size_t res = vnode_read(currentProcess->fdTable[fd].file, count, buf, currentProcess->fdTable[fd].offset);
     if(res > 0) currentProcess->fdTable[fd].offset += res;
@@ -326,7 +399,7 @@ ssize_t sys_read(stack_frame_t* regs, int fd, void* buf, size_t count){
 }
 
 ssize_t sys_write(stack_frame_t* regs, int fd, void* buf, size_t count){
-    process_t* currentProcess = sched_get_current_process();
+	process_t* currentProcess = sched_get_current_process();
 
     if((size_t)fd < 0 || (size_t)fd > currentProcess->fdMax || !currentProcess->fdTable[fd].file) return (ssize_t)-EBADF;
 
@@ -387,15 +460,15 @@ int sys_chdir(stack_frame_t* regs, const char* path){
     return 0;
 }
 
-ssize_t sys_getdents(stack_frame_t* regs, int fd, void* dirp, size_t count){
-    if(!dirp) return -EFAULT;
+long sys_getdents(stack_frame_t* regs, int fd, void* dirp, unsigned int count){
+	if(!dirp) return -EFAULT;
 
     process_t* currentProcess = sched_get_current_process();
 
     if(!currentProcess->fdTable[fd].file) return -EBADF;
     if(!(currentProcess->fdTable[fd].file->flags & O_DIRECTORY)) return -ENOTDIR;
 
-    ssize_t bytesRead = vnode_read(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
+	ssize_t bytesRead = vnode_readdir(currentProcess->fdTable[fd].file, count, dirp, currentProcess->fdTable[fd].offset);
 
     currentProcess->fdTable[fd].offset += bytesRead;
 

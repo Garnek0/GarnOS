@@ -55,8 +55,10 @@ static void console_ver(){
 }
 
 static void console_timedate(){
-    systime_t time = time_get();
+    timespec64_t unixtime = time_get64();
+	systime_t time = time_conv_to_systime64(unixtime);
 
+	kprintf("UNIX Time: %u\n\n", unixtime);
     kprintf("%d/%d/%u\n", time.month, time.dayOfMonth, time.year);
     kprintf("%d:", time.hours);
     if(time.minutes < 10) kprintf("0");
@@ -66,31 +68,34 @@ static void console_timedate(){
 }
 
 static void console_dev(){
-    device_t device;
+    device_t* device;
     for(size_t i = 0; i < device_get_device_count(); i++){
         device = device_get_device(i);
-        kprintf("Device: %s\nDriver: ", device.name);
-        if(!device.node){
+        kprintf("Device: %s\nDriver: ", device->name);
+        if(!device->node){
             kprintf("No Device Driver Loaded\n\n");
             continue;
         }
-        kprintf("%s\n\n", device.node->path);
+        kprintf("%s\n\n", device->node->path);
     }
 }
 
 static void console_cpu(){
-    device_t device;
+    device_t* device;
     for(size_t i = 0; i < device_get_device_count(); i++){
         device = device_get_device(i);
-        if(device.type == DEVICE_TYPE_PROCESSOR){
-            kprintf("%s\n", device.name);
+        if(device->type == DEVICE_TYPE_PROCESSOR){
+            kprintf("%s\n", device->name);
         }
     }
 }
 
 static void console_fs(){
 	for(vfs_t* i = vfs_get_root(); i; i = i->next){
-		 kprintf("FID=%d: %s - Size: %dKiB (%d Bytes)\n", i->fid, i->name, i->size/1024, i->size);
+		if(!i->fsops || !i->fsops->vfs_statfs) continue;
+		statfs_t statfs = i->fsops->vfs_statfs(i);
+
+		kprintf("FID=%d: %s - %u Files. Total blocks %u (%u MiB), Free blocks %u (%u MiB), block size: %d\n", i->fid, i->name, statfs.files, statfs.totalBlocks, statfs.totalBlocks*statfs.bsize/1024/1024, statfs.freeBlocks, statfs.freeBlocks*statfs.bsize/1024/1024, statfs.bsize);
 	}
 }
 

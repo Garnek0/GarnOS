@@ -30,7 +30,6 @@
 #include <sys/fal/initrd/initrd.h>
 #include <sys/term/term-internals.h>
 #include <sys/power-internals.h>
-#include <sys/input-internals.h>
 #include <sys/ksym-internals.h>
 #include <sys/bootloader.h>
 #include <sys/dal/dal-internals.h>
@@ -75,8 +74,6 @@ void _start(){
 
     kheap_init(); //initialise Kernel Heap
 
-    tty_init(); //initialise tty stdout and stderr
-
     fb_read_init(); //initialise a read buffer
 
     power_init(); //initialise system power management
@@ -88,6 +85,12 @@ void _start(){
     input_init(); //initialise keyboard ringbuffer
 
     dal_init(); //initialise Device Abstraction Layer
+
+	//TEST CODE FOR DEVFS
+
+	//vnode_t* thing = vnode_open("/dev/tty0", 0, 0);
+
+	//while(1);
 
 #ifdef CONFIG_KCON
     init_kcon(); //start demo console

@@ -54,7 +54,7 @@ void vaspace_create_thread_user_stack(thread_t* thread){
 #ifdef CONFIG_ARCH_X86
 
     thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pt, (VMM_USER_END - VMM_INIT_USER_STACK_SIZE),
-                                        VMM_INIT_USER_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER) + ((VMM_INIT_USER_STACK_SIZE - 1) - 15);
+                                        VMM_INIT_USER_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER | VMM_EXEC_DISABLE) + ((VMM_INIT_USER_STACK_SIZE - 1) - 15);
                             
 #elif CONFIG_ARCH_DUMMY
 
@@ -146,7 +146,7 @@ int sys_munmap(stack_frame_t* regs, void* addr, size_t length){
     uint64_t physAddr;
 
     for(size_t i = 0; i < length; i++){
-        physAddr = vmm_virt_to_phys(currentProcess->pt, addr);
+        physAddr = vmm_virt_to_phys(currentProcess->pt, (uint64_t)addr);
 
         if(physAddr == 0) return -EINVAL;
         else {

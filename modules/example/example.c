@@ -43,6 +43,10 @@ bool attach(device_t* device){
 }
 
 // Called when "device" is removed
+//
+// Filesystem drivers are required to
+// free the "data" field of their filesystem
+// pseudodevices in this routine
 bool remove(device_t* device){
 	return false;
 }
@@ -50,7 +54,7 @@ bool remove(device_t* device){
 // Contains info about this module
 // This struct MUST be named "metadata"
 module_t metadata = {
-	.name = "pit", // Name of the module.
+	.name = "example", // Name of the module.
 	// Pointers to the init() and fini() routines
 	.init = init,
 	.fini = fini

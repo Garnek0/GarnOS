@@ -9,6 +9,8 @@
 #define INITRD_H
 
 #include <garn/types.h>
+#include <garn/fal/vnode.h>
+#include <garn/fal/vfs.h>
 
 #define INITRD_FILENAME "initrd.grd"
 
@@ -32,5 +34,10 @@ typedef struct {
 } initrd_file_fs_data_t;
 
 void initrd_init();
+
+ssize_t initrd_read(vnode_t* self, size_t size, void* buf, size_t offset);
+int initrd_inactive(vnode_t* self);
+vnode_t* initrd_lookup(vnode_t* self, const char* name);
+statfs_t initrd_statfs(vfs_t* self);
 
 #endif //INITRD_H

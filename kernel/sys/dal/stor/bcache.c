@@ -30,12 +30,12 @@ void bcache_init(){
 }
 
 bcache_buf_t* bcache_get(drive_t* drive, size_t block){
-    lock(bcache.spinlock, {
+	lock(bcache.spinlock, {
         for(bcache_buf_t* i = bcache.head; i != NULL; i = i->next){
-            if(i->drive == drive && i->block == block){
+            if(i->drive == drive && i->block == block && i->valid){
                 i->refCount++;
                 releaseLock(&bcache.spinlock);
-                return i;
+				return i;
             }
         }
 
@@ -48,11 +48,12 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
                 i->dirty = false;
                 if(bcache_read(i) != 0){
 					i->refCount = 0;
+					i->valid = false;
 					releaseLock(&bcache.spinlock);
 					return NULL;
 				}
                 releaseLock(&bcache.spinlock);
-                return i;
+				return i;
             }
         }
     });
@@ -61,18 +62,18 @@ bcache_buf_t* bcache_get(drive_t* drive, size_t block){
 }
 
 int bcache_read(bcache_buf_t* buf){
-    lock(buf->lock, {
+	lock(buf->lock, {
         if(buf->drive->read){
             buf->drive->read(buf->drive, buf->block, 1, buf->data);
         } else {
             klog("Cant read from drive \"%s\"! Read unimplemented.\n", KLOG_FAILED, "bcache", buf->drive->name);
             kerrno = ENOSYS;
             releaseLock(&buf->lock);
-            return -1;
+			return -1;
         }
     });
 
-    return 0;
+	return 0;
 }
 
 int bcache_write(bcache_buf_t* buf){
@@ -95,15 +96,21 @@ int bcache_write(bcache_buf_t* buf){
 }
 
 void bcache_release(bcache_buf_t* buf){
-    lock(bcache.spinlock, {
-        buf->refCount--;
+	lock(bcache.spinlock, {
+		if(buf->refCount == 0){
+			releaseLock(&bcache.spinlock);
+			return;
+		}
 
+        buf->refCount--;
         if(buf->refCount == 0){
-            bcache.tail->next = buf;
+			bcache.tail->next = buf;
+			if(buf == bcache.head) bcache.head = buf->next;
             if(buf->next) buf->next->prev = buf->prev;
             if(buf->prev) buf->prev->next = buf->next;
             buf->prev = bcache.tail;
             buf->next = NULL;
+			buf->valid = false;
             bcache.tail = buf;
         }
     });

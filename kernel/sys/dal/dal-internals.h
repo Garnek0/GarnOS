@@ -18,6 +18,8 @@
 #include <garn/dal/device-types.h>
 #include <garn/dal/bcache.h>
 
+#include "dev/devfs/devfs.h"
+
 typedef struct {
     bcache_buf_t* head;
     bcache_buf_t* tail;

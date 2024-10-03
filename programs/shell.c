@@ -141,7 +141,7 @@ int main(){
         printf("\e[38;2;255;89;0mroot\e[38;2;255;255;255m:\e[38;2;0;0;255m%s\e[38;2;255;255;255m >>> ", cwd);
 
         get_command();
-
+		
         if(cmd[0] == 0){
             statusSuccess = true;
             continue;
