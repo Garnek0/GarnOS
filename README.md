@@ -3,6 +3,8 @@
 This branch is no longer getting updates! Since the Garn kernel got WAY too messy, i'm rewriting the entire thing from scratch.
 Updates will now go to the new `v0.x-rewrite` branch. 
 
+The gcc/binutils-gdb/mlibc-garn repositories and therefore the cross-compiler build code for this branch will also no longer work! 
+
 # GarnOS
 
 ![](https://tokei.rs/b1/github/Garnek0/GarnOS)
