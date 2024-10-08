@@ -1,3 +1,8 @@
+# IMPORTANT
+
+This branch is no longer getting updates! Since the Garn kernel got WAY too messy, i'm rewriting the entire thing from scratch.
+Updates will now go to the new `v0.x-rewrite` branch. 
+
 # GarnOS
 
 ![](https://tokei.rs/b1/github/Garnek0/GarnOS)
