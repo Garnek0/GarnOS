@@ -1,0 +1,5 @@
+config INCLUDE_i8042_DRIVER
+		bool "i8042 PS/2 Support"
+		default y
+		help
+			"Check this if your target system has an i8042 PS/2 controller."

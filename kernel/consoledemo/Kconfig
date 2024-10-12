@@ -1,0 +1,8 @@
+config KCON
+    bool "Enable kcon (Deprecated)"
+	default n
+    help
+        "Enables a demo console running in kernel mode. This console provides basic
+		commands for testing the kernel and nothing more.
+		
+		DEPRECATED: Will be removed soon"
