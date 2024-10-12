@@ -1,10 +1,3 @@
-/*  
-*   File: serial-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef SERIAL_INTERNALS_H
 #define SERIAL_INTERNALS_H
 

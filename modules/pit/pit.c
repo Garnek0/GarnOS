@@ -1,14 +1,3 @@
-/*  
-*   Module: pit.sys
-*
-*   File: pit.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: PIT Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "pit.h"
 
 #include <garn/arch.h>

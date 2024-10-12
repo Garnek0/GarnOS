@@ -1,12 +1,3 @@
-/*  
-*   File: gdt.c
-*
-*   Author: Garnek
-*   
-*   Description: Global Descriptor Table nd Task State Segment
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "gdt.h"
 #include <cpu/smp/smp.h>
 #include <arch/arch-internals.h>

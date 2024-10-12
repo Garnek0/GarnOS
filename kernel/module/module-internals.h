@@ -1,12 +1,3 @@
-/*  
-*   File: module-internals.h
-*
-*   Author: Garnek
-*   
-*   Description: Module Metadata struct definition & other module related stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef MODMGR_INTERNALS_H
 #define MODMGR_INTERNALS_H
 

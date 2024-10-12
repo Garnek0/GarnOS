@@ -1,12 +1,3 @@
-/*  
-*   File: drive.c
-*
-*   Author: Garnek
-*   
-*   Description: Storage Medium Abstraction (Drive Abstraction)
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/mm.h>
 #include <garn/panic.h>

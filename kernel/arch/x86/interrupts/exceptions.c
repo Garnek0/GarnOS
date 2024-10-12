@@ -1,12 +1,3 @@
-/*  
-*   File: exceptions.c
-*
-*   Author: Garnek
-*   
-*   Description: Exception Handler
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "interrupt-internals.h"
 #include <arch/x86/interrupts/idt.h>
 #include <garn/irq.h>

@@ -1,12 +1,3 @@
-/*  
-*   File: apic.c
-*
-*   Author: Garnek
-*   
-*   Description: APIC Enabling and Support
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "apic.h"
 #include <garn/kstdio.h>
 #include <sys/bootloader.h>

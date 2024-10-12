@@ -1,12 +1,3 @@
-/*  
-*   File: kstrerror.c
-*
-*   Author: Garnek
-*   
-*   Description: Error Printing
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 

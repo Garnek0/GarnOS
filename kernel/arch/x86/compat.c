@@ -1,12 +1,3 @@
-/*  
-*   File: compat.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 Compatibility Checks
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/panic.h>
 #include <garn/config.h>
 #include <arch/arch-internals.h>

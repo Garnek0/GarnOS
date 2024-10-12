@@ -1,10 +1,3 @@
-/*  
-*   File: process.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef PROCESS_H
 #define PROCESS_H
 

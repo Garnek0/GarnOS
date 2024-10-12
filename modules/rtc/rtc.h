@@ -1,12 +1,3 @@
-/*  
-*   File: rtc.h
-*
-*   Author: Garnek
-*   
-*   Description: defines for RTC stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef RTC_H
 #define RTC_H
 

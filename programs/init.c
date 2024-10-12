@@ -1,16 +1,3 @@
-/*  
-*   Program: init
-*
-*   File: init.c 
-*
-*   Program Author: Garnek
-*   
-*   Program Description: First user program that gets to run. Starts up the shell
-*                        and lets the kernel dealloc the structures of any inherited children once they quit.
-*                        (through waitpid())
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>

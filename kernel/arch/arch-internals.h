@@ -1,12 +1,3 @@
-/*  
-*   File: arch-internals.h
-*
-*   Author: Garnek
-*   
-*   Description: Internal architecture-specific stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef ARCH_INTERNALS_H
 #define ARCH_INTERNALS_H
 

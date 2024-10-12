@@ -1,14 +1,3 @@
-/*  
-*   Module: i8042.sys
-*
-*   File: i8042kb.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: i8042 PS/2 Keyboard driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "i8042.h"
 
 char keymap[] = {

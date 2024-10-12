@@ -1,12 +1,3 @@
-/*  
-*   File: arch.h
-*
-*   Author: Garnek
-*   
-*   Description: Architecture-specific stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef ARCH_H
 #define ARCH_H
 

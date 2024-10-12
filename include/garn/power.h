@@ -1,10 +1,3 @@
-/*  
-*   File: power.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef POWER_H
 #define POWER_H
 

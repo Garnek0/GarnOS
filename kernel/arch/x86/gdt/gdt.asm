@@ -1,12 +1,3 @@
-;  
-;   File: gdt.asm
-;
-;   Author: Garnek
-;   
-;   Description: Loading of the Global Descriptor Table
-;
-; SPDX-License-Identifier: BSD-2-Clause
-
 global gdt_load
 
 gdt_load:

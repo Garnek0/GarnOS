@@ -1,14 +1,3 @@
-/*  
-*   Module: ahci.sys
-*
-*   File: ahci-poll.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: AHCI Polling functions
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ahci.h"
 
 bool ahci_wait_set(volatile uint32_t* reg, uint32_t bit, uint32_t ms){

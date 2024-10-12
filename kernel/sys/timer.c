@@ -1,12 +1,3 @@
-/*  
-*   File: timer.c
-*
-*   Author: Garnek
-*   
-*   Description: Simple timer interface.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/timer.h>
 #include <garn/spinlock.h>
 

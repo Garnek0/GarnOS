@@ -1,12 +1,3 @@
-/*  
-*   File: pcidev.c
-*
-*   Author: Garnek
-*   
-*   Description: PCI Devices
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/hw/pci.h>
 #include <garn/arch.h>

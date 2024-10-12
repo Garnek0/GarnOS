@@ -1,12 +1,3 @@
-/*  
-*   File: init.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 CPU initialisation
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/arch-internals.h>
 #include <arch/x86/gdt/gdt.h>
 #include <arch/x86/interrupts/interrupt-internals.h>

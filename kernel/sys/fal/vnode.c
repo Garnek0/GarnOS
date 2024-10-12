@@ -1,12 +1,3 @@
-/*  
-*   File: vnode.c
-*
-*   Author: Garnek
-*   
-*   Description: Vnode Implementation (File abstraction)
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "fal-internals.h"
 
 #include <garn/fal/vnode.h>

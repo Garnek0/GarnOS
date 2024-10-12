@@ -1,10 +1,3 @@
-/*  
-*   File: user.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef USER_H
 #define USER_H
 

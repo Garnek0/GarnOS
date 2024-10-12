@@ -1,14 +1,3 @@
-/*  
-*   Program: ls
-*
-*   File: ls.c 
-*
-*   Program Author: Garnek
-*   
-*   Program Description: List information about files/directories
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>

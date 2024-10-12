@@ -1,14 +1,3 @@
-/*
-*   Module: fat.sys
-*
-*   File: fat.c
-*
-*   Module Author: Garnek
-*
-*   Module Description: FAT12/16/32 Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "fat.h"
 
 #include <garn/module.h>

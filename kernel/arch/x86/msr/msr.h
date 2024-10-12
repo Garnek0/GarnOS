@@ -1,10 +1,3 @@
-/*  
-*   File: msr.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef MSR_H
 #define MSR_H
 

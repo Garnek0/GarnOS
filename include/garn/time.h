@@ -1,12 +1,3 @@
-/*  
-*   File: time.h
-*
-*   Author: Garnek
-*
-*   Description: System time
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef TIME_H
 #define TIME_H
 

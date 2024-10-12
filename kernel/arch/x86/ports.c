@@ -1,12 +1,3 @@
-/*  
-*   File: ports.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 I/O Ports
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/types.h>
 #include <garn/arch.h>
 

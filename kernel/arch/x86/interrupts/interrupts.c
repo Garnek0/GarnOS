@@ -1,12 +1,3 @@
-/*  
-*   File: interrupts.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 Interrupts
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "interrupt-internals.h"
 #include <arch/x86/interrupts/idt.h>
 #include <arch/arch-internals.h>

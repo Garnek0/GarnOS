@@ -1,12 +1,3 @@
-/*  
-*   File: elf.c
-*
-*   Author: Garnek
-*   
-*   Description: Utils for loading and managing ELFs
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "elf.h"
 #include "elfabi.h"
 #include <garn/fal/vnode.h>

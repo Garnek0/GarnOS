@@ -1,12 +1,3 @@
-/*  
-*   File: pci.c
-*
-*   Author: Garnek
-*   
-*   Description: PCI Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/hw/pci.h>
 #include <garn/arch.h>
 #include <garn/kstdio.h>

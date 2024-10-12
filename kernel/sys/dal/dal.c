@@ -1,13 +1,3 @@
-/*  
-*   File: dal.c
-*
-*   Author: Garnek
-*   
-*   Description: Device Abstraction Layer. Provides Abstractions for
-*                Things like Drives or Buses.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/panic.h>
 

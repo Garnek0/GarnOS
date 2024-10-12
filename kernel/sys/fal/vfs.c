@@ -1,12 +1,3 @@
-/*  
-*   File: vfs.c
-*
-*   Author: Garnek
-*   
-*   Description: Virtual Filesystem Layer
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "fal-internals.h"
 
 #include <garn/fal/vfs.h>

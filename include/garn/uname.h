@@ -1,10 +1,3 @@
-/*  
-*   File: uname.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef UNAME_H
 #define UNAME_H
 

@@ -1,10 +1,3 @@
-/*  
-*   File: initrd.c
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef INITRD_H
 #define INITRD_H
 

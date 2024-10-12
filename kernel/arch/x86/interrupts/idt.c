@@ -1,12 +1,3 @@
-/*  
-*   File: idt.c
-*
-*   Author: Garnek
-*   
-*   Description: Interrupt Descriptor Table Code
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "idt.h"
 
 idtr_t idtr;

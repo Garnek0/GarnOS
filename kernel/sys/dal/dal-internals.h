@@ -1,10 +1,3 @@
-/*  
-*   File: dal-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef DAL_INTERNALS_H
 #define DAL_INTERNALS_H
 

@@ -1,12 +1,3 @@
-/*  
-*   File: pit.h
-*
-*   Author: Garnek
-*   
-*   Description: defines for PIT stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef PIT_H
 #define PIT_H
 

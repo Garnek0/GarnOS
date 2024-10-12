@@ -1,14 +1,3 @@
-/*  
-*   Module: i8042.sys
-*
-*   File: i8042.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: i8042 PS/2 Controller Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "i8042.h"
 
 void i8042_write(uint8_t port, uint8_t data){

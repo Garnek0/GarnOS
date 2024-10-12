@@ -1,12 +1,3 @@
-/*  
-*   File: module.c
-*
-*   Author: Garnek
-*   
-*   Description: Module Manager
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <module/module-internals.h>
 #include <exec/elf.h>
 #include <garn/mm.h>

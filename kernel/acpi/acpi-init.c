@@ -1,12 +1,3 @@
-/*  
-*   File: uacpi-init.c
-*
-*   Author: Garnek
-*   
-*   Description: uACPI Init call
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "acpi-internals.h"
 #include <uacpi/sleep.h>
 #include <garn/panic.h>

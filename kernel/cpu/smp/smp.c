@@ -1,12 +1,3 @@
-/*  
-*   File: smp.c
-*
-*   Author: Garnek
-*   
-*   Description: Multiprocessing Code
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "smp.h"
 #include <sys/bootloader.h>
 #include <garn/kstdio.h>

@@ -1,12 +1,3 @@
-/*  
-*   File: memutil.c
-*
-*   Author: Garnek
-*   
-*   Description: some memory functions that GCC and Clang need and string utils like strncmp().
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <mem/mm-internals.h>
 
 // GCC and Clang reserve the right to generate calls to the following

@@ -1,10 +1,3 @@
-/*  
-*   File: thread.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef THREAD_H
 #define THREAD_H
 

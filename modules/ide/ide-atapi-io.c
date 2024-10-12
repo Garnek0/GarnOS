@@ -1,14 +1,3 @@
-/*  
-*   Module: ide.sys
-*
-*   File: ide-atapi-io.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: IDE ATAPI I/O Functions
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ide.h"
 
 //TODO: ATAPI

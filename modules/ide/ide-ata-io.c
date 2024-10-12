@@ -1,14 +1,3 @@
-/*  
-*   Module: ide.sys
-*
-*   File: ide-ata-io.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: IDE ATA I/O Functions
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ide.h"
 
 int ide_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){

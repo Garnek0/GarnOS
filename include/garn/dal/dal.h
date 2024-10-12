@@ -1,10 +1,3 @@
-/*  
-*   File: dal.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef DAL_H
 #define DAL_H
 

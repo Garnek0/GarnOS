@@ -1,14 +1,3 @@
-/*  
-*   File: interrupt-internals.h
-*
-*   Author: Garnek
-*
-*   Description: Extern declarations for every ASM stub and
-*                definition of the stack frame structure and
-*                code for internal interrupt management 
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef INTERRUPT_INTERNALS_H
 #define INTERRUPT_INTERNALS_H
 

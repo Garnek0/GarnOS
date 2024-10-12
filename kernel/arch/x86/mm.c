@@ -1,12 +1,3 @@
-/*  
-*   File: mm.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 Memory management
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/arch-internals.h>
 #include <sys/bootloader.h>
 

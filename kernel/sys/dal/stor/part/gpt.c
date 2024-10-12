@@ -1,12 +1,3 @@
-/*  
-*   File: gpt.c
-*
-*   Author: Garnek
-*   
-*   Description: GUID Partition Table Parsing
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "gpt.h"
 #include <garn/mm.h>
 #include <garn/spinlock.h>

@@ -1,12 +1,3 @@
-/*  
-*   File: sched.c
-*
-*   Author: Garnek
-*   
-*   Description: Thread Scheduler
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "sched.h"
 #include <process/process.h>
 #include <garn/ds/list.h>

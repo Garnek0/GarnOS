@@ -1,12 +1,3 @@
-/*  
-*   File: vaspace.c
-*
-*   Author: Garnek
-*   
-*   Description: Management of process virtual address spaces
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <mem/mm-internals.h>
 #include <sys/bootloader.h>
 #include <process/sched/sched.h>

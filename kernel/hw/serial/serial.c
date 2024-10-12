@@ -1,12 +1,3 @@
-/*  
-*   File: serial.c
-*
-*   Author: Garnek
-*   
-*   Description: Serial Console Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/hw/serial.h>
 #include "serial-internals.h"
 #include <garn/arch.h>

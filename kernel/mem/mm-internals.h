@@ -1,10 +1,3 @@
-/*  
-*   File: mm-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef MM_INTERNALS_H
 #define MM_INTERNALS_H
 

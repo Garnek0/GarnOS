@@ -1,14 +1,3 @@
-/*  
-*   Program: shell
-*
-*   File: shell.c 
-*
-*   Program Author: Garnek
-*   
-*   Program Description: GarnOS's (default) shell.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>

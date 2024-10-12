@@ -1,10 +1,3 @@
-/*  
-*   File: input.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef INPUT_H
 #define INPUT_H
 

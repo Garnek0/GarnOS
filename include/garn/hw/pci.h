@@ -1,12 +1,3 @@
-/*  
-*   File: pci.h
-*
-*   Author: Garnek
-*   
-*   Description: defines for PCI stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef PCI_H
 #define PCI_H
 

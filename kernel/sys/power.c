@@ -1,12 +1,3 @@
-/*  
-*   File: power.c
-*
-*   Author: Garnek
-*   
-*   Description: System Power Management (for now, just basic 'shutdown')
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "power-internals.h"
 
 #include <garn/power.h>

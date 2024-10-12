@@ -1,10 +1,3 @@
-/*  
-*   File: kcon.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef KCONDEMO_H
 #define KCONDEMO_H
 

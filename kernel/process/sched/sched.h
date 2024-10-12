@@ -1,10 +1,3 @@
-/*  
-*   File: sched.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef SCHED_H
 #define SCHED_H
 

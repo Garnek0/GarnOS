@@ -1,14 +1,3 @@
-/*  
-*   Program: echo
-*
-*   File: echo.c
-*
-*   Program Author: Garnek
-*   
-*   Program Description: A program that prints its args to stdout
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <stdio.h>
 
 int main(int argc, char** argv){

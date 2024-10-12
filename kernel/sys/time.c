@@ -1,12 +1,3 @@
-/*  
-*   File: time.c
-*
-*   Author: Garnek
-*
-*   Description: System time
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/time.h>
 #include <stdint.h>
 

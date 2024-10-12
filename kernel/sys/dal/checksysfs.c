@@ -1,12 +1,3 @@
-/*  
-*   File: checksysfs.c
-*
-*   Author: Garnek
-*   
-*   Description: Checks whether the system fs is mounted or not
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/fal/vnode.h>
 #include <garn/fal/vfs.h>

@@ -1,10 +1,3 @@
-/*  
-*   File: mm.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef MM_H
 #define MM_H
 

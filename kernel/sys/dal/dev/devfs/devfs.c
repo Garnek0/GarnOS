@@ -1,12 +1,3 @@
-/*  
-*   File: devfs.c
-*
-*   Author: Garnek
-*   
-*   Description: /dev filesystem
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "devfs.h"
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>

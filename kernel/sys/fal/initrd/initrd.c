@@ -1,12 +1,3 @@
-/*  
-*   File: initrd.c
-*
-*   Author: Garnek
-*   
-*   Description: ustar initial ramdisk operations
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "initrd.h"
 #include <garn/kstdio.h>
 #include <garn/panic.h>

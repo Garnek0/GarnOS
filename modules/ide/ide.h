@@ -1,12 +1,3 @@
-/*  
-*   File: ide.h
-*
-*   Author: Garnek
-*   
-*   Description: defines for IDE Controller Commands & other stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef IDE_MODULE_H
 #define IDE_MODULE_H
 

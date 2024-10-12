@@ -1,14 +1,3 @@
-/*  
-*   Module: ide.sys
-*
-*   File: ide-atapi-io.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: IDE Polling functions
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ide.h"
 
 uint8_t ide_poll(ide_channel_t* channel, uint8_t reg, uint8_t bit, bool checkErrors){

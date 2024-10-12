@@ -1,12 +1,3 @@
-/*  
-*   File: context.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 CPU context control
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/arch-internals.h>
 #include <process/thread/thread.h>
 #include <process/sched/sched.h>

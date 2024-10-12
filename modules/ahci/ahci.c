@@ -1,22 +1,4 @@
-/*  
-*   Module: ahci.sys
-*
-*   File: ahci.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: AHCI Controller Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ahci.h"
-
-/*TODO:
-- [ ] Make this driver work on real hardware.
-- [ ] Deal with SEMB and PM Devices.
-- [ ] Implement a more complete setup phase.
-- [ ] Implement ATAPI read/write.
-*/
 
 int ahci_find_cmd_slot(ahci_controller_t* controller, ahci_mem_port_t* port){
 	uint32_t slots = (port->sact | port->ci);

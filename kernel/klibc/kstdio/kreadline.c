@@ -1,12 +1,3 @@
-/*  
-*   File: kreadline.c
-*
-*   Author: Garnek
-*   
-*   Description: Kernel readline. Reads characters from stdin.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/kstdio.h>
 #include <garn/term/term.h>
 #include <garn/mm.h>

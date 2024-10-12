@@ -1,12 +1,3 @@
-/*  
-*   File: name.c
-*
-*   Author: Garnek
-*   
-*   Description: Get x86 CPU Name
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/arch.h>
 #include <garn/mm.h>
 #include <cpuid.h>

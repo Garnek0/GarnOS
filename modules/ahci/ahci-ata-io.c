@@ -1,14 +1,3 @@
-/*  
-*   Module: ahci.sys
-*
-*   File: ahci-ata-io.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: AHCI ATA I/O Control
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ahci.h"
 
 int ahci_ata_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf){

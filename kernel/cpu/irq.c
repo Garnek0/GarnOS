@@ -1,12 +1,3 @@
-/*  
-*   File: irq.c
-*
-*   Author: Garnek
-*   
-*   Description: IRQ handler
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/mm.h>
 #include <garn/kstdio.h>
 #include <garn/ds/list.h>

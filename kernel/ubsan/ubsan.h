@@ -1,10 +1,3 @@
-/*  
-*   File: ubsan.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef UBSAN_HOOKS_H
 #define UBSAN_HOOKS_H
 

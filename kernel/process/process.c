@@ -1,12 +1,3 @@
-/*  
-*   File: process.c
-*
-*   Author: Garnek
-*   
-*   Description: Process Implementation
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "process.h"
 #include <mem/mm-internals.h>
 #include <process/thread/thread.h>

@@ -1,14 +1,3 @@
-/*  
-*   Program: gname
-*
-*   File: gname.c
-*
-*   Program Author: Garnek
-*   
-*   Program Description: Displays Garn kernel name + other OS details
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <stdio.h>
 #include <unistd.h>
 #include <abi-bits/utsname.h>

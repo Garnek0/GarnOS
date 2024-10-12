@@ -1,12 +1,3 @@
-/*
-*	File: fpu.c	 
-*
-*	Author: Garnek 
-*
-*	Description: Support for the x87 FPU and SSE
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "fpu.h"
 #include <arch/arch-internals.h>
 

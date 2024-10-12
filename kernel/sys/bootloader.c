@@ -1,12 +1,3 @@
-/*  
-*   File: bootloader.c
-*
-*   Author: Garnek
-*   
-*   Description: Bootloader related stuff.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "bootloader.h"
 
 static volatile struct limine_kernel_file_request kernel_file_request = {

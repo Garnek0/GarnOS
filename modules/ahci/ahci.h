@@ -1,10 +1,3 @@
-/*  
-*   File: ahci.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef AHCI_MODULE_H
 #define AHCI_MODULE_H
 

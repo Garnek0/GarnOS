@@ -1,12 +1,3 @@
-/*  
-*   File: kstdio.h
-*
-*   Author: Garnek
-*   
-*   Description: Kernel errno
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef KERRNO_H
 #define KERRNO_H
 

@@ -1,12 +1,3 @@
-/*  
-*   File: input.c
-*
-*   Author: Garnek
-*   
-*   Description: Input Handling System
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "term-internals.h"
 
 #include <garn/input.h>

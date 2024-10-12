@@ -1,12 +1,3 @@
-/*  
-*   File: ubsan.c
-*
-*   Author: Garnek
-*   
-*   Description: ubsan hooks
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ubsan.h"
 #include <garn/panic.h>
 #include <garn/mm.h>

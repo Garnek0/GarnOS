@@ -1,10 +1,3 @@
-/*  
-*   File: apic.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef APIC_H
 #define APIC_H
 

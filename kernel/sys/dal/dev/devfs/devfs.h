@@ -1,10 +1,3 @@
-/*  
-*   File: devfs.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef DEVFS_H
 #define DEVFS_H
 

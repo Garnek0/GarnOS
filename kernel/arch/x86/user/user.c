@@ -1,10 +1,3 @@
-/*  
-*   File: user.c
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/x86/user/user.h>
 #include <arch/arch-internals.h>
 

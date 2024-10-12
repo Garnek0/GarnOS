@@ -1,10 +1,3 @@
-/*  
-*   File: fb-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef FB_INTERNALS_H
 #define FB_INTERNALS_H
 

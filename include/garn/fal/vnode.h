@@ -1,10 +1,3 @@
-/*  
-*   File: vnode.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef VNODE_H
 #define VNODE_H
 

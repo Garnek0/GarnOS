@@ -1,14 +1,3 @@
-/*  
-*   Program: fib
-*
-*   File: fib.c
-*
-*   Program Author: Garnek
-*   
-*   Program Description: A simple test program. Prints Fibonacci numbers. 
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>

@@ -1,12 +1,3 @@
-/*  
-*   File: acpidev.c
-*
-*   Author: Garnek
-*   
-*   Description: ACPI Devices
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/arch.h>
 #include <garn/kstdio.h>

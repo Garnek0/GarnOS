@@ -1,10 +1,3 @@
-/*  
-*   File: fat.h
-*
-*   Author: Garnek   
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef FAT_H
 #define FAT_H
 

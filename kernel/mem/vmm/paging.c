@@ -1,12 +1,3 @@
-/*  
-*   File: vmm.c
-*
-*   Author: Garnek
-*   
-*   Description: Virtual Memory Manager
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <mem/mm-internals.h>
 #include <sys/bootloader.h>
 #include <limine.h>

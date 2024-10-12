@@ -1,10 +1,3 @@
-/*  
-*   File: spinlock.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef SPINLOCK_H
 #define SPINLOCK_H
 

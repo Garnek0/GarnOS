@@ -1,10 +1,3 @@
-/*  
-*   File: ksym-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef KSYM_TABLE_INTERNALS_H
 #define KSYM_TABLE_INTERNALS_H
 

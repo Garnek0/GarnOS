@@ -1,10 +1,3 @@
-/*  
-*   File: uname-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef UNAME_INTERNALS_H
 #define UNAME_INTERNALS_H
 

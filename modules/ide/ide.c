@@ -1,24 +1,6 @@
-/*  
-*   Module: ide.sys
-*
-*   File: ide.c
-*
-*   Module Author: Garnek
-*   
-*   Module Description: IDE Controller Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "ide.h"
 
 //BUG: Something weird happens with larger size drives. I have a feeling its due to this driver, but it could also be the FS driver
-
-/*TODO:
-- [ ] Fix the large drive bug thing.
-- [ ] Add support for DMA transfer modes.
-- [ ] Add support for memory address space BARs
-- [ ] Implement ATAPI read/write.
-*/
 
 void ide_write_reg(ide_channel_t* channel, unsigned char reg, unsigned char data){
     if(reg > 0x07 && reg < 0x0C)

@@ -1,12 +1,3 @@
-/*  
-*   File: syscall.c
-*
-*   Author: Garnek
-*   
-*   Description: x96-specific syscall stuff
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/x86/interrupts/idt.h>
 #include <arch/x86/interrupts/interrupt-internals.h>
 

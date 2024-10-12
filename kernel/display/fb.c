@@ -1,12 +1,3 @@
-/*  
-*   File: fb.c
-*
-*   Author: Garnek
-*   
-*   Description: Framebuffer Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/fb.h>
 #include "fb-internals.h"
 #include <limine.h>

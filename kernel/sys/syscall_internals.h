@@ -1,10 +1,3 @@
-/*  
-*   File: syscall.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef SYSCALL_INTERNALS_H
 #define SYSCALL_INTERNALS_H
 

@@ -1,12 +1,3 @@
-;  
-;   File: spinlock.asm
-;
-;   Author: Garnek
-;   
-;   Description: x86 spinlock implementation for safe SMP resource access
-;
-; SPDX-License-Identifier: BSD-2-Clause
-
 bits 64
 
 global acquireLock, releaseLock

@@ -158,10 +158,6 @@ $(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 	sudo losetup -d `cat loopback_dev`
 	rm -rf loopback_dev img_mount
 
-.PHONY: kernel-docs
-kernel-docs:
-	cd include; doxygen
-
 .SILENT: xconfig menuconfig
 
 .PHONY: menuconfig
@@ -180,7 +176,7 @@ xconfig:
 
 .PHONY: clean
 clean:
-	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd docs/html
+	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
 	$(MAKE) -C kernel clean
 	$(MAKE) -C modules clean
 	$(MAKE) -C programs clean

@@ -1,10 +1,3 @@
-/*
-*	File: fpu.h
-*
-*	Author: Garnek 
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef X87_FPU_H
 #define X87_FPU_H
 

@@ -1,12 +1,3 @@
-/*  
-*   File: kstdio.h
-*
-*   Author: Garnek
-*   
-*   Description: Kernel stdio
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef KSTDIO_H
 #define KSTDIO_H
 

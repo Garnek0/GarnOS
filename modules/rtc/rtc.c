@@ -1,14 +1,3 @@
-/*
-*   Module: rtc.sys
-*
-*   File: rtc.c
-*
-*   Module Author: Garnek
-*
-*   Module Description: RTC Driver
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "rtc.h"
 
 #include <garn/arch.h>

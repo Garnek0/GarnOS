@@ -1,12 +1,3 @@
-/*  
-*   File: kcon.c
-*
-*   Author: Garnek
-*   
-*   Description: Demo test console running in kernel mode (kcon)
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "kcon.h"
 #include <garn/kstdio.h>
 #include <garn/mm.h>

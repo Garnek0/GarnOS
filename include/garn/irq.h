@@ -1,10 +1,3 @@
-/*  
-*   File: irq.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef IRQ_H
 #define IRQ_H
 

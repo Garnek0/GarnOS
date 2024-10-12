@@ -1,10 +1,3 @@
-/*  
-*   File: gpt.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef GPT_H
 #define GPT_H
 

@@ -1,10 +1,3 @@
-/*  
-*   File: fal-internals.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef FAL_INTERNALS_H
 #define FAL_INTERNALS_H
 

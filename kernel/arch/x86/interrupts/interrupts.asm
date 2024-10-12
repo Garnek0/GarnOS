@@ -1,12 +1,3 @@
-;  
-;   File: interrupts.asm
-;
-;   Author: Garnek
-;   
-;   Description: ASM stubs for interrupts
-;
-; SPDX-License-Identifier: BSD-2-Clause
-
 extern exception_handler
 extern irq_handler
 extern syscall_handler

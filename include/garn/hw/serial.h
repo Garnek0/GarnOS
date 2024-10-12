@@ -1,10 +1,3 @@
-/*  
-*   File: serial.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef SERIAL_H
 #define SERIAL_H
 

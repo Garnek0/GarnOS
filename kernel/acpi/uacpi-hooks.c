@@ -1,12 +1,3 @@
-/*  
-*   File: uacpi-hooks.c
-*
-*   Author: Garnek
-*   
-*   Description: uACPI Kernel API implementation
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <uacpi/kernel_api.h>
 #include <uacpi/sleep.h>
 #include <uacpi/types.h>

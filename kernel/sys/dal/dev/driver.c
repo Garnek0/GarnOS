@@ -1,12 +1,3 @@
-/*  
-*   File: driver.c
-*
-*   Author: Garnek
-*   
-*   Description: Device Driver Manager
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <sys/dal/dal-internals.h>
 #include <garn/mm.h>
 #include <garn/hw/pci.h>

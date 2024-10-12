@@ -1,12 +1,3 @@
-/*  
-*   File: irq.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 Interrupt Requests
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "interrupt-internals.h"
 #include <garn/arch.h>
 #include <arch/x86/interrupts/apic/apic.h>

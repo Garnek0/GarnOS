@@ -1,12 +1,3 @@
-/*  
-*   File: msr.c
-*
-*   Author: Garnek
-*
-*   Description: MSR R/W Helpers
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/x86/msr/msr.h>
 
 uint64_t rdmsr(uint64_t msr){

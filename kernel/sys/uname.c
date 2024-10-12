@@ -1,12 +1,3 @@
-/*  
-*   File: uname.c
-*
-*   Author: Garnek
-*   
-*   Description: uname() syscall
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include "uname-internals.h"
 
 #include <garn/uname.h>

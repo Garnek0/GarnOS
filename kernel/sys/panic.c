@@ -1,12 +1,3 @@
-/*  
-*   File: panic.c
-*
-*   Author: Garnek
-*   
-*   Description: Kernel Panic Routine
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/panic.h>
 #include <garn/kstdio.h>
 #include <garn/spinlock.h>

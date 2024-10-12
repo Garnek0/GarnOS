@@ -1,12 +1,3 @@
-/*  
-*   File: cursor.c
-*
-*   Author: Garnek
-*   
-*   Description: Terminal Emulator Cursor
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/term/cursor.h>
 
 #include <garn/term/term.h>

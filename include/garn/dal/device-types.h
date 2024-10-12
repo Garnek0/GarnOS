@@ -1,17 +1,3 @@
-/** @file device-types.h
- * @brief Device types
- * 
- * @author Garnek
- * @date 2024
- */
-
-/*  
-*   File: device-types.h
-*
-*   Author: Garnek
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef DAL_DEVICE_TYPES_H
 #define DAL_DEVICE_TYPES_H
 

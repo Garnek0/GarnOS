@@ -1,12 +1,3 @@
-/*  
-*   File: kernel.c
-*
-*   Author: Garnek
-*   
-*   Description: Main kernel file. its mostly just init routines.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <limine.h>
 
 #include <garn/kernel.h>

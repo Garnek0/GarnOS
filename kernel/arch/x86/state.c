@@ -1,12 +1,3 @@
-/*  
-*   File: state.c
-*
-*   Author: Garnek
-*   
-*   Description: x86 CPU state and control
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <arch/arch-internals.h>
 #include <garn/arch.h>
 #include <garn/kstdio.h>

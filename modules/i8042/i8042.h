@@ -1,12 +1,3 @@
-/*  
-*   File: i8042.h
-*
-*   Author: Garnek
-*   
-*   Description: Defines for easy access to the PS/2 Controller and Devices
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef i8042_MODULE_H
 #define i8042_MODULE_H
 

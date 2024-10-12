@@ -1,12 +1,3 @@
-/*  
-*   File: kheap.c
-*
-*   Author: Garnek
-*   
-*   Description: Kernel heap implementation
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 //TODO: This kernel heap implementation has some massive flaws. I think, at this point, the only
 //Reasonable choice is to rewrite the entire thing from scratch.
 

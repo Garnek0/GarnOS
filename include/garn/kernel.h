@@ -1,12 +1,3 @@
-/*  
-*   File: kernel.h
-*
-*   Author: Garnek
-*   
-*   Description: Kernel header file.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #ifndef KERNEL_H
 #define KERNEL_H
 
@@ -16,7 +7,7 @@
 #include <garn/kerrno.h>
 #include <garn/panic.h>
 
-#define KERNEL_VER "v0.12.0-0"
+#define KERNEL_VER "v0.01-alpha-snapshot"
 
 extern uint64_t hhdmOffset;
 

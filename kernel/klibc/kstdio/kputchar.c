@@ -1,12 +1,3 @@
-/*  
-*   File: kputchar.c
-*
-*   Author: Garnek
-*   
-*   Description: Kernel putchar. Wrapper to term_putchar.
-*/
-// SPDX-License-Identifier: BSD-2-Clause
-
 #include <garn/kstdio.h>
 #include <garn/term/term.h>
 
