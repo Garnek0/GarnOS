@@ -1,5 +1,4 @@
-#ifndef PCI_H
-#define PCI_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -224,5 +223,3 @@ typedef struct {
 uint16_t pci_config_read_word(pci_location_t location, uint8_t offset);
 void pci_config_write_word(pci_location_t location, uint8_t offset, uint16_t data);
 uint32_t pci_config_read_address(pci_location_t location, uint8_t offset);
-
-#endif //PCI_H

@@ -42,12 +42,12 @@ void vaspace_create_thread_user_stack(thread_t* thread){
     //FIXME:
     //FIXME:
     //FIXME: VERY IMPORTANT! This will blow up when creating more than 1 thread/process.
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
 
     thread->regs.rsp = (uint64_t)vaspace_create_area(thread->process->pt, (VMM_USER_END - VMM_INIT_USER_STACK_SIZE),
                                         VMM_INIT_USER_STACK_SIZE, VMM_PRESENT | VMM_RW | VMM_USER | VMM_EXEC_DISABLE) + ((VMM_INIT_USER_STACK_SIZE - 1) - 15);
                             
-#elif CONFIG_ARCH_DUMMY
+#elif ARCH_DUMMY
 
 ;
 

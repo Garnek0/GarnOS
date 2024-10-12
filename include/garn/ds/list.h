@@ -1,5 +1,4 @@
-#ifndef DS_LIST_H
-#define DS_LIST_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
@@ -26,5 +25,3 @@ int list_index_of(list_t* list, void* value);
 void* list_get(list_t* list, size_t index);
 int list_remove(list_t* list, void* value);
 int list_remove_index(list_t* list, size_t index);
-
-#endif //DS_LIST_H

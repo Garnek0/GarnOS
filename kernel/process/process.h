@@ -1,5 +1,4 @@
-#ifndef PROCESS_H
-#define PROCESS_H
+#pragma once
 
 #define PROCESS_INIT_FD 128
 #define PROCESS_MAX_FD 2048
@@ -41,5 +40,3 @@ int sys_fork(stack_frame_t* regs);
 void sys_exit(stack_frame_t* regs, int status);
 pid_t sys_waitpid(stack_frame_t* regs, pid_t pid, int* status, int options);
 int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const char* envp[]);
-
-#endif //PROCESS_H

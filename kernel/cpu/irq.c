@@ -48,7 +48,7 @@ void irq_handler(stack_frame_t* regs){
     //get irq number
     int irqNumber = arch_get_irq_number(regs);
 
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
     if(irqNumber == 224) return; //This is an APIC Spurious Interrupt. Return without signaling EOI.
 #endif
 

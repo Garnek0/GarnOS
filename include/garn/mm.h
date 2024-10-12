@@ -1,5 +1,4 @@
-#ifndef MM_H
-#define MM_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
@@ -23,7 +22,7 @@ typedef struct {
     uint8_t type;
 } memmap_entry_t;
 
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
 
 typedef struct {
     bool present : 1;
@@ -37,22 +36,13 @@ typedef struct {
     uint8_t avl1 : 4;
     uint64_t addr : 51;
     bool nx : 1;
-}
-#ifndef DOXYGEN
-__attribute__((packed))
-#endif
-page_table_entry_t;
+}__attribute__((packed)) page_table_entry_t;
 
 typedef struct _page_table {
     page_table_entry_t entries[512];
-}
-#ifndef DOXYGEN
-__attribute__((packed))
-__attribute__((aligned(0x1000)))
-#endif
-page_table_t;
+}__attribute__((packed)) __attribute__((aligned(0x1000))) page_table_t;
 
-#elif CONFIG_ARCH_DUMMY
+#elif ARCH_DUMMY
 
 ;
 
@@ -105,5 +95,3 @@ void vmm_set_flags_range(page_table_t* pt, uint64_t virtAddr, size_t length, uin
 bool vmm_is_page_free(page_table_t* pt, uint64_t virtAddr);
 uint64_t vmm_virt_to_phys(page_table_t* pt, uint64_t virtAddr);
 page_table_t* vmm_get_kernel_pt();
-
-#endif //MM_H

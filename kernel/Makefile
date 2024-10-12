@@ -6,14 +6,11 @@ override MAKEFLAGS += -rR
 override KERNEL := kernel.elf
 
 # Convenience macro to reliably declare user overridable variables.
-define DEFAULT_VAR =
-	ifeq ($(origin $1),default)
-		override $(1) := $(2)
-	endif
-	ifeq ($(origin $1),undefined)
-		override $(1) := $(2)
-	endif
-endef
+override DEFAULT_VAR = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
+
+# Target Architecture. Default is x86_64
+$(call DEFAULT_VAR,ARCH,x86_64)
+
 
 # It is highly recommended to use a custom built cross toolchain to build a kernel.
 # We are only using "cc" as a placeholder here. It may work by using
@@ -101,15 +98,12 @@ override CFILES := $(shell find -L . -type f -name '*.c' -not -path "./arch/*")
 override ASFILES := $(shell find -L . -type f -name '*.S' -not -path "./arch/*")
 override NASMFILES := $(shell find -L . -type f -name '*.asm' -not -path "./arch/*")
 
-ifdef CONFIG_ARCH_X86
-override CFILES += $(shell find -L ./arch/x86 -type f -name '*.c')
-override ASFILES += $(shell find -L ./arch/x86 -type f -name '*.S')
-override NASMFILES += $(shell find -L ./arch/x86 -type f -name '*.asm')
-endif
+override CFILES += $(shell find -L ./arch/$(ARCH) -type f -name '*.c')
+override ASFILES += $(shell find -L ./arch/$(ARCH) -type f -name '*.S')
+override NASMFILES += $(shell find -L ./arch/$(ARCH) -type f -name '*.asm')
 
 override OBJ := $(CFILES:.c=.c.o) $(ASFILES:.S=.S.o) $(NASMFILES:.asm=.asm.o)
 override HEADER_DEPS := $(CFILES:.c=.c.d) $(ASFILES:.S=.S.d)
-
 
 # Default target.
 .PHONY: all

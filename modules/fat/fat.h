@@ -1,5 +1,4 @@
-#ifndef FAT_H
-#define FAT_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/fal/vnode.h>
@@ -108,7 +107,7 @@ vnode_t* fat_lookup(vnode_t* self, const char* name);
 ssize_t fat_read(vnode_t* self, size_t size, void* buf, size_t offset);
 ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset);
 
-static const vnode_operations_t fatVnodeOps = {
+static vnode_operations_t fatVnodeOps = {
 	.vn_read = fat_read,
 	.vn_write = NULL,
 	.vn_ioctl = NULL,
@@ -118,5 +117,3 @@ static const vnode_operations_t fatVnodeOps = {
 	.vn_rmdir = NULL,
 	.vn_readdir = fat_readdir,
 };
-
-#endif //FAT_H

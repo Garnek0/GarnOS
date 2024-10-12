@@ -1,5 +1,4 @@
-#ifndef SYSCALL_H
-#define SYSCALL_H
+#pragma once
 
 #define SYSCALL_MAX 255
 #define SYSCALL_GSYS_MAX 255
@@ -8,5 +7,3 @@
 
 void syscall_register(size_t num, void* addr);
 void gsys_syscall_register(size_t num, void* addr);
-
-#endif //SYSCALL_H

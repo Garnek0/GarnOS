@@ -1,5 +1,4 @@
-#ifndef RTC_H
-#define RTC_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -42,5 +41,3 @@ typedef struct {
 extern rtc_t rtc;
 
 void rtc_init();
-
-#endif //RTC_H

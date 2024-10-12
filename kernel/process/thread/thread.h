@@ -1,5 +1,4 @@
-#ifndef THREAD_H
-#define THREAD_H
+#pragma once
 
 #define THREAD_STATUS_READY 0
 #define THREAD_STATUS_RUNNING 1
@@ -25,5 +24,3 @@ typedef struct _thread {
 
     struct _process* process;
 } thread_t;
-
-#endif //THREAD_H

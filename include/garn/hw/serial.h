@@ -1,5 +1,4 @@
-#ifndef SERIAL_H
-#define SERIAL_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -8,5 +7,3 @@ void serial_log(const char* str);
 
 void serial_enable_logs();
 void serial_disable_logs();
-
-#endif //SERIAL_H

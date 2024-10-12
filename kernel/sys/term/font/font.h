@@ -1,8 +1,5 @@
-#ifndef FONT_H
-#define FONT_H
+#pragma once
 
 #include <garn/types.h>
 
 extern uint8_t font[];
-
-#endif //FONT_H

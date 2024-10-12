@@ -1,5 +1,4 @@
-#ifndef INPUT_H
-#define INPUT_H
+#pragma once
 
 #define INPUT_LEFT_SHIFT 0x00
 #define INPUT_RIGHT_SHIFT 0x01
@@ -42,5 +41,3 @@ extern char keyBuffer;
 extern vnode_t* kbd;
 
 void input_send_key(kb_input_t input);
-
-#endif //INPUT_H

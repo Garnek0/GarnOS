@@ -1,5 +1,4 @@
-#ifndef i8042_MODULE_H
-#define i8042_MODULE_H
+#pragma once
 
 #include <garn/arch.h>
 #include <garn/kstdio.h>
@@ -63,5 +62,3 @@ uint8_t i8042_read(uint8_t port);
 
 void i8042_kb_init();
 void i8042_kb_fini();
-
-#endif //i8042_MODULE_H

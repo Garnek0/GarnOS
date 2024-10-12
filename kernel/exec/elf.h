@@ -1,5 +1,4 @@
-#ifndef ELF_H
-#define ELF_H
+#pragma once
 
 #include <garn/types.h>
 #include "elfabi.h"
@@ -12,5 +11,3 @@ bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype);
 int elf_load_driver(driver_node_t* node);
 int elf_exec_load(process_t* process, char* path);
 int elf_calculate_relocations(Elf64_Ehdr* h, void* elf_module);
-
-#endif //ELF_H

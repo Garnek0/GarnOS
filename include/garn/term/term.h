@@ -1,5 +1,4 @@
-#ifndef TERM_H
-#define TERM_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -37,5 +36,3 @@ uint32_t term_get_colour(bool foreback);
 void term_set_colour(uint32_t colour, bool foreback);
 void term_disable();
 void term_enable();
-
-#endif //TERM_H

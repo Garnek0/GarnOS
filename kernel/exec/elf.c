@@ -67,12 +67,12 @@ bool elf_validate(Elf64_Ehdr* h, Elf64_Half etype){
 		return false;
 	}
 
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
 	if(h->e_machine != EM_X86_64){
 		kerrno = ENOEXEC;
 		return false;
 	}
-#elif CONFIG_DUMMY_ARCH
+#elif ARCH_DUMMY
 	;
 #endif
 

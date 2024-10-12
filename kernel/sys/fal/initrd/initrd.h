@@ -1,5 +1,4 @@
-#ifndef INITRD_H
-#define INITRD_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/fal/vnode.h>
@@ -32,5 +31,3 @@ ssize_t initrd_read(vnode_t* self, size_t size, void* buf, size_t offset);
 int initrd_inactive(vnode_t* self);
 vnode_t* initrd_lookup(vnode_t* self, const char* name);
 statfs_t initrd_statfs(vfs_t* self);
-
-#endif //INITRD_H

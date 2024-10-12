@@ -1,5 +1,4 @@
-#ifndef DAL_DEVICE_TYPES_H
-#define DAL_DEVICE_TYPES_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -88,5 +87,3 @@
 #define DEVICE_ID_CLASS_FS_PDEV 0x06
 
 #define DEVICE_CREATE_ID_FS_PDEV (device_id_t){ .class = DEVICE_ID_CLASS_FS_PDEV }
-
-#endif //DAL_DEVICE_TYPES_H

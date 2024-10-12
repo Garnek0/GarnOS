@@ -18,3 +18,4 @@
 *.grd
 .config
 .config.old
+compile_commands.json

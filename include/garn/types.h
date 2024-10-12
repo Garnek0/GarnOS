@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 
 #include <stddef.h>
 #include <stdint.h>
@@ -9,5 +8,3 @@
 typedef signed long ssize_t;
 
 typedef int pid_t;
-
-#endif //TYPES_H

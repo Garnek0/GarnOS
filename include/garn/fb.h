@@ -1,5 +1,4 @@
-#ifndef FB_H
-#define FB_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -17,5 +16,3 @@ extern framebuffer_info_t framebuffer_info;
 
 void fb_pixel(uint32_t x, uint32_t y, uint32_t colour);
 void fb_clear(uint32_t colour);
-
-#endif //FB_H

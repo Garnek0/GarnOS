@@ -1,5 +1,4 @@
-#ifndef AHCI_MODULE_H
-#define AHCI_MODULE_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/kernel.h>
@@ -360,5 +359,3 @@ int ahci_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 
 int ahci_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 int ahci_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
-
-#endif //AHCI_MODULE_H

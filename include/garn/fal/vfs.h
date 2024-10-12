@@ -1,5 +1,4 @@
-#ifndef VFS_H
-#define VFS_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/dal/dal.h>
@@ -70,5 +69,3 @@ int vfs_mount(vfs_t* vfs, const char* mnt, uint32_t flags);
 int vfs_unmount(vfs_t* vfs);
 vfs_t* vfs_get_by_fid(size_t fid);
 vfs_t* vfs_get_root();
-
-#endif //VFS_H

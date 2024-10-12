@@ -13,29 +13,24 @@
 #include <garn/config.h>
 #include <garn/arch.h>
 
-#include <mem/mm-internals.h>
+#include "mem/mm-internals.h"
+#include "sys/ksym-internals.h"
+#include "display/fb-internals.h"
+#include "hw/serial/serial-internals.h"
+#include "acpi/acpi-internals.h"
+#include "sys/term/term-internals.h"
+#include "sys/power-internals.h"
+#include "sys/ksym-internals.h"
+#include "sys/bootloader.h"
+#include "sys/dal/dal-internals.h"
+#include "sys/syscall_internals.h"
+#include "arch/arch-internals.h"
 
-#include <sys/ksym-internals.h>
 #include <garn/timer.h>
 #include <garn/power.h>
-#include <sys/fal/initrd/initrd.h>
-#include <sys/term/term-internals.h>
-#include <sys/power-internals.h>
-#include <sys/ksym-internals.h>
-#include <sys/bootloader.h>
-#include <sys/dal/dal-internals.h>
-#include <sys/syscall_internals.h>
-
-#include <arch/arch-internals.h>
-
 #include <cpu/smp/smp.h>
-
 #include <exec/elf.h>
-
-#include <module/module-internals.h>
-
 #include <process/sched/sched.h>
-
 #include <consoledemo/kcon.h>
 
 uint64_t kernelStack;
@@ -76,12 +71,6 @@ void _start(){
     input_init(); //initialise keyboard ringbuffer
 
     dal_init(); //initialise Device Abstraction Layer
-
-	//TEST CODE FOR DEVFS
-
-	//vnode_t* thing = vnode_open("/dev/tty0", 0, 0);
-
-	//while(1);
 
 #ifdef CONFIG_KCON
     init_kcon(); //start demo console

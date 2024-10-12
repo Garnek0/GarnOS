@@ -1,5 +1,4 @@
-#ifndef SCHED_H
-#define SCHED_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/irq.h>
@@ -13,5 +12,3 @@ thread_t* sched_get_current_thread();
 void sched_init();
 
 int sys_set_tsp(stack_frame_t* regs, void* pointer);
-
-#endif //SCHED_H

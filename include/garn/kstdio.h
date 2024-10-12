@@ -1,5 +1,4 @@
-#ifndef KSTDIO_H
-#define KSTDIO_H
+#pragma once
 
 #include <garn/types.h>
 #include <stdarg.h>
@@ -21,5 +20,3 @@ char* kreadline(char* prompt);
 const char* kstrerror(int err);
 void kernel_screen_output_disable();
 void kernel_screen_output_enable();
-
-#endif //KSTDIO_H

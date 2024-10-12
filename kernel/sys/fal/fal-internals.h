@@ -1,5 +1,4 @@
-#ifndef FAL_INTERNALS_H
-#define FAL_INTERNALS_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
@@ -27,5 +26,3 @@ int sys_close(stack_frame_t* regs, int fd);
 uint64_t sys_getcwd(stack_frame_t* regs, const char* buf, size_t size);
 int sys_chdir(stack_frame_t* regs, const char* path);
 long sys_getdents(stack_frame_t* regs, int fd, void* dirp, unsigned int count);
-
-#endif //FAL_INTERNALS_H

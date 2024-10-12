@@ -1,10 +1,7 @@
-#ifndef SMP_INTERNALS_H
-#define SMP_INTERNALS_H
+#pragma once
 
 #include <garn/types.h>
 
 #define MAX_CPUS 256
 
 void smp_init();
-
-#endif //SMP_INTERNALS_H

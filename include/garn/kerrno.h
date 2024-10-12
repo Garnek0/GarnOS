@@ -1,5 +1,4 @@
-#ifndef KERRNO_H
-#define KERRNO_H
+#pragma once
 
 #include <garn/types.h>
 #include <stdarg.h>
@@ -130,5 +129,3 @@
 #define EWOULDBLOCK EAGAIN	/* Operation would block */
 
 extern int kerrno;
-
-#endif //KERRNO_H

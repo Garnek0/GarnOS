@@ -1,5 +1,4 @@
-#ifndef POWER_H
-#define POWER_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -16,5 +15,3 @@ int power_suspend();
 void power_set_shutdown(void* func);
 void power_set_reboot(void* func);
 void power_set_suspend(void* func);
-
-#endif //POWER_H

@@ -1,5 +1,4 @@
-#ifndef PANIC_H
-#define PANIC_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/irq.h>
@@ -7,5 +6,3 @@
 
 void panic(const char* str, const char* component, ...);
 void panic_exception(const char* str, stack_frame_t* regs, ...);
-
-#endif //PANIC_H

@@ -1,5 +1,4 @@
-#ifndef UBSAN_HOOKS_H
-#define UBSAN_HOOKS_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -89,5 +88,3 @@ void __ubsan_handle_mul_overflow(overflow_data_t* data);
 void __ubsan_handle_mul_overflow_abort(overflow_data_t* data);
 
 void __ubsan_handle_builtin_unreachable(unreachable_data_t* data);
-
-#endif //UBSAN_HOOKS_H

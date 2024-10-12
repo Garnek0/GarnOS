@@ -1,5 +1,4 @@
-#ifndef TIME_H
-#define TIME_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -33,5 +32,3 @@ timespec64_t time_conv_to_unix64(systime_t time);
 
 systime_t time_conv_to_systime(timespec_t time);
 systime_t time_conv_to_systime64(timespec64_t time);
-
-#endif //TIME_H

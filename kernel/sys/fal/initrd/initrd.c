@@ -11,7 +11,7 @@ static volatile struct limine_module_request module_request = {
     .revision = 0
 };
 
-static const vnode_operations_t initrdVnodeOps = {
+static vnode_operations_t initrdVnodeOps = {
 	.vn_read = initrd_read,
 	.vn_write = NULL,
 	.vn_ioctl = NULL,
@@ -22,7 +22,7 @@ static const vnode_operations_t initrdVnodeOps = {
 	.vn_readdir = NULL,
 };
 
-static const vfs_operations_t initrdVFSOps = {
+static vfs_operations_t initrdVFSOps = {
 	.vfs_statfs = initrd_statfs
 };
 
@@ -80,7 +80,7 @@ vnode_t* initrd_lookup(vnode_t* self, const char* name){
 		return listEntry;
 	}
 
-    for(int i = 0; ; i++){
+    for(;;){
         if(h->filename[0] == 0){
             klog("Couldn't find %s\n", KLOG_FAILED, "initrd", fullname);
             kerrno = ENOENT;
@@ -138,14 +138,12 @@ vnode_t* initrd_lookup(vnode_t* self, const char* name){
 }
 
 statfs_t initrd_statfs(vfs_t* self){
-	initrd_tar_header_t* initrd = (initrd_tar_header_t*)self->context;
-
 	statfs_t statfs;
 	statfs.type = 0x54415200; // TAR + ASCII NUL
 	statfs.bsize = 512;
 	statfs.totalBlocks = ALIGN_UP(module_request.response->modules[0]->size, 512)/512;
 	statfs.freeBlocks = statfs.availBlocks = 0;
-	statfs.files = 0; //Not like anyone is ever going to need this value anyway...
+	statfs.files = 0; //Not like anyone is ever going to need these values anyway...
 	statfs.freeFiles = 0;
 	statfs.fid = self->fid;
 	statfs.maxNameLength = 100;

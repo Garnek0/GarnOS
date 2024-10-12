@@ -1,5 +1,4 @@
-#ifndef DAL_H
-#define DAL_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
@@ -124,5 +123,3 @@ device_driver_t* device_driver_get_driver(size_t i);
 int drive_add(drive_t* drive);
 void drive_remove(drive_t* drive);
 drive_t* drive_get_list();
-
-#endif //DAL_H

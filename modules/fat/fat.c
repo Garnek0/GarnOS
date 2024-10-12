@@ -9,7 +9,7 @@
 
 #define PROBE_OEMID_COUNT 15
 
-static const vfs_operations_t fatVFSOps = {
+static vfs_operations_t fatVFSOps = {
 	.vfs_statfs = fat_statfs
 };
 

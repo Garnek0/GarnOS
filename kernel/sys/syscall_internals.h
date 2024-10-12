@@ -1,8 +1,5 @@
-#ifndef SYSCALL_INTERNALS_H
-#define SYSCALL_INTERNALS_H
+#pragma once
 
 #include <garn/types.h>
 
 void syscall_init();
-
-#endif //SYSCALL_INTERNALS_H

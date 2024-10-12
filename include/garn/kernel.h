@@ -1,5 +1,4 @@
-#ifndef KERNEL_H
-#define KERNEL_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/kstdio.h>
@@ -10,5 +9,3 @@
 #define KERNEL_VER "v0.01-alpha-snapshot"
 
 extern uint64_t hhdmOffset;
-
-#endif //KERNEL_H

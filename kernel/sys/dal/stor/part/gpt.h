@@ -1,5 +1,4 @@
-#ifndef GPT_H
-#define GPT_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/dal/dal.h>
@@ -32,10 +31,5 @@ typedef struct {
     char* partName;
 } gpt_entry_t;
 
-
-//TODO: having drive_t* here gives an error. Why?
-
 bool gpt_validate_drive(struct _drive* drive);
 bool gpt_initialise_drive(struct _drive* drive);
-
-#endif //GPT_H

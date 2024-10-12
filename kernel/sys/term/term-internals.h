@@ -1,5 +1,4 @@
-#ifndef TERM_INTERNALS_H
-#define TERM_INTERNALS_H
+#pragma once
 
 #include <sys/term/font/font.h>
 #include <garn/fal/vfs.h>
@@ -19,8 +18,6 @@ static const vnode_operations_t termVnodeOps = {
 	.vn_inactive = NULL,
 	.vn_lookup = NULL,
 	.vn_mkdir = NULL,
-	.vn_rmdir = NULL,
+	.vn_rmdir = NULL, 
 	.vn_readdir = NULL
 };
-
-#endif //TERM_INTERNALS_H

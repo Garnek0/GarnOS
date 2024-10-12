@@ -1,5 +1,4 @@
-#ifndef ARCH_INTERNALS_H
-#define ARCH_INTERNALS_H
+#pragma once
 
 #include <garn/irq.h>
 #include <garn/mm.h>
@@ -44,5 +43,3 @@ page_table_t* arch_vaspace_new();
 void arch_vaspace_destroy(page_table_t* pt);
 void arch_vaspace_clear(page_table_t* pt);
 page_table_t* arch_vaspace_clone(page_table_t* toClone);
-
-#endif //ARCH_INTERNALS_H

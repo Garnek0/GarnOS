@@ -1,5 +1,4 @@
-#ifndef ARCH_H
-#define ARCH_H
+#pragma once
 
 #include <garn/irq.h>
 #include <garn/config.h>
@@ -36,5 +35,3 @@ uint16_t arch_inw(uint32_t port);
 void arch_outl(uint32_t port, uint32_t data);
 uint32_t arch_inl(uint32_t port);
 void arch_io_wait();
-
-#endif //ARCH_H

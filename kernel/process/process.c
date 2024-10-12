@@ -80,7 +80,7 @@ void process_create_init(){
 
     char* argvPtrs[1];
 
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
 
 	//NOTE: if changing any of these, dont forget to check the stack alignment!!
 	PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); //push this for alignment
@@ -93,7 +93,7 @@ void process_create_init(){
     PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
     PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
 
-#elif CONFIG_ARCH_DUMMY
+#elif ARCH_DUMMY
 
 ;
 
@@ -294,7 +294,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 
     //Push argv and envp strings
 
-#ifdef CONFIG_ARCH_X86
+#ifdef __x86_64__
 	
     for(size_t i = 0; i < argc; i++){
         PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
@@ -333,7 +333,7 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
     for(ssize_t i = argc-1; i >= 0; i--) PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
     PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
 
-#elif CONFIG_ARCH_DUMMY
+#elif ARCH_DUMMY
 
 ;
 

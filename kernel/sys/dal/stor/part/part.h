@@ -1,6 +1,3 @@
-#ifndef PART_H
-#define PART_H
+#pragma once
 
 #include "gpt.h"
-
-#endif //PART_H

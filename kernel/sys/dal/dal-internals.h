@@ -1,5 +1,4 @@
-#ifndef DAL_INTERNALS_H
-#define DAL_INTERNALS_H
+#pragma once
 
 #include <garn/types.h>
 #include <module/module-internals.h>
@@ -48,5 +47,3 @@ void bcache_init();
 void dal_init();
 
 int sys_sync(stack_frame_t* regs);
-
-#endif //DAL_INTERNALS_H

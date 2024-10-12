@@ -1,5 +1,4 @@
-#ifndef BCACHE_H
-#define BCACHE_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
@@ -27,5 +26,3 @@ bcache_buf_t* bcache_get(struct _drive* drive, size_t block);
 int bcache_read(bcache_buf_t* buf);
 int bcache_write(bcache_buf_t* buf);
 void bcache_release(bcache_buf_t* buf);
-
-#endif //BCACHE_H

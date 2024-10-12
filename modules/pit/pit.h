@@ -1,5 +1,4 @@
-#ifndef PIT_H
-#define PIT_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -12,5 +11,3 @@
 
 void pit_set_frequency(uint32_t freq);
 uint64_t pit_get_ticks();
-
-#endif //PIT_H

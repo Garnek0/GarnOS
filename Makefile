@@ -7,14 +7,7 @@ override PROGRAMS = $(shell find ./programs -name '*.elf')
 override AUTOREG = ./modules/autoreg.txt
 
 # Convenience macro to reliably declare user overridable variables.
-define DEFAULT_VAR =
-    ifeq ($(origin $1),default)
-        override $(1) := $(2)
-    endif
-    ifeq ($(origin $1),undefined)
-        override $(1) := $(2)
-    endif
-endef
+override DEFAULT_VAR = $(if $(filter $(origin $(1)),default undefined),$(eval override $(1) := $(2)))
 
 # Compiler for building the 'limine' executable for the host.
 override DEFAULT_HOST_CC := cc

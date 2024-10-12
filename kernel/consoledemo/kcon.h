@@ -1,5 +1,4 @@
-#ifndef KCONDEMO_H
-#define KCONDEMO_H
+#pragma once
 
 typedef struct {
     char cmd[16];
@@ -8,5 +7,3 @@ typedef struct {
 
 void init_kcon();
 void kcon_add_command(char* cmd, void* function);
-
-#endif //KCONDEMO_H

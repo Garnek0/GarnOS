@@ -1,5 +1,4 @@
-#ifndef KSYM_TABLE_H
-#define KSYM_TABLE_H
+#pragma once
 
 #include <garn/types.h>
 #include <exec/elfabi.h>
@@ -11,5 +10,3 @@ typedef struct {
 
 void ksym_add(char* name, Elf64_Addr address);
 Elf64_Addr ksym_find(char* name);
-
-#endif //KSYM_TABLE_H

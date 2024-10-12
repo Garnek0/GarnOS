@@ -1,5 +1,4 @@
-#ifndef MODMGR_H
-#define MODMGR_H
+#pragma once
 
 #include <garn/types.h>
 
@@ -8,5 +7,3 @@ typedef struct {
 	void (*init)(void);
 	void (*fini)(void);
 } module_t;
-
-#endif //MODMGR_H

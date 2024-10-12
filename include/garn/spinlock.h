@@ -1,5 +1,4 @@
-#ifndef SPINLOCK_H
-#define SPINLOCK_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/arch.h>
@@ -21,5 +20,3 @@ void acquireLock(spinlock_t *lock);
 {                           \
     arch_pause();           \
 }                           \
-
-#endif //SPINLOCK_H

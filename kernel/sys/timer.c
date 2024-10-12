@@ -1,6 +1,8 @@
 #include <garn/timer.h>
 #include <garn/spinlock.h>
 
+#include "process/sched/sched.h"
+
 volatile uint64_t ticksSinceOSBoot = 0;
 
 void timer_tick(stack_frame_t* regs){

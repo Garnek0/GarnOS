@@ -1,5 +1,4 @@
-#ifndef IDE_MODULE_H
-#define IDE_MODULE_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/dal/dal.h>
@@ -153,5 +152,3 @@ int ide_ata_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 
 int ide_atapi_read(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
 int ide_atapi_write(drive_t* drive, size_t startLBA, size_t blocks, void* buf);
-
-#endif //IDE_MODULE_H

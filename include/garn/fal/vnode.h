@@ -1,5 +1,4 @@
-#ifndef VNODE_H
-#define VNODE_H
+#pragma once
 
 #define O_RDONLY    0
 #define O_WRONLY    1
@@ -53,15 +52,11 @@ typedef struct _dirent {
     uint16_t reclen;
 	uint8_t type;
     char name[1];
-}
-#ifndef DOXYGEN
-__attribute__((packed))
-#endif
-dirent_t;
+}__attribute__((packed)) dirent_t;
 
 typedef struct _vnode_operations {
-	int (*vn_read)(struct _vnode* self, size_t count, void* buf, size_t offset);
-	int (*vn_write)(struct _vnode* self, size_t count, void* buf, size_t offset);
+	ssize_t (*vn_read)(struct _vnode* self, size_t count, void* buf, size_t offset);
+	ssize_t (*vn_write)(struct _vnode* self, size_t count, void* buf, size_t offset);
 	int (*vn_ioctl)(struct _vnode* self, int op, ...);
 	//vn_select()
 	//...
@@ -123,5 +118,3 @@ ssize_t vnode_write(vnode_t* vnode, size_t size, void* buf, size_t offset);
 
 //read directory entries of a vnode
 ssize_t vnode_readdir(vnode_t* vnode, size_t count, void* buf, size_t offset);
-
-#endif //VNODE_H

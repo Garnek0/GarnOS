@@ -1,5 +1,4 @@
-#ifndef UNAME_H
-#define UNAME_H
+#pragma once
 
 #include <garn/types.h>
 #include <garn/irq.h>
@@ -16,5 +15,3 @@ typedef struct _utsname {
 	char machine[65];
 	char domainname[65];
 } utsname_t;
-
-#endif //UNAME_H
