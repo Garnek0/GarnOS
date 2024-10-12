@@ -47,8 +47,8 @@
 struct _vnode;
 
 typedef struct _dirent {
-    uint32_t inode;
-    uint32_t offset; 
+    uint64_t inode;
+    uint64_t offset; 
     uint16_t reclen;
 	uint8_t type;
     char name[1];

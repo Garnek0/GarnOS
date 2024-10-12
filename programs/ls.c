@@ -19,7 +19,7 @@ int ls(const char* path){
         return -1;
     }
 
-    dirent = readdir(dir); if(!dir) return 0; //Directory is empty
+    dirent = readdir(dir); if(!dirent) return 0; //Directory is empty (or something terribly wrong happened
 
     do {
         if(!strcmp(dirent->d_name, "..") || !strcmp(dirent->d_name, ".")){
@@ -27,7 +27,6 @@ int ls(const char* path){
             continue;
         }
 
-        //TODO: Make mlibc have the DT_* types defined
         if(dirent->d_type == 1){
             if(!strcmp(get_ext(dirent->d_name), "elf") || !strcmp(get_ext(dirent->d_name), "sys") || !strcmp(get_ext(dirent->d_name), "bin")){
                 printf("\e[38;2;0;255;0m%s\e[38;2;255;255;255m\n", dirent->d_name);
@@ -36,7 +35,7 @@ int ls(const char* path){
             }
         } else if(dirent->d_type == 2){
             printf("\e[38;2;0;0;255m%s\e[38;2;255;255;255m\n", dirent->d_name);
-        }
+		}
         dirent = readdir(dir);
     } while(dirent);
 

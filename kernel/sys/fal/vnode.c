@@ -6,15 +6,6 @@
 #include <garn/kerrno.h>
 #include <process/sched/sched.h>
 
-/*TODO:
-- [x] Add proper flag-checking to all of the vnode functions (open, read, write etc)
-- [x] readdir
-- [x] Add some way to get filesystem drivers from modules
-- [ ] Add FAT(12/16/)32 support (again)
-- [ ] Add pts or something for stdin/stdout/stderr
-- [ ] Add procfs
-*/
-
 vnode_t* vnodeListHead;
 vnode_t* vnodeListTail;
 

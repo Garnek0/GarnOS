@@ -158,9 +158,9 @@ vnode_t* fat_lookup(vnode_t* self, const char* name){
 
 				directories = (fat_directory_t*)buf->data;
 
-				for(int j = 0; j < metadata->bpb.bytesPerSector/sizeof(fat_directory_t); j++){
-					if(directories[j].name[0] == 0xE5) continue;
-					if(directories[j].name[0] == 0x00) break;
+				for(uint32_t j = 0; j < metadata->bpb.bytesPerSector/sizeof(fat_directory_t); j++){
+					if((uint8_t)directories[j].name[0] == 0xE5) continue;
+					if((uint8_t)directories[j].name[0] == 0x00) break;
 
 					if(directories[j].attrib & FAT_ATTR_LFN){
 						isLFN = true;
@@ -194,8 +194,9 @@ vnode_t* fat_lookup(vnode_t* self, const char* name){
 
 					continue;
 
+					vnode_t* vnode;
 fat32_found:
-					vnode_t* vnode = vnode_new(self->vfs, &fatVnodeOps);
+					vnode = vnode_new(self->vfs, &fatVnodeOps);
 
 					fat_vnode_data_t* fsData = kmalloc(sizeof(fat_vnode_data_t));
 					fsData->firstCluster = directories[j].clusterLow + (directories[j].clusterHigh << 16);
@@ -222,7 +223,7 @@ fat32_found:
 
 				currentSector++;
 			}
-		} while(currentCluster = fat32_next_cluster(self->vfs, metadata, currentCluster));
+		} while((currentCluster = fat32_next_cluster(self->vfs, metadata, currentCluster)));
 	} else {
 		klog("Filesystem not FAT!\n", KLOG_FAILED, "FAT");
 		kerrno = EINVAL;
@@ -260,7 +261,7 @@ ssize_t fat_read(vnode_t* self, size_t size, void* buf, size_t offset){
                 ((uint8_t*)buf)[bytesRead] = sectBuf[k];
                 offset++;
                 bytesRead++; currentPosition++;
-                if(bytesRead >= self || bytesRead >= self->size || bytesRead > size) break;
+                if(bytesRead >= self->size || bytesRead > size) break;
             }
 		}
 		if(!strcmp(self->vfs->type, FILESYS_TYPE_FAT12)){
@@ -280,14 +281,124 @@ ssize_t fat_read(vnode_t* self, size_t size, void* buf, size_t offset){
 	return bytesRead;
 }
 
+//TODO: clean and comment this
 ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 	if(self->type != V_DIR){
 		kerrno = ENOTDIR;
 		return -ENOTDIR;
 	}
 
-	kprintf("FAT_READDIR CALLED!");
-	while(1);
-	
-	return 0;
+	int bufind = 0;
+
+	bool LFNParsedFirst = false;
+	char* str; //filename
+	uint32_t recordLength = 0;
+	uint32_t recordType = 0;
+	uint64_t recordOffset = 0;
+	dirent_t dirent;
+
+	fat_vnode_data_t* fsData = (fat_vnode_data_t*)self->fsData;
+	dirent.inode = fsData->firstCluster;
+
+	size_t trueOffset = 0;
+
+	fat_metadata_t* metadata = self->vfs->context;
+
+    const size_t partitionOffset = self->vfs->drive->partitions[self->vfs->partition].startLBA; //must be added to read from the correct partition
+    size_t currentCluster = fsData->firstCluster;
+    size_t currentSector = partitionOffset + metadata->firstDataSector + metadata->bpb.sectorsPerCluster * (currentCluster - 2);
+
+    size_t j = 0, bytesRead = 0;
+
+	uint8_t sectBuf[metadata->bpb.bytesPerSector];
+
+	while(currentCluster){
+		for(size_t i = 0; i < metadata->bpb.sectorsPerCluster; i++){
+			self->vfs->drive->read(self->vfs->drive, currentSector+i, 1, sectBuf);
+			for(size_t k = 0; k < metadata->bpb.bytesPerSector;){
+				fat_directory_t* dir = (fat_directory_t*)((uint64_t)sectBuf+k);
+				k+=sizeof(fat_directory_t);
+
+				if(recordOffset < trueOffset){
+					recordOffset += sizeof(fat_directory_t);
+					continue;
+				};
+
+				if(dir->name[0] == 0) continue;
+
+				if(dir->attrib == FAT_ATTR_LFN){
+					str = fat_parse_lfn((fat_lfn_t*)dir);
+					if(str){
+						LFNParsedFirst = true;
+					}
+					trueOffset += sizeof(fat_directory_t);
+					recordOffset += sizeof(fat_directory_t);
+					continue;
+				}
+
+				if(LFNParsedFirst) LFNParsedFirst = false;
+				else str = fat_parse_sfn(dir);
+
+				if(dir->attrib & FAT_ATTR_DIRECTORY) recordType = DT_DIR;
+				else recordType = DT_REG;
+
+				recordLength = sizeof(dirent_t) + strlen(str);
+				bytesRead += recordLength;
+
+				if(bytesRead <= offset){
+					j = 0;
+					for(size_t g = 0; g < count; g++){
+						((uint8_t*)buf)[g] = 0;
+					}
+
+					bufind = 0;
+
+					kmfree(str);
+					continue;
+				}
+
+				j += sizeof(dirent_t) + strlen(str);
+				if(j > count){
+					if(offset > bytesRead){
+						j = recordLength;
+						for(size_t g = 0; g < count; g++){
+							((uint8_t*)buf)[g] = 0;
+						}
+
+						bufind = 0;
+					} else {
+						kmfree(str);
+
+						j -= sizeof(dirent_t) + strlen(str);
+
+						return j;
+					}
+						
+				}
+
+				dirent.reclen = recordLength;
+				dirent.offset = recordOffset;
+				dirent.type = recordType;
+
+				memcpy(&((uint8_t*)buf)[bufind], &dirent, sizeof(dirent_t)-1);
+				bufind+=sizeof(dirent_t)-1;
+				memcpy(&((uint8_t*)buf)[bufind], str, strlen(str)+1);
+				bufind+=strlen(str)+1;
+
+				recordOffset += sizeof(fat_directory_t);
+				trueOffset += sizeof(fat_directory_t);
+
+				recordLength = 0;
+				recordType = 0;
+				kmfree(str);
+			}
+
+		}
+		currentCluster = fat32_next_cluster(self->vfs, metadata, currentCluster);
+		currentSector = partitionOffset + metadata->firstDataSector + metadata->bpb.sectorsPerCluster * (currentCluster - 2);
+	}
+
+	bytesRead = j;
+
+	return bytesRead;
 }
