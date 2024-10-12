@@ -281,7 +281,6 @@ ssize_t fat_read(vnode_t* self, size_t size, void* buf, size_t offset){
 	return bytesRead;
 }
 
-//TODO: clean and comment this
 ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 	if(self->type != V_DIR){
 		kerrno = ENOTDIR;
@@ -291,14 +290,10 @@ ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 	int bufind = 0;
 
 	bool LFNParsedFirst = false;
-	char* str; //filename
-	uint32_t recordLength = 0;
-	uint32_t recordType = 0;
-	uint64_t recordOffset = 0;
-	dirent_t dirent;
+	char* str; // Temporary storage for item filenames
+	dirent_t dirent = {0};
 
 	fat_vnode_data_t* fsData = (fat_vnode_data_t*)self->fsData;
-	dirent.inode = fsData->firstCluster;
 
 	size_t trueOffset = 0;
 
@@ -308,7 +303,7 @@ ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
     size_t currentCluster = fsData->firstCluster;
     size_t currentSector = partitionOffset + metadata->firstDataSector + metadata->bpb.sectorsPerCluster * (currentCluster - 2);
 
-    size_t j = 0, bytesRead = 0;
+    size_t bytesReadFromOffset = 0, bytesRead = 0;
 
 	uint8_t sectBuf[metadata->bpb.bytesPerSector];
 
@@ -319,34 +314,35 @@ ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 				fat_directory_t* dir = (fat_directory_t*)((uint64_t)sectBuf+k);
 				k+=sizeof(fat_directory_t);
 
-				if(recordOffset < trueOffset){
-					recordOffset += sizeof(fat_directory_t);
+				if(dirent.offset < trueOffset){
+					dirent.offset += sizeof(fat_directory_t);
 					continue;
 				};
 
 				if(dir->name[0] == 0) continue;
-
+				
 				if(dir->attrib == FAT_ATTR_LFN){
 					str = fat_parse_lfn((fat_lfn_t*)dir);
 					if(str){
 						LFNParsedFirst = true;
 					}
 					trueOffset += sizeof(fat_directory_t);
-					recordOffset += sizeof(fat_directory_t);
+					dirent.offset += sizeof(fat_directory_t);
 					continue;
 				}
 
 				if(LFNParsedFirst) LFNParsedFirst = false;
 				else str = fat_parse_sfn(dir);
 
-				if(dir->attrib & FAT_ATTR_DIRECTORY) recordType = DT_DIR;
-				else recordType = DT_REG;
+				// On FAT filesystems, DT_REG and DT_DIR are the only possible file types.
+				if(dir->attrib & FAT_ATTR_DIRECTORY) dirent.type = DT_DIR;
+				else dirent.type = DT_REG;
 
-				recordLength = sizeof(dirent_t) + strlen(str);
-				bytesRead += recordLength;
+				dirent.reclen = sizeof(dirent_t) + strlen(str);
+				bytesRead += dirent.reclen;
 
 				if(bytesRead <= offset){
-					j = 0;
+					bytesReadFromOffset = 0;
 					for(size_t g = 0; g < count; g++){
 						((uint8_t*)buf)[g] = 0;
 					}
@@ -357,48 +353,57 @@ ssize_t fat_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 					continue;
 				}
 
-				j += sizeof(dirent_t) + strlen(str);
-				if(j > count){
+				bytesReadFromOffset += sizeof(dirent_t) + strlen(str);
+				if(bytesReadFromOffset > count){
 					if(offset > bytesRead){
-						j = recordLength;
+						bytesReadFromOffset = dirent.reclen;
 						for(size_t g = 0; g < count; g++){
 							((uint8_t*)buf)[g] = 0;
 						}
 
 						bufind = 0;
 					} else {
+						bytesReadFromOffset -= sizeof(dirent_t) + strlen(str);
+
 						kmfree(str);
-
-						j -= sizeof(dirent_t) + strlen(str);
-
-						return j;
+						return bytesReadFromOffset;
 					}
-						
 				}
 
-				dirent.reclen = recordLength;
-				dirent.offset = recordOffset;
-				dirent.type = recordType;
-
+				dirent.inode = currentCluster;
+				
+				// Copy all dirent_t numeric fields to the buffer
 				memcpy(&((uint8_t*)buf)[bufind], &dirent, sizeof(dirent_t)-1);
-				bufind+=sizeof(dirent_t)-1;
-				memcpy(&((uint8_t*)buf)[bufind], str, strlen(str)+1);
-				bufind+=strlen(str)+1;
+				bufind += sizeof(dirent_t)-1;
 
-				recordOffset += sizeof(fat_directory_t);
+				// Copy the filename to the buffer
+				memcpy(&((uint8_t*)buf)[bufind], str, strlen(str)+1);
+				bufind += strlen(str)+1;
+
+				dirent.offset += sizeof(fat_directory_t);
 				trueOffset += sizeof(fat_directory_t);
 
-				recordLength = 0;
-				recordType = 0;
+				dirent.reclen = 0;
+
 				kmfree(str);
 			}
 
 		}
-		currentCluster = fat32_next_cluster(self->vfs, metadata, currentCluster);
+
+		if(!strcmp(self->vfs->type, FILESYS_TYPE_FAT12)){
+			//TODO: fat12 support
+		} else if(!strcmp(self->vfs->type, FILESYS_TYPE_FAT16)){
+			//TODO: fat16 support
+		} else if(!strcmp(self->vfs->type, FILESYS_TYPE_FAT32)){
+			currentCluster = fat32_next_cluster(self->vfs, metadata, currentCluster);
+		} else {
+			klog("Filesystem not FAT!\n", KLOG_FAILED, "FAT");
+			kerrno = EINVAL;
+			return -EINVAL;
+		}
+
 		currentSector = partitionOffset + metadata->firstDataSector + metadata->bpb.sectorsPerCluster * (currentCluster - 2);
 	}
 
-	bytesRead = j;
-
-	return bytesRead;
+	return bytesReadFromOffset;
 }

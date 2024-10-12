@@ -27,14 +27,18 @@ int ls(const char* path){
             continue;
         }
 
-        if(dirent->d_type == 1){
+        if(dirent->d_type == DT_REG){
             if(!strcmp(get_ext(dirent->d_name), "elf") || !strcmp(get_ext(dirent->d_name), "sys") || !strcmp(get_ext(dirent->d_name), "bin")){
                 printf("\e[38;2;0;255;0m%s\e[38;2;255;255;255m\n", dirent->d_name);
             } else {
                 printf("%s\n", dirent->d_name);
             }
-        } else if(dirent->d_type == 2){
+        } else if(dirent->d_type == DT_DIR){
             printf("\e[38;2;0;0;255m%s\e[38;2;255;255;255m\n", dirent->d_name);
+		} else if(dirent->d_type == DT_CHR || dirent->d_type == DT_BLK){
+			printf("\e[38;2;100;100;255m%s\e[38;2;255;255;255m\n", dirent->d_name);
+		} else {
+			printf("%s (UNKNOWN TYPE)\n", dirent->d_name);
 		}
         dirent = readdir(dir);
     } while(dirent);

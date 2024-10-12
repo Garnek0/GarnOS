@@ -34,12 +34,6 @@ First of all, you need to build the toolchain:
 make all-toolchain
 ``` 
 
-Once you've done that, you must configure the kernel:
-```
-make menuconfig # curses (less friendly interface)
-make xconfig # qt (more friendly interface)
-```
-
 Then, in the root directory, run:
 ```
 make all # ISO Image

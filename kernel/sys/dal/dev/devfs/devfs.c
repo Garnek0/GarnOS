@@ -2,9 +2,10 @@
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 #include <sys/term/term-internals.h>
+#include <garn/fal/vnode.h>
 #include <garn/mm.h>
 
-static const vnode_operations_t devfsVnodeOps = {
+static vnode_operations_t devfsVnodeOps = {
 	.vn_read = NULL,
 	.vn_write = NULL,
 	.vn_ioctl = NULL,
@@ -12,10 +13,10 @@ static const vnode_operations_t devfsVnodeOps = {
 	.vn_lookup = devfs_lookup,
 	.vn_mkdir = NULL,
 	.vn_rmdir = NULL,
-	.vn_readdir = NULL
+	.vn_readdir = devfs_readdir
 };
 
-static const vfs_operations_t devfsVFSOps = {
+static vfs_operations_t devfsVFSOps = {
 	.vfs_statfs = NULL
 };
 
@@ -46,7 +47,7 @@ vnode_t* devfs_lookup(vnode_t* self, const char* name){
 	char fullname[256];
 
 	memcpy(fullname, self->filename, strlen(self->filename)+1);
-	memcpy(&fullname[strlen(self->filename)], name, strlen(name)+1);	
+ 	memcpy(&fullname[strlen(self->filename)], name, strlen(name)+1);	
 
 	vnode_t* listEntry = vnode_list_search_by_filename(self->vfs, fullname);
 	if(listEntry){
@@ -58,7 +59,7 @@ vnode_t* devfs_lookup(vnode_t* self, const char* name){
 
 	if(lookFor[strlen(lookFor)-1] == '/') lookFor[strlen(lookFor)-1] = 0;
 
-	//TODO: temporary
+	//NOTE: temporary
 	if(!strcmp(self->filename, "")){
 		if(!strcmp(lookFor, "tty0")){
 			vnode_t* vnode = vnode_new(self->vfs, &termVnodeOps);
@@ -72,3 +73,20 @@ vnode_t* devfs_lookup(vnode_t* self, const char* name){
 
 	return NULL;
 }
+
+ssize_t devfs_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
+	//NOTE: temporary
+
+	if(offset != 0) return 0;
+
+	dirent_t* dirent = (dirent_t*)buf;
+
+	dirent->offset = 0;
+	dirent->inode = 0;
+	dirent->type = DT_CHR;
+	dirent->reclen = 19 + 5;
+	memcpy(dirent->name, "tty0", 5);
+
+	return 24;
+}
+
