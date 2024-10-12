@@ -7,7 +7,8 @@ The gcc/binutils-gdb/mlibc-garn repositories and therefore the cross-compiler bu
 
 # GarnOS
 
-![](https://tokei.rs/b1/github/Garnek0/GarnOS?branch=v0.x&type=C,C++,CHeader,Assembly,AssemblyGAS,Rust)
+![C](https://img.shields.io/badge/c-%2300599C.svg?style=for-the-badge&logo=c&logoColor=white)
+![](https://tokei.rs/b1/github/Garnek0/GarnOS?branch=v0.x&type=C,C++,CHeader,Assembly,AssemblyGAS,Rust&style=for-the-badge)
 
 <img width="256" height="256" src="GarnOS.svg">
 
