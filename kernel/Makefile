@@ -16,8 +16,6 @@ $(call DEFAULT_VAR,ARCH,x86_64)
 # We are only using "cc" as a placeholder here. It may work by using
 # the host system's toolchain, but this is not guaranteed.
 
-include ../.config
-
 override DEFAULT_CC := ../hosttools/bin/x86_64-pc-garn-mlibc-gcc
 $(eval $(call DEFAULT_VAR,CC,$(DEFAULT_CC)))
 

@@ -1,7 +1,0 @@
-menu "General"
-
-source "kernel/consoledemo/Kconfig"
-
-source "kernel/hw/Kconfig"
-
-endmenu

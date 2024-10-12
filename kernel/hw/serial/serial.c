@@ -3,8 +3,6 @@
 #include <garn/arch.h>
 #include <garn/mm.h>
 #include <garn/spinlock.h>
-#include <garn/config.h>
-
 #include <garn/kstdio.h>
 
 static bool serialPresent;
@@ -14,9 +12,6 @@ spinlock_t serialLock;
 
 //initialise the serial console
 int serial_init(){
-
-#ifdef CONFIG_SERIAL_DEBUGGING
-
     serialPresent = true;
 
     //initialise the UART
@@ -55,16 +50,15 @@ int serial_init(){
         return 1;
     }
  
-    arch_outb(COM_MODEM_CTRL, 0x0F);
+	arch_outb(COM_MODEM_CTRL, 0x0F);
 
-    serial_enable_logs();
+	serial_enable_logs();
 
-    serial_log("Serial initialised for logging.\n\r");
-    klog("Serial Console Initialised.\n", KLOG_OK, "Serial");
+	serial_log("Serial initialised for logging.\n\r");
+	klog("Serial Console Initialised.\n", KLOG_OK, "Serial");
 
-#endif //CONFIG_SERIAL_DEBUGGING
 
-    return 0;
+	return 0;
 }
 
 void serial_write(uint8_t data){
@@ -90,5 +84,5 @@ void serial_enable_logs(){
 }
 
 void serial_disable_logs(){
-    enableSerialLogs = false;
+	enableSerialLogs = false;
 }

@@ -1,6 +1,3 @@
-
-include ../.config
-
 INITRD_FILENAME = initrd.grd
 
 CFLAGS := \
@@ -38,23 +35,7 @@ CFILES := $(shell find -L . -type f -name '*.c')
 MOD_OBJ := $(CFILES:.c=.sys)
 MODULES = $(shell find -L . -type f -name '*.sys' | sed 's!.*/!!')
 
-INITRD_MODS := fat.sys
-
-ifdef CONFIG_INCLUDE_IDE_DRIVER
-INITRD_MODS += ide.sys
-endif
-
-ifdef CONFIG_INCLUDE_AHCI_DRIVER
-INITRD_MODS += ahci.sys
-endif
-
-ifdef CONFIG_INCLUDE_PIT_DRIVER
-INITRD_MODS += pit.sys
-endif
-
-ifdef CONFIG_INCLUDE_RTC_DRIVER
-INITRD_MODS += rtc.sys
-endif
+INITRD_MODS := fat.sys ide.sys ahci.sys pit.sys rtc.sys
 
 INITRD_AUTOREG := initreg.txt
 AUTOREG := autoreg.txt

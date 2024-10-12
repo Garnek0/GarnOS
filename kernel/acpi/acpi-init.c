@@ -3,9 +3,7 @@
 #include <garn/panic.h>
 #include <sys/bootloader.h>
 #include <garn/power.h>
-
 #include <garn/kstdio.h>
-#include <garn/config.h>
 
 void acpi_init(){
     uacpi_phys_addr rsdpAddr = (uacpi_phys_addr)bl_get_rsdp_address() - bl_get_hhdm_offset();

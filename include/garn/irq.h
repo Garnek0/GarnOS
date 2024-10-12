@@ -2,7 +2,6 @@
 #define IRQ_H
 
 #include <garn/types.h>
-#include <garn/config.h>
 
 #define IRQ_MAX 256
 

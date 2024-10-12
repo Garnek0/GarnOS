@@ -9,7 +9,6 @@
 #include <garn/kerrno.h>
 #include <garn/kernel.h>
 #include <garn/arch.h>
-#include <garn/config.h>
 #include <garn/mm.h>
 
 process_t* processList;

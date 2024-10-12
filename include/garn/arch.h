@@ -1,7 +1,6 @@
 #pragma once
 
 #include <garn/irq.h>
-#include <garn/config.h>
 
 #define PUSH(type,val,stack) do { \
 	stack -= sizeof(type); \

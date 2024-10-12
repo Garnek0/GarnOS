@@ -4,9 +4,6 @@
 #include <exec/elf.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
-#include <garn/config.h>
-
-#ifdef CONFIG_INCLUDE_PCI_DRIVER
 
 uint16_t pci_config_read_word(pci_location_t location, uint8_t offset){
     uint32_t address;
@@ -42,5 +39,3 @@ uint32_t pci_config_read_address(pci_location_t location, uint8_t offset){
 
     return address;
 }
-
-#endif //CONFIG_INCLUDE_PCI_DRIVER

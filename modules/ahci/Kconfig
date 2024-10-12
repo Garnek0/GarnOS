@@ -1,6 +1,0 @@
-config INCLUDE_AHCI_DRIVER
-		bool "PCI AHCI Controller Support"
-		depends on INCLUDE_PCI_DRIVER
-		default y
-		help
-			"Check this if your target system has a PCI AHCI controller."

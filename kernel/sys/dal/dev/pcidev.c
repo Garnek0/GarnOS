@@ -5,9 +5,6 @@
 #include <exec/elf.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
-#include <garn/config.h>
-
-#ifdef CONFIG_INCLUDE_PCI_DRIVER
 
 pci_location_t location;
 pci_config_header_t hdr;
@@ -180,8 +177,8 @@ void pcidev_detect(){
                                     case PCI_SUBCLASS_HDA:
                                         device->name = "HDA Device";
                                         break;
-                                    default:
-                                        device->name = "Multimedia Controller";
+									default:                                        
+										device->name = "Multimedia Controller";
                                         break;
                                 }
                                 break;
@@ -267,7 +264,7 @@ void pcidev_detect(){
                                 switch(pciDevice->hdr.subclass){
                                     case PCI_SUBCLASS_PIC:
                                         device->name = "Programmable Interrupt Controller";
-                                        break;
+                                       break;
                                     case PCI_SUBCLASS_DMA:
                                         device->name = "DMA Controller";
                                         break;
@@ -524,5 +521,3 @@ void pcidev_detect(){
         }
     }
 }
-
-#endif //CONFIG_INCLUDE_PCI_DRIVER

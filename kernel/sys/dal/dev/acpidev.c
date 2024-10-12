@@ -3,7 +3,6 @@
 #include <garn/kstdio.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
-#include <garn/config.h>
 #include <uacpi/uacpi.h>
 #include <uacpi/namespace.h>
 #include <uacpi/utilities.h>
@@ -42,7 +41,7 @@ static uacpi_ns_iteration_decision acpi_init_device(void* ctx, uacpi_namespace_n
 	}
 
 	if(info->flags & UACPI_NS_NODE_INFO_HAS_CID){
-		for(int i = 0; i < info->cid.num_ids; i++){
+		for(uint32_t i = 0; i < info->cid.num_ids; i++){
 			char* cid = strdup(info->cid.ids[i].value);
 			device_id_add(device, DEVICE_CREATE_ID_ACPI(cid));
 		}
@@ -54,9 +53,6 @@ static uacpi_ns_iteration_decision acpi_init_device(void* ctx, uacpi_namespace_n
 }
 
 void acpidev_detect(){
-
-#ifdef CONFIG_INCLUDE_i8042_DRIVER
-
     //Detect i8042 PS/2 Controller
 
 	// The i8042 PS/2 Controller can easily be detected by testing a bit in the ACPI FADT
@@ -95,11 +91,7 @@ i8042_found:
 i8042_not_found:
     ;
 
-#endif //CONFIG_INCLUDE_i8042_DRIVER
-
-#ifdef CONFIG_INCLUDE_PIT_DRIVER
-
-	//TODO: Use ACPI for this
+	//TODO: Move to arch
 
     device_t* pitDev = kmalloc(sizeof(device_t));
     pitDev->bus = DEVICE_BUS_NONE;
@@ -110,8 +102,6 @@ i8042_not_found:
 	device_id_initialise(pitDev);
 	device_id_add(pitDev, DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT));
     device_add(pitDev);
-
-#endif //CONFIG_INCLUDE_PIT_DRIVER
 	
 	uacpi_namespace_for_each_node_depth_first(uacpi_namespace_root(), acpi_init_device, UACPI_NULL);
 }

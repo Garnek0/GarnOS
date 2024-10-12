@@ -1,5 +1,4 @@
 #include <garn/panic.h>
-#include <garn/config.h>
 #include <arch/arch-internals.h>
 #include <cpuid.h>
 
@@ -26,11 +25,11 @@ void arch_compat_checks(){
     else klog("CPU supports MSR.\n", KLOG_OK, "compat");
 
 	if(!(edx & CPUID_FEAT_EDX_FXSR)) panic("Unsupported CPU! (FXSR Not Supported)", "compat"); //check FXSR support
-    else klog("CPU supports FXSR.\n", KLOG_OK, "compat");
+	else klog("CPU supports FXSR.\n", KLOG_OK, "compat");
 
 	if(!(edx & CPUID_FEAT_EDX_SSE)) panic("Unsupported CPU! (SSE Not Supported)", "compat"); //check SSE support (mandatory for 64-bit)
-    else klog("CPU supports SSE.\n", KLOG_OK, "compat");
+	else klog("CPU supports SSE.\n", KLOG_OK, "compat");
 
 	if(!(edx & CPUID_FEAT_EDX_SSE2)) panic("Unsupported CPU! (SSE2 Not Supported)", "compat"); //check SSE2 support (mandatory for 64-bit)
-    else klog("CPU supports SSE2.\n", KLOG_OK, "compat");
+	else klog("CPU supports SSE2.\n", KLOG_OK, "compat");
 }

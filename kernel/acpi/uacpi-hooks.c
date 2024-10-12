@@ -7,7 +7,6 @@
 #include <garn/hw/pci.h>
 #include <garn/timer.h>
 #include <garn/irq.h>
-#include <garn/config.h>
 
 uacpi_status uacpi_kernel_raw_memory_read(uacpi_phys_addr address, uacpi_u8 byte_width, uacpi_u64 *out_value){
     switch(byte_width){
@@ -115,7 +114,6 @@ void uacpi_kernel_unmap(void *addr, uacpi_size len){
 }
 
 uacpi_status uacpi_kernel_pci_read(uacpi_pci_address *address, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 *value){
-#ifdef CONFIG_INCLUDE_PCI_DRIVER
     pci_location_t location;
     location.bus = address->bus;
     location.dev = address->device;
@@ -135,13 +133,12 @@ uacpi_status uacpi_kernel_pci_read(uacpi_pci_address *address, uacpi_size offset
             break;
     }
     return UACPI_STATUS_OK;
-#else
+
     return UACPI_STATUS_UNIMPLEMENTED;
-#endif //CONFIG_INCLUDE_PCI_DRIVER
+
 }
 
 uacpi_status uacpi_kernel_pci_write(uacpi_pci_address *address, uacpi_size offset, uacpi_u8 byte_width, uacpi_u64 value){
-#ifdef CONFIG_INCLUDE_PCI_DRIVER
     pci_location_t location;
     location.bus = address->bus;
     location.dev = address->device;
@@ -165,9 +162,6 @@ uacpi_status uacpi_kernel_pci_write(uacpi_pci_address *address, uacpi_size offse
             break;
     }
     return UACPI_STATUS_OK;
-#else
-    return UACPI_STATUS_UNIMPLEMENTED;
-#endif //CONFIG_INCLUDE_PCI_DRIVER
 }
 
 

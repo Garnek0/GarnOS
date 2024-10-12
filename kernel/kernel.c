@@ -10,7 +10,6 @@
 #include <garn/input.h>
 #include <garn/fal/vnode.h>
 #include <garn/fal/vfs.h>
-#include <garn/config.h>
 #include <garn/arch.h>
 
 #include "mem/mm-internals.h"
@@ -72,9 +71,7 @@ void _start(){
 
     dal_init(); //initialise Device Abstraction Layer
 
-#ifdef CONFIG_KCON
     init_kcon(); //start demo console
-#endif //CONFIG_KCON
 
     //We should not proceed if the system FS hasn't been found
     if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");

@@ -2,7 +2,6 @@
 
 #include <garn/types.h>
 #include <garn/spinlock.h>
-#include <garn/config.h>
 
 #define PAGE_SIZE 4096
 #define ALIGN_UP(x, alignment) (((uint64_t)x % alignment == 0) ? (typeof(x))(x) : (typeof(x))((uint64_t)x + (alignment - ((uint64_t)x % alignment))))

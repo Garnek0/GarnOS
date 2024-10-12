@@ -1,5 +1,0 @@
-config INCLUDE_PIT_DRIVER
-		bool "PIT Timer Support"
-		default y
-		help
-			"Check this if your target system has a PIT installed. This should be checked regardless, though."

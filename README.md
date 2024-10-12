@@ -23,12 +23,9 @@ The main goals of GarnOS are compatibility and modularity.
 - At least a minimum toolset to build a cross-toolchain
 - QEMU
 - Xorriso (for ISO images)
-- Python3 (with kconfiglib installed)
 - GNU Parted
-- kconfig-frontends
-- Doxygen (for docs)
 - Git
-- make and cmake (cmake is required by mlibc)
+- make/gmake and cmake (cmake is required by mlibc)
 
 ## Building
 

@@ -151,22 +151,6 @@ $(IMAGE_NAME).hdd: sysroot limine kernel modules programs
 	sudo losetup -d `cat loopback_dev`
 	rm -rf loopback_dev img_mount
 
-.SILENT: xconfig menuconfig
-
-.PHONY: menuconfig
-menuconfig:
-	kconfig-mconf Kconfig
-	echo "Generating config.h..."
-	python3 scripts/genconfig.py
-	echo "done"
-
-.PHONY: xconfig
-xconfig:
-	kconfig-qconf Kconfig
-	echo "Generating config.h..."
-	python3 scripts/genconfig.py
-	echo "done"
-
 .PHONY: clean
 clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd

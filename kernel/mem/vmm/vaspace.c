@@ -4,7 +4,6 @@
 #include <garn/kerrno.h>
 #include <garn/kstdio.h>
 #include <arch/arch-internals.h>
-#include <garn/config.h>
 
 void vaspace_switch(page_table_t* pt){
     uint64_t hhdm = bl_get_hhdm_offset();

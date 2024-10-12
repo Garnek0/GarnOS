@@ -3,7 +3,6 @@
 #include <garn/ds/list.h>
 #include <garn/irq.h>
 #include <garn/arch.h>
-#include <garn/config.h>
 
 typedef struct {
     void* handler;

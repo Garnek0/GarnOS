@@ -9,7 +9,6 @@
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 #include <garn/kernel.h>
-#include <garn/config.h>
 
 spinlock_t moduleLoaderLock;
 

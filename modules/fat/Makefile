@@ -1,5 +1,3 @@
-include ../../.config
-
 MODULE_NAME := fat
 
 CFLAGS := \

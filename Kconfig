@@ -1,3 +1,0 @@
-source "kernel/Kconfig"
-
-source "modules/Kconfig"
