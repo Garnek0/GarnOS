@@ -1,3 +1,4 @@
+#include "garn/dal/device-types.h"
 #include <sys/dal/dal-internals.h>
 #include <garn/arch/common.h>
 #include <garn/arch/x86_64.h>
@@ -29,10 +30,10 @@ static uacpi_ns_iteration_decision acpi_init_device(void* ctx, uacpi_namespace_n
 
 	device_t* device = kmalloc(sizeof(device_t));
     device->bus = DEVICE_BUS_ACPI;
-    device->privateData = NULL;
     device->name = "ACPI Device";
     device->node = NULL;
     device->type = DEVICE_TYPE_SYSTEM_DEVICE;
+	device->category = DEVICE_CAT_GENERIC;
 	device->privateData = (void*)info;
 	device_id_initialise(device);
 
@@ -87,6 +88,7 @@ i8042_found:
     ps2controller->name = "i8042 PS/2 Controller";
     ps2controller->node = NULL;
     ps2controller->type = DEVICE_TYPE_INPUT_CONTROLLER;
+	ps2controller->category = DEVICE_CAT_GENERIC;
 	device_id_initialise(ps2controller);
 	device_id_add(ps2controller, DEVICE_CREATE_ID_PS2);
     device_add(ps2controller);
@@ -104,6 +106,7 @@ i8042_not_found:
     pitDev->name = "Programmable Interval Timer";
     pitDev->node = NULL;
     pitDev->type = DEVICE_TYPE_SYSTEM_DEVICE;
+	pitDev->category = DEVICE_CAT_GENERIC;
 	device_id_initialise(pitDev);
 	device_id_add(pitDev, DEVICE_CREATE_ID_TIMER(DEVICE_ID_TIMER_PIT));
     device_add(pitDev);

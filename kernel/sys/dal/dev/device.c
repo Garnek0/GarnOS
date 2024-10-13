@@ -10,19 +10,17 @@
 spinlock_t deviceManagerLock;
 
 list_t* deviceList;
-list_t* charDeviceList;
 
 size_t deviceCount;
 
 void device_init(){
     deviceList = list_create();
-	charDeviceList = list_create();
 }
 
 void device_add(device_t* device){
     list_insert(deviceList, (void*)device);
     deviceCount++;
-    device_driver_attach(device);
+    if(device->idList != NULL) device_driver_attach(device);
 }
 
 int device_remove(device_t* device){
@@ -62,7 +60,7 @@ device_t* device_get_device(size_t i){
 bool device_match_ids(device_id_t id1, device_id_t id2){
 	if(DEVICE_ID_CLASS(id1) != DEVICE_ID_CLASS(id2)) return false;
 	switch(DEVICE_ID_CLASS(id1)){
-		case DEVICE_ID_CLASS_FS_PDEV:
+		case DEVICE_ID_CLASS_SM:
 		case DEVICE_ID_CLASS_PS2:
 		{
 			return true;
@@ -160,12 +158,4 @@ bool device_attach_to_driver(driver_node_t* node){
     }
 
     return false;
-}
-
-void device_register_cdev(char_device_t* cdev){
-	list_insert(charDeviceList, (void*)cdev);
-}
-
-list_t* device_get_cdev_list(){
-	return charDeviceList;
 }

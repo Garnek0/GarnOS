@@ -1,5 +1,6 @@
 #include "devfs.h"
 #include "garn/dal/dal.h"
+#include "garn/dal/device-types.h"
 #include "garn/ds/list.h"
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
@@ -39,13 +40,19 @@ int devfs_init(const char* mount){
 
 	//TEMPORARY
 	
-	static char_device_t cdev;
-	cdev.name = "tty0";
-	cdev.major = 4;
-	cdev.minor = 0;
-	cdev.cdevOps = &termVnodeOps;
+	static device_t tty0;
+	tty0.name = "tty0";
+	tty0.privateData = tty0.driverData = NULL;
+	tty0.bus = DEVICE_BUS_NONE;
+	tty0.node = NULL;
+	tty0.type = DEVICE_TYPE_SOFTWARE_DEVICE;
+	tty0.category = DEVICE_CAT_CHAR;
+	tty0.idList = NULL;
+	tty0.major = 4;
+	tty0.minor = 0;
+	tty0.devOps = &termVnodeOps;
 
-	device_register_cdev(&cdev);
+	device_add(&tty0);
 
 	return vfs_mount(devfs, mount, 0);
 }
@@ -71,19 +78,27 @@ vnode_t* devfs_lookup(vnode_t* self, const char* name){
 
 	if(lookFor[strlen(lookFor)-1] == '/') lookFor[strlen(lookFor)-1] = 0;
 
-	foreach(i, device_get_cdev_list()){
-		char_device_t* cdev = (char_device_t*)i->value;
+	for(size_t i = 0; i < device_get_device_count(); i++){
+		device_t* dev = device_get_device(i);
 
-		if(!strcmp(lookFor, cdev->name)){
-			vnode_t* vnode = vnode_new(self->vfs, cdev->cdevOps);
+		if(dev->category == DEVICE_CAT_GENERIC) continue;
 
-			vnode->type = V_CHR;
+		if(!strcmp(lookFor, dev->name)){
+			vnode_t* vnode = vnode_new(self->vfs, dev->devOps);
+
+			if(dev->category == DEVICE_CAT_CHAR) vnode->type = V_CHR;
+			else vnode->type = V_BLK;
+
 			vnode->size = 0;
+
+			// The device struct address may be needed later.
+			vnode->fsData = (void*)dev;
 
 			return vnode;
 		}
 	}
 
+	kerrno = ENOENT;
 	return NULL;
 }
 
@@ -93,19 +108,24 @@ ssize_t devfs_readdir(vnode_t* self, size_t count, void* buf, size_t offset){
 
 	dirent_t* dirent = (dirent_t*)buf;
 
-	foreach(i, device_get_cdev_list()){
-		char_device_t* cdev = (char_device_t*)i->value;
+	for(size_t i = 0; i < device_get_device_count(); i++){
+		device_t* dev = device_get_device(i);
 
-		trueOffset += sizeof(dirent_t) + strlen(cdev->name);
+		if(dev->category == DEVICE_CAT_GENERIC) continue;
+
+		trueOffset += sizeof(dirent_t) + strlen(dev->name);
 
 		if(trueOffset <= offset) continue;
-		if(bytesRead + sizeof(dirent_t) + strlen(cdev->name) > count) return bytesRead;
+		if(bytesRead + sizeof(dirent_t) + strlen(dev->name) > count) return bytesRead;
 
 		dirent->offset = trueOffset;
 		dirent->inode = 0;
-		dirent->type = DT_CHR;
-		dirent->reclen = sizeof(dirent_t) + strlen(cdev->name);
-		memcpy(dirent->name, cdev->name, strlen(cdev->name)+1);
+
+		if(dev->category == DEVICE_CAT_CHAR) dirent->type = DT_CHR;
+		else dirent->type = DT_BLK;
+
+		dirent->reclen = sizeof(dirent_t) + strlen(dev->name);
+		memcpy(dirent->name, dev->name, strlen(dev->name)+1);
 
 		bytesRead += dirent->reclen;
 

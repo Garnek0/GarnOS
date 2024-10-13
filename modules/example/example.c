@@ -37,16 +37,12 @@ bool probe(device_t* device){
 // or false otherwise.
 //
 // At this point, the driver should also set the name of the device, because it is
-// not guaranteed that the kernel will do this.
+// not guaranteed the kernel will set it correctly.
 bool attach(device_t* device){
 	return false;
 }
 
 // Called when "device" is removed
-//
-// Filesystem drivers are required to
-// free the "data" field of their filesystem
-// pseudodevices in this routine
 bool remove(device_t* device){
 	return false;
 }

@@ -70,9 +70,6 @@ bool attach(device_t* device){
 	drive_t* drive = pdevData->drive;
 	size_t partition = pdevData->partitionIndex; 
 
-	// Probing done, remove the filesystem pseudodevice now as it is no longer needed
-	device_remove(device);
-
 	// Get sector 0 from the partition
 	bcache_buf_t* buf = bcache_get(drive, drive->partitions[partition].startLBA);
 	if(!buf) return false;
@@ -177,7 +174,6 @@ bool attach(device_t* device){
 }
 
 bool remove(device_t* device){
-	kmfree(device->privateData);
 	return true;
 }
 
@@ -249,7 +245,7 @@ device_driver_t driver_metadata = {
 };
 
 device_id_t driver_ids[] = {
-	DEVICE_CREATE_ID_FS_PDEV,
+	DEVICE_CREATE_ID_SM,
 	DEVICE_ID_LIST_END
 };
 

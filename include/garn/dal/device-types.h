@@ -27,7 +27,12 @@
 #define DEVICE_TYPE_PROCESSOR 17
 #define DEVICE_TYPE_SERIAL_BUS 18
 #define DEVICE_TYPE_DRIVE 19
-#define DEVICE_TYPE_FS_PSEUDODEVICE 20
+#define DEVICE_TYPE_STORAGE_MEDIUM 20
+#define DEVICE_TYPE_SOFTWARE_DEVICE 21
+
+#define DEVICE_CAT_GENERIC 0
+#define DEVICE_CAT_CHAR 1
+#define DEVICE_CAT_BLOCK 2
 
 #define DEVICE_ID_CLASS(x) x.class
 #define DEVICE_ID_CLASS_NONE 0
@@ -82,8 +87,8 @@
 
 #define DEVICE_CREATE_ID_TIMER(timer) (device_id_t){ .class = DEVICE_ID_CLASS_TIMER, .value8[0] = timer }
 
-//Filesystem Pseudodevice Class
+// Storage Medium Class
 
-#define DEVICE_ID_CLASS_FS_PDEV 0x06
+#define DEVICE_ID_CLASS_SM 0x06
 
-#define DEVICE_CREATE_ID_FS_PDEV (device_id_t){ .class = DEVICE_ID_CLASS_FS_PDEV }
+#define DEVICE_CREATE_ID_SM (device_id_t){ .class = DEVICE_ID_CLASS_SM }

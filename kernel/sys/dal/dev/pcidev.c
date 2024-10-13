@@ -1,3 +1,4 @@
+#include "garn/dal/device-types.h"
 #include <sys/dal/dal-internals.h>
 #include <garn/hw/pci.h>
 #include <garn/kstdio.h>
@@ -39,6 +40,7 @@ void pcidev_detect(){
                 device = kmalloc(sizeof(device_t));
                 memset(device, 0, sizeof(device_t));
                 device->bus = DEVICE_BUS_PCI;
+				device->category = DEVICE_CAT_GENERIC;
 				device_id_initialise(device);
 				device_id_add(device, DEVICE_CREATE_ID_PCI(hdr.vendorID, hdr.deviceID, hdr.class, hdr.subclass, hdr.progIF));
 

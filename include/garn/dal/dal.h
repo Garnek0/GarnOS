@@ -35,26 +35,21 @@ typedef struct _device {
     char* name;
     uint16_t bus;
     uint16_t type;
-    void* privateData; // Data of the device
+    void* privateData; // Stores the device's private data
     void* driverData; // Drivers can store their own data in this field
-    list_t* idList;
+    list_t* idList; // If this is left NULL, then there will be no attemp to load a driver
+					// for this device. This may be useful if, for example, the driver is built
+					// into the kernel.
+
     struct _driver_node* node;
+
+	// For FS stuff, ignored if category == DEVICE_CAT_GENERIC
+	uint8_t category;
+	int major;
+	int minor;
+	struct _vnode_operations* devOps;
+	size_t blockSize; // Only for DEVICE_CAT_BLOCK
 } device_t;
-
-typedef struct _char_device {
-	char* name;
-	int major;
-	int minor;
-	struct _vnode_operations* cdevOps;
-} char_device_t;
-
-typedef struct _block_device {
-	char* name;
-	int major;
-	int minor;
-	size_t blockSize;
-	struct _vnode_operations* bdevOps;
-} block_device_t;
 
 typedef struct _device_driver {
     bool (*probe)(struct _device* device);
@@ -122,9 +117,6 @@ int device_remove(device_t* device);
 bool device_match_ids(device_id_t id1, device_id_t id2);
 void device_id_initialise(device_t* device);
 void device_id_add(device_t* device, device_id_t devid);
-
-void device_register_cdev(char_device_t* cdev);
-list_t* device_get_cdev_list();
 
 //driver
 

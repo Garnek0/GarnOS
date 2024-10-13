@@ -17,6 +17,7 @@ static void smp_register_cpu_device(){
     cpuDevice->privateData = NULL;
     cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
+	cpuDevice->category = DEVICE_CAT_GENERIC;
 	device_id_initialise(cpuDevice);
 	device_id_add(cpuDevice, DEVICE_CREATE_ID_NONE);
 
