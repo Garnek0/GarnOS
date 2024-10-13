@@ -71,6 +71,16 @@ void _start(){
 
     dal_init(); //initialise Device Abstraction Layer
 
+	// DAL TEST CODE HERE
+	//
+	
+
+
+	while(1);
+
+	//
+	// DAL TEST CODE HERE
+
     init_kcon(); //start demo console
 
     //We should not proceed if the system FS hasn't been found

@@ -141,11 +141,24 @@ vnode_t* vnode_open(const char* path, int flags, int mode){
 			klog("O_CREAT Not supported! Flag ignored (this may cause issues!).\n", KLOG_WARNING, "FAL");
 		}
 
+		vnode->flags = flags;
+		vnode->mode = mode;
+
+		if(!vnode->vnodeops || !vnode->vnodeops->vn_open){
+			goto skip_open;
+		}
+
+		int status = vnode->vnodeops->vn_open(vnode);
+		if(status != 0){
+			kerrno = status;
+			releaseLock(&vnode->lock);
+			return NULL;
+		}
+
+skip_open:
 		vnode->refCount++;
 		if(!vnode_list_search_by_filename(vnode->vfs, path)){
 			vnode_list_add(vnode);
-			vnode->flags = flags;
-			vnode->mode = mode;
 		}
 	});
 	
@@ -160,6 +173,7 @@ int vnode_close(vnode_t* vnode){
 
 	lock(vnode->lock, {
 		vnode->refCount--;
+
 		if(vnode->refCount == 0){
 			vnode_list_remove(vnode);
 			if(vnode->vnodeops->vn_inactive) status = vnode->vnodeops->vn_inactive(vnode);

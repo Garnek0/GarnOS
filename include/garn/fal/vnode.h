@@ -56,13 +56,14 @@ typedef struct _dirent {
     uint64_t inode;
     uint64_t offset; 
     uint16_t reclen;
-	uint8_t type;
+	uint8_t type; 
     char name[1];
 }__attribute__((packed)) dirent_t;
 
 typedef struct _vnode_operations {
 	ssize_t (*vn_read)(struct _vnode* self, size_t count, void* buf, size_t offset);
 	ssize_t (*vn_write)(struct _vnode* self, size_t count, void* buf, size_t offset);
+	int (*vn_open)(struct _vnode* self); // Used for devices. Filesystems should not need this.
 	int (*vn_ioctl)(struct _vnode* self, int op, ...);
 	//vn_select()
 	//...
