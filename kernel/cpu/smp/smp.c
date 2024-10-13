@@ -14,7 +14,7 @@
 static void smp_register_cpu_device(){
     device_t* cpuDevice = kmalloc(sizeof(device_t));
     cpuDevice->bus = DEVICE_BUS_NONE;
-    cpuDevice->data = NULL;
+    cpuDevice->privateData = NULL;
     cpuDevice->node = NULL;
     cpuDevice->type = DEVICE_TYPE_PROCESSOR;
 	device_id_initialise(cpuDevice);

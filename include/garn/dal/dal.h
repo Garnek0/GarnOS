@@ -1,5 +1,6 @@
 #pragma once
 
+#include <garn/fal/vnode.h>
 #include <garn/types.h>
 #include <garn/spinlock.h>
 #include <garn/dal/device-types.h>
@@ -34,11 +35,26 @@ typedef struct _device {
     char* name;
     uint16_t bus;
     uint16_t type;
-    void* data; //Data of the device
-    void* driverData; //Drivers can store their own data in this field
+    void* privateData; // Data of the device
+    void* driverData; // Drivers can store their own data in this field
     list_t* idList;
     struct _driver_node* node;
 } device_t;
+
+typedef struct _char_device {
+	char* name;
+	int major;
+	int minor;
+	struct _vnode_operations* cdevOps;
+} char_device_t;
+
+typedef struct _block_device {
+	char* name;
+	int major;
+	int minor;
+	size_t blockSize;
+	struct _vnode_operations* bdevOps;
+} block_device_t;
 
 typedef struct _device_driver {
     bool (*probe)(struct _device* device);
@@ -106,6 +122,9 @@ int device_remove(device_t* device);
 bool device_match_ids(device_id_t id1, device_id_t id2);
 void device_id_initialise(device_t* device);
 void device_id_add(device_t* device, device_id_t devid);
+
+void device_register_cdev(char_device_t* cdev);
+list_t* device_get_cdev_list();
 
 //driver
 

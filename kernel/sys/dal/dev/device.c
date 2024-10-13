@@ -10,11 +10,13 @@
 spinlock_t deviceManagerLock;
 
 list_t* deviceList;
+list_t* charDeviceList;
 
 size_t deviceCount;
 
 void device_init(){
     deviceList = list_create();
+	charDeviceList = list_create();
 }
 
 void device_add(device_t* device){
@@ -158,4 +160,12 @@ bool device_attach_to_driver(driver_node_t* node){
     }
 
     return false;
+}
+
+void device_register_cdev(char_device_t* cdev){
+	list_insert(charDeviceList, (void*)cdev);
+}
+
+list_t* device_get_cdev_list(){
+	return charDeviceList;
 }

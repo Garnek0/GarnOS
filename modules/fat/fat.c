@@ -33,7 +33,7 @@ const char* probeOEMIDs[PROBE_OEMID_COUNT] = {
 
 bool probe(device_t* device){
 	fat_common_bpb_t* bpb;
-	fs_pdev_data_t* pdevData = (fs_pdev_data_t*)device->data;
+	fs_pdev_data_t* pdevData = (fs_pdev_data_t*)device->privateData;
 
 	if(pdevData->drive->type == DRIVE_TYPE_OPTICAL) return false;
 
@@ -66,7 +66,7 @@ bool probe(device_t* device){
 }
 
 bool attach(device_t* device){
-	fs_pdev_data_t* pdevData = (fs_pdev_data_t*)device->data;
+	fs_pdev_data_t* pdevData = (fs_pdev_data_t*)device->privateData;
 	drive_t* drive = pdevData->drive;
 	size_t partition = pdevData->partitionIndex; 
 
@@ -169,15 +169,15 @@ bool attach(device_t* device){
 
 	return true;
 
-deallocate_and_fail:
-	bcache_release(buf);
-	kmfree(metadata);
-	kmfree(fatVFS);
-	return false;
+//deallocate_and_fail:
+//	bcache_release(buf);
+//	kmfree(metadata);
+//	kmfree(fatVFS);
+//	return false;
 }
 
 bool remove(device_t* device){
-	kmfree(device->data);
+	kmfree(device->privateData);
 	return true;
 }
 

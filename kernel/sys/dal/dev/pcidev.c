@@ -65,7 +65,7 @@ void pcidev_detect(){
                         pciDevice->minGrant = pci_config_read_word(location, 0x3E) & 0xFF;
                         pciDevice->maxLatency = (pci_config_read_word(location, 0x3E) >> 8) & 0xFF;
 
-                        device->data = (void*)pciDevice;
+                        device->privateData = (void*)pciDevice;
 
                         switch(pciDevice->hdr.class){
                             case PCI_CLASS_UNCLASSIFIED:
@@ -496,7 +496,7 @@ void pcidev_detect(){
                         pciToPci->intPIN = (pci_config_read_word(location, 0x3C) >> 8) & 0xFF;
                         pciToPci->bridgeControl = pci_config_read_word(location, 0x3E);
 
-                        device->data = (void*)pciToPci;
+                        device->privateData = (void*)pciToPci;
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                         device->name = "PCI-to-PCI Bridge";
 
@@ -507,7 +507,7 @@ void pcidev_detect(){
                         pciToCardbus = kmalloc(sizeof(pci_config_pci_to_cardbus_t));
                         memset(pciToCardbus, 0, sizeof(pci_config_pci_to_cardbus_t));
                         //TODO: Do this
-                        device->data = (void*)pciToCardbus;
+                        device->privateData = (void*)pciToCardbus;
                         device->type = DEVICE_TYPE_SYSTEM_DEVICE;
                         device->name = "Cardbus Bridge";
                         klog("Found device on Bus %d Slot %d Function %d: %s.\n", KLOG_INFO, "PCI", i, j, k, device->name);

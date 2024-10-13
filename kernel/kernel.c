@@ -73,10 +73,8 @@ void _start(){
 
 	// DAL TEST CODE HERE
 	//
-	
 
-
-	while(1);
+	//while(1);
 
 	//
 	// DAL TEST CODE HERE

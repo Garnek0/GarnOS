@@ -37,7 +37,7 @@ void fini(){
 
 bool probe(device_t* device){
     pci_config_device_t* pciConfig;
-    pciConfig = (pci_config_device_t*)device->data;
+    pciConfig = (pci_config_device_t*)device->privateData;
 
     if(device->bus != DEVICE_BUS_PCI || pciConfig->hdr.class != PCI_CLASS_STORAGE_CONTROLLER || pciConfig->hdr.subclass != PCI_SUBCLASS_SATA ||
     pciConfig->hdr.progIF != 0x01){
@@ -50,7 +50,7 @@ bool attach(device_t* device){
     if(!probe(device)) return false;
 
     pci_config_device_t* pciConfig;
-    pciConfig = (pci_config_device_t*)device->data;
+    pciConfig = (pci_config_device_t*)device->privateData;
 
     //Enable bus mastering, memory access and interrupts in the PCI command register
 

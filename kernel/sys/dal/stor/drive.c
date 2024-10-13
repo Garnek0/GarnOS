@@ -65,7 +65,7 @@ int drive_add(drive_t* drive){
 			pdevData->drive = drive;
 			pdevData->partitionIndex = i;
 
-			fsPdev->data = (void*)pdevData;
+			fsPdev->privateData = (void*)pdevData;
 
 			device_add(fsPdev);
         }

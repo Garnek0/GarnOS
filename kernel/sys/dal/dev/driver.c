@@ -81,7 +81,7 @@ int device_driver_register(const char* path){
     memcpy(driverIDsStore, driverIDs, sizeof(device_id_t) * idListSize);
 
 	char* newStr;
-	for(int i = 0; i < idListSize; i++){
+	for(size_t i = 0; i < idListSize; i++){
 		if(driverIDsStore[i].string[0] != NULL){
 			newStr = kmalloc(strlen(driverIDsStore[i].string[0])+1);
 			memcpy(newStr, driverIDsStore[i].string[0], strlen(driverIDsStore[i].string[0])+1);

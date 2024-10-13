@@ -29,11 +29,11 @@ static uacpi_ns_iteration_decision acpi_init_device(void* ctx, uacpi_namespace_n
 
 	device_t* device = kmalloc(sizeof(device_t));
     device->bus = DEVICE_BUS_ACPI;
-    device->data = NULL;
+    device->privateData = NULL;
     device->name = "ACPI Device";
     device->node = NULL;
     device->type = DEVICE_TYPE_SYSTEM_DEVICE;
-	device->data = (void*)info;
+	device->privateData = (void*)info;
 	device_id_initialise(device);
 
 	if(info->flags & UACPI_NS_NODE_INFO_HAS_HID){
@@ -83,7 +83,7 @@ void acpidev_detect(){
 i8042_found:
     device_t* ps2controller = kmalloc(sizeof(device_t));
     ps2controller->bus = DEVICE_BUS_NONE;
-    ps2controller->data = NULL;
+    ps2controller->privateData = NULL;
     ps2controller->name = "i8042 PS/2 Controller";
     ps2controller->node = NULL;
     ps2controller->type = DEVICE_TYPE_INPUT_CONTROLLER;
@@ -100,7 +100,7 @@ i8042_not_found:
 
     device_t* pitDev = kmalloc(sizeof(device_t));
     pitDev->bus = DEVICE_BUS_NONE;
-    pitDev->data = NULL;
+    pitDev->privateData = NULL;
     pitDev->name = "Programmable Interval Timer";
     pitDev->node = NULL;
     pitDev->type = DEVICE_TYPE_SYSTEM_DEVICE;

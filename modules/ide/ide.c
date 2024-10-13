@@ -18,7 +18,7 @@ void ide_write_reg(ide_channel_t* channel, unsigned char reg, unsigned char data
 }
 
 uint8_t ide_read_reg(ide_channel_t* channel, unsigned char reg){
-    uint8_t result;
+    uint8_t result = 0;
     if(reg > 0x07 && reg < 0x0C)
         ide_write_reg(channel, ATA_REG_CONTROL, 0x80 | channel->noInt);
     if(reg < 0x08)
@@ -60,7 +60,7 @@ void fini(){
 
 bool probe(device_t* device){
     pci_config_device_t* pciConfig;
-    pciConfig = (pci_config_device_t*)device->data;
+    pciConfig = (pci_config_device_t*)device->privateData;
 
     if(device->bus != DEVICE_BUS_PCI || pciConfig->hdr.class != PCI_CLASS_STORAGE_CONTROLLER || pciConfig->hdr.subclass != PCI_SUBCLASS_IDE){
         return false;
@@ -74,7 +74,7 @@ bool attach(device_t* device){
     if(!probe(device)) return false;
 
     pci_config_device_t* pciConfig;
-    pciConfig = (pci_config_device_t*)device->data;
+    pciConfig = (pci_config_device_t*)device->privateData;
 
     //Enable bus mastering, memory access and interrupts in the PCI command register
 
