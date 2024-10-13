@@ -1,3 +1,4 @@
+#include "garn/arch/common.h"
 #include "power-internals.h"
 
 #include <garn/power.h>
@@ -65,7 +66,7 @@ static int _power_shutdown_default(){
     kprintf("You may now power off your computer.");
     arch_disable_interrupts();
     for(;;){
-        asm volatile("hlt");
+        arch_stop();
     }
     __builtin_unreachable();
 }
@@ -74,7 +75,7 @@ static int _power_reboot_default(){
     kprintf("You may now *manually* restart your computer ;)");
     arch_disable_interrupts();
     for(;;){
-        asm volatile("hlt");
+        arch_stop();
     }
     __builtin_unreachable();
 }

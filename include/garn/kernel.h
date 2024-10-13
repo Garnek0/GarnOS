@@ -6,6 +6,6 @@
 #include <garn/kerrno.h>
 #include <garn/panic.h>
 
-#define KERNEL_VER "v0.01-alpha"
+#define KERNEL_VER "v0.02-alpha-snapshot"
 
 extern uint64_t hhdmOffset;

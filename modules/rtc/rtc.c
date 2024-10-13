@@ -1,6 +1,7 @@
 #include "rtc.h"
 
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/irq.h>
 #include <garn/irq.h>
 #include <garn/kstdio.h>

@@ -10,7 +10,7 @@
 #include <garn/input.h>
 #include <garn/fal/vnode.h>
 #include <garn/fal/vfs.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 
 #include "mem/mm-internals.h"
 #include "sys/ksym-internals.h"

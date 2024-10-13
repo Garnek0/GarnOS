@@ -6,7 +6,7 @@
 #include <garn/term/term.h>
 #include <arch/arch-internals.h>
 #include <garn/irq.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 #include <garn/mm.h>
 #include <cpuid.h>
 #include <garn/kerrno.h>

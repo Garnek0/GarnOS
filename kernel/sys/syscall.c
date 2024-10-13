@@ -14,7 +14,7 @@
 #include <garn/irq.h>
 #include <arch/arch-internals.h>
 #include <garn/kstdio.h>
-
+#include <garn/kerrno.h>
 #include <garn/syscall.h>
 
 void* syscallTable[SYSCALL_MAX];
@@ -61,7 +61,7 @@ void syscall_handler(stack_frame_t* regs){
 
     callerThread->regs = *regs;
 
-    if(arch_syscall_number(regs) < 0x80000000){
+    if((unsigned int)arch_syscall_number(regs) < 0x80000000){
         int (*syscall)(stack_frame_t* regs,
         long arg0, 
         long arg1, 
@@ -72,6 +72,11 @@ void syscall_handler(stack_frame_t* regs){
 
         arch_enable_interrupts(); //enable interrupts
         
+		if(syscall == NULL){
+			klog("Unimplemented syscall no. %u!\n", KLOG_WARNING, "syscall", arch_syscall_number(regs));
+			arch_syscall_return(regs, -ENOSYS);
+		}
+
         long result;
 
         if(syscall) result = syscall(regs, arch_syscall_arg0(regs), arch_syscall_arg1(regs), arch_syscall_arg2(regs), arch_syscall_arg3(regs), arch_syscall_arg4(regs), arch_syscall_arg5(regs));
@@ -88,6 +93,11 @@ void syscall_handler(stack_frame_t* regs){
 
         arch_enable_interrupts(); //enable interrupts
         
+		if(syscall == NULL){
+			klog("Unimplemented gsys syscall no. %u!\n", KLOG_WARNING, "syscall", arch_syscall_number(regs) - 0x80000000);
+			arch_syscall_return(regs, -ENOSYS);
+		}
+
         long result;
 
         if(syscall) result = syscall(regs, arch_syscall_arg0(regs), arch_syscall_arg1(regs), arch_syscall_arg2(regs), arch_syscall_arg3(regs), arch_syscall_arg4(regs), arch_syscall_arg5(regs));

@@ -2,7 +2,8 @@
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>
 #include <garn/kstdio.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <cpu/smp/smp.h>
 #include <garn/mm.h>
 #include <sys/bootloader.h>

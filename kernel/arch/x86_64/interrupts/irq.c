@@ -1,10 +1,9 @@
 #include "interrupt-internals.h"
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 #include <arch/x86_64/interrupts/apic/apic.h>
 #include <garn/mm.h>
 #include <arch/x86_64/interrupts/idt.h>
 #include <garn/kstdio.h>
-#include <garn/arch.h>
 
 void irq_init(){
     idt_set_entry(32, irq0, INT_GATE);

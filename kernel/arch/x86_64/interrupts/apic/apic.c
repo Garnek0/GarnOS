@@ -4,7 +4,8 @@
 #include <garn/mm.h>
 #include <cpu/smp/smp.h>
 #include <garn/irq.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/kernel.h>
 #include <uacpi/acpi.h>
 #include <uacpi/tables.h>

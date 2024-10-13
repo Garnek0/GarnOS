@@ -19,7 +19,7 @@ int ls(const char* path){
         return -1;
     }
 
-    dirent = readdir(dir); if(!dirent) return 0; //Directory is empty (or something terribly wrong happened
+    dirent = readdir(dir); if(!dirent) return 0; //Directory is empty (or something terribly wrong happened)
 
     do {
         if(!strcmp(dirent->d_name, "..") || !strcmp(dirent->d_name, ".")){
@@ -44,10 +44,12 @@ int ls(const char* path){
     } while(dirent);
 
     closedir(dir);
+
+	return 0;
 }
 
 int main(int argc, char** argv){
-    int ret = 0;
+	int ret = 0;
     int retls = 0;
 
     if(argc == 1){

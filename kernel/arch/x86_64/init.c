@@ -3,7 +3,8 @@
 #include <arch/x86_64/interrupts/interrupt-internals.h>
 #include <arch/x86_64/interrupts/apic/apic.h>
 #include <arch/x86_64/fpu/fpu.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 
 bool interruptsInitialised = false;
 bool ioapicsInitialised = false;

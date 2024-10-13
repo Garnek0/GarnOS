@@ -1,7 +1,7 @@
 #pragma once
 
 #include <garn/types.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 
 typedef uint64_t spinlock_t;
 
@@ -12,7 +12,7 @@ typedef uint64_t spinlock_t;
     releaseLock(&l);   \
 }
 
-// Implemented in each architecture's arch/*/ subdirectory
+// Implemented in each architecture's arch/ subdirectory
 void releaseLock(spinlock_t *lock);
 void acquireLock(spinlock_t *lock);
 

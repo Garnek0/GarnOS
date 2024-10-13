@@ -1,6 +1,7 @@
 #include <garn/hw/serial.h>
 #include "serial-internals.h"
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/mm.h>
 #include <garn/spinlock.h>
 #include <garn/kstdio.h>

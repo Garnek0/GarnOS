@@ -1,6 +1,7 @@
 #include "pit.h"
 
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/kstdio.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>

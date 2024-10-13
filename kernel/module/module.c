@@ -1,7 +1,8 @@
 #include <module/module-internals.h>
 #include <exec/elf.h>
 #include <garn/mm.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <sys/fal/initrd/initrd.h>
 #include <garn/fal/vnode.h>
 #include <garn/spinlock.h>

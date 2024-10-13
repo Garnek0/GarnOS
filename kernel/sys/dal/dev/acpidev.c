@@ -1,5 +1,6 @@
 #include <sys/dal/dal-internals.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/kstdio.h>
 #include <garn/mm.h>
 #include <garn/dal/dal.h>
@@ -53,6 +54,8 @@ static uacpi_ns_iteration_decision acpi_init_device(void* ctx, uacpi_namespace_n
 }
 
 void acpidev_detect(){
+
+#ifdef __x86_64__
     //Detect i8042 PS/2 Controller
 
 	// The i8042 PS/2 Controller can easily be detected by testing a bit in the ACPI FADT
@@ -90,6 +93,8 @@ i8042_found:
 
 i8042_not_found:
     ;
+
+#endif
 
 	//TODO: Move to arch
 

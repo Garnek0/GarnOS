@@ -6,7 +6,7 @@
 #include <garn/kstdio.h>
 
 #include <garn/irq.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 
 //initialise interrupts
 void interrupts_init(int cpu){

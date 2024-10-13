@@ -3,7 +3,7 @@
 #include <garn/spinlock.h>
 #include <sys/bootloader.h>
 #include <arch/arch-internals.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 
 spinlock_t panicLock;
 

@@ -5,7 +5,8 @@
 #include <garn/hw/pci.h>
 #include <garn/kstdio.h>
 #include <garn/fal/vnode.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/mm.h>
 #include <garn/timer.h>
 #include <garn/irq.h>

@@ -2,7 +2,7 @@
 #include <garn/kstdio.h>
 #include <garn/ds/list.h>
 #include <garn/irq.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 
 typedef struct {
     void* handler;

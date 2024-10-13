@@ -1,31 +1,20 @@
 #pragma once
 
-#include <garn/irq.h>
+#include <garn/types.h>
 
-#define PUSH(type,val,stack) do { \
+#define X86_64_PUSH(type,val,stack) do { \
 	stack -= sizeof(type); \
 	while(stack & (sizeof(type)-1)) stack--; \
 	*((type*)stack) = (type)(val); \
 } while(0)
 
-#define PUSHSTR(s,stack) do { \
+#define X86_64_PUSHSTR(s,stack) do { \
 	ssize_t l = strlen(s); \
 	do { \
-		PUSH(char,s[l],stack); \
+		X86_64_PUSH(char,s[l],stack); \
 		l--; \
 	} while (l>=0); \
 } while (0)
-
-void arch_disable_interrupts();
-void arch_enable_interrupts();
-void arch_end_interrupt();
-int arch_get_irq_number(stack_frame_t* regs);
-
-void arch_get_cpu_model_name(char* str);
-
-void arch_no_op();
-void arch_stop();
-void arch_pause();
 
 void arch_outb(uint32_t port, uint8_t data);
 uint8_t arch_inb(uint32_t port);

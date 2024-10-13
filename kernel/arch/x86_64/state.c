@@ -1,5 +1,5 @@
 #include <arch/arch-internals.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
 #include <garn/kstdio.h>
 
 void arch_dump_cpu_state(stack_frame_t* regs){

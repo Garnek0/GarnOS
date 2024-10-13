@@ -8,7 +8,8 @@
 #include <garn/kstdio.h>
 #include <garn/kerrno.h>
 #include <garn/kernel.h>
-#include <garn/arch.h>
+#include <garn/arch/common.h>
+#include <garn/arch/x86_64.h>
 #include <garn/mm.h>
 
 process_t* processList;
@@ -82,15 +83,15 @@ void process_create_init(){
 #ifdef __x86_64__
 
 	//NOTE: if changing any of these, dont forget to check the stack alignment!!
-	PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); //push this for alignment
-    PUSHSTR("./bin/init.elf", initProcess->mainThread->regs.rsp);
+	X86_64_PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); //push this for alignment
+    X86_64_PUSHSTR("./bin/init.elf", initProcess->mainThread->regs.rsp);
     argvPtrs[0] = (char*)initProcess->mainThread->regs.rsp;
-    PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // Aux vector null
-    PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
+    X86_64_PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // Aux vector null
+    X86_64_PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
     // envp should be between these
-    PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
-    PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
-    PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
+    X86_64_PUSH(uint64_t, 0, initProcess->mainThread->regs.rsp); // 0
+    X86_64_PUSH(uint64_t, argvPtrs[0], initProcess->mainThread->regs.rsp); // init single argument
+    X86_64_PUSH(uint64_t, 1, initProcess->mainThread->regs.rsp); // init argc = 1
 
 #elif ARCH_DUMMY
 
@@ -296,13 +297,13 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 #ifdef __x86_64__
 	
     for(size_t i = 0; i < argc; i++){
-        PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
+        X86_64_PUSHSTR(newArgv[i], currentProcess->mainThread->regs.rsp);
         kmfree(newArgv[i]);
         newArgv[i] = (char*)currentProcess->mainThread->regs.rsp;
     }
 
     for(size_t i = 0; i < envc; i++){
-        PUSHSTR(newEnvp[i], currentProcess->mainThread->regs.rsp);
+        X86_64_PUSHSTR(newEnvp[i], currentProcess->mainThread->regs.rsp);
         kmfree(newEnvp[i]);
         newEnvp[i] = (char*)currentProcess->mainThread->regs.rsp;
     }
@@ -325,12 +326,12 @@ int sys_execve(stack_frame_t* regs, const char* path, const char* argv[], const 
 	}
 
     //Create initial process stack
-    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //Aux vector NULL
-    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //envp NULL
-    for(ssize_t i = envc-1; i >= 0; i--) PUSH(uint64_t, newEnvp[i], currentProcess->mainThread->regs.rsp); //envp
-    PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //argv NULL
-    for(ssize_t i = argc-1; i >= 0; i--) PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
-    PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
+    X86_64_PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //Aux vector NULL
+    X86_64_PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //envp NULL
+    for(ssize_t i = envc-1; i >= 0; i--) X86_64_PUSH(uint64_t, newEnvp[i], currentProcess->mainThread->regs.rsp); //envp
+    X86_64_PUSH(uint64_t, (uint64_t)0, currentProcess->mainThread->regs.rsp); //argv NULL
+    for(ssize_t i = argc-1; i >= 0; i--) X86_64_PUSH(uint64_t, newArgv[i], currentProcess->mainThread->regs.rsp); //argv
+    X86_64_PUSH(uint64_t, argc, currentProcess->mainThread->regs.rsp); //argc
 
 #elif ARCH_DUMMY
 
