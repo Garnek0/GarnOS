@@ -269,7 +269,7 @@ bool attach(device_t* device){
             if(currentDrive->type == IDE_ATA){
                 drive->read = ide_ata_read;
                 drive->write = ide_ata_write;
-                drive->type = DRIVE_TYPE_DISK;
+                drive->type = DRIVE_TYPE_GENERIC;
             } else {
                 //ATAPI read/write not implemented
                 drive->read = NULL;

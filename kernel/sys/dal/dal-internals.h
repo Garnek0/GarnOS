@@ -10,8 +10,6 @@
 #include <garn/dal/device-types.h>
 #include <garn/dal/bcache.h>
 
-#include "dev/devfs/devfs.h"
-
 typedef struct {
     bcache_buf_t* head;
     bcache_buf_t* tail;
@@ -33,10 +31,6 @@ void driver_init();
 void devdetect();
 void acpidev_detect();
 void pcidev_detect();
-
-//checksysfs
-
-bool checksysfs_check();
 
 //bcache
 

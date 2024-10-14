@@ -69,3 +69,4 @@ int vfs_mount(vfs_t* vfs, const char* mnt, uint32_t flags);
 int vfs_unmount(vfs_t* vfs);
 vfs_t* vfs_get_by_fid(size_t fid);
 vfs_t* vfs_get_root();
+bool vfs_system_fs_present();

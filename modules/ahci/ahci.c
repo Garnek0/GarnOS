@@ -281,7 +281,7 @@ bool attach(device_t* device){
                     drive->interface = DRIVE_IF_AHCI;
                     drive->name = ahciDrive->model;
                     drive->size = ahciDrive->size;
-                    drive->type = abar->ports[i].sig == SATA_SIG_ATA ? DRIVE_TYPE_DISK : DRIVE_TYPE_OPTICAL;
+                    drive->type = abar->ports[i].sig == SATA_SIG_ATA ? DRIVE_TYPE_GENERIC : DRIVE_TYPE_OPTICAL;
                     //ATAPI access not implemented
                     drive->read = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_read : NULL;
                     drive->write = abar->ports[i].sig == SATA_SIG_ATA ? ahci_ata_write : NULL;

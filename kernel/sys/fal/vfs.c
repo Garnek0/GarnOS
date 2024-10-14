@@ -115,3 +115,11 @@ vfs_t* vfs_get_by_fid(size_t fid){
 vfs_t* vfs_get_root(){
 	return rootVFS;
 }
+
+bool vfs_system_fs_present(){
+	vfs_t* sysfs = vfs_get_by_fid(0);
+	if(!sysfs) return false;
+	if(!sysfs->drive) return false;
+	if(!sysfs->drive->partitions[sysfs->partition].isSystemPartition) return false;
+	else return true;
+}

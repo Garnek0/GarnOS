@@ -17,73 +17,97 @@ static size_t _drive_gen_driveid(){
 
 // Generate dynamic drive name
 static char* _drive_gen_name(int type){
-	static int hdCount = 0;
+
+	// Keep track of how many devices of each type are
+	// installed. We dont reuse letters and numbers if, for
+	// example, a removable device is unplugged.
+	static int sdCount = 0;
 	static int srCount = 0;
 	static int fdCount = 0;
+	static int nvmeCount = 0;
 
-	if(type == DRIVE_TYPE_OPTICAL){
-		int srCountCopy = srCount;
+	if(type == DRIVE_TYPE_OPTICAL || type == DRIVE_TYPE_FLOPPY || type == DRIVE_TYPE_NVME){
+		// Set drvCount to hold the current drive type count
+		int drvCount;
+		if(type == DRIVE_TYPE_OPTICAL) drvCount = srCount;
+		else if(type == DRIVE_TYPE_FLOPPY) drvCount = fdCount;
+		else drvCount = nvmeCount;
+
+		// Count the digits of the current device number.
+		int drvCountCopy = drvCount;
 		int dCount = 0;
 		do {
 			dCount++;
-			srCountCopy/=10;
-		} while (srCountCopy != 0);
+			drvCountCopy/=10;
+		} while (drvCountCopy != 0);
 
-		char* name = kmalloc(3 + dCount);
+		char* name;
 
-		srCountCopy = srCount;
+		// Allocate the name string (dCount + 2 (the "sr" or "fd" characters) + 1 (the NULL terminator))
+		if(type == DRIVE_TYPE_OPTICAL || type == DRIVE_TYPE_FLOPPY) name = kmalloc(3 + dCount);
+		// Allocate the name string (dCount + 4 (the "nvme" characters) + 1 (the NULL terminator))
+		else name = kmalloc(5 + dCount);
 
-		name[0] = 's'; name[1] = 'r';
-		for(int i = 1 + dCount; i > 1; i--){
-			name[i] = (char)(0x30 + srCountCopy%10);
-			srCountCopy/=10;
+		// Set the drive name prefix and append the number.
+		drvCountCopy = drvCount;
+
+		if(type == DRIVE_TYPE_OPTICAL) {name[0] = 's'; name[1] = 'r';}
+		else if(type == DRIVE_TYPE_FLOPPY) {name[0] = 'f'; name[1] = 'd';}
+		else  {name[0] = 'n'; name[1] = 'v'; name[2] = 'm'; name[3] = 'e';}
+
+		// Set 'i' and i's minimum value according to the drive type and add the NULL terminator
+		int i, mni;
+		if(type == DRIVE_TYPE_OPTICAL || type == DRIVE_TYPE_FLOPPY){
+			i = dCount + 1;
+			mni = 1;
+			name[2+dCount] = 0;
+		} else {
+			i = dCount + 3;
+			mni = 3;
+			name[4+dCount] = 0;
 		}
-		name[2+dCount] = 0;
 
-		srCount++;
+		for(; i > mni; i--){
+			name[i] = (char)(0x30 + drvCountCopy%10);
+			drvCountCopy/=10;
+		}
+
+		// Increase current drive type count.
+		if(type == DRIVE_TYPE_OPTICAL) srCount++;
+		else if(type == DRIVE_TYPE_FLOPPY) fdCount++;
+		else nvmeCount++;
 
 		return name;
-	} else if(type == DRIVE_TYPE_FLOPPY){
-		int fdCountCopy = fdCount;
-		int dCount = 0;
+	} else if(type == DRIVE_TYPE_GENERIC){
+		// Count the numbers of letters needed (with 0-based indexing)
+		int sdCountCopy = sdCount+1;
+		int letterCount = 0;
 		do {
-			dCount++;
-			fdCountCopy/=10;
-		} while (fdCountCopy != 0);
+			sdCountCopy--;
+			letterCount++;
+			sdCountCopy/=26;
+		} while (sdCountCopy != 0);	
+		
+		sdCountCopy = sdCount+1;
 
-		char* name = kmalloc(3 + dCount);
-
-		fdCountCopy = fdCount;
-
-		name[0] = 'f'; name[1] = 'd';
-		for(int i = 1 + dCount; i > 1; i--){
-			name[i] = (char)(0x30 + fdCountCopy%10);
-			fdCountCopy/=10;
-		}
-		name[2+dCount] = 0;
-
-		fdCount++;
-
-		return name;	
-	} else {
-		int letterCount = hdCount/26+1;
-
-	  	int hdCountCopy = hdCount;
-
+		// Same as above
 		char* name = kmalloc(3 + letterCount);
 
-		name[0] = 'h'; name[1] = 'd';
-		for(int i = 2; i < 2+letterCount; i++){
-			name[i] = 97 + hdCountCopy%26;
-			hdCountCopy/=26;
+		name[0] = 's'; name[1] = 'd';
+		for(int i = 1+letterCount; i > 1; i--){
+			sdCountCopy--;
+			name[i] = 97 + sdCountCopy%26;
+			sdCountCopy/=26;
 		}
 
 		name[2+letterCount] = 0;
 
-		hdCount++;
+		sdCount++;
 
 		return name;
 	}
+
+	return NULL;
 }
 
 int drive_add(drive_t* drive){
@@ -112,7 +136,10 @@ int drive_add(drive_t* drive){
 		driveDev->bus = DEVICE_BUS_NONE;
 		driveDev->type = DEVICE_TYPE_STORAGE_MEDIUM;
 		driveDev->category = DEVICE_CAT_BLOCK;
-		driveDev->major = 3; //WARN: This is not always correct
+		if(drive->type == DRIVE_TYPE_FLOPPY) driveDev->major = 2;
+		else if(drive->type == DRIVE_TYPE_GENERIC) driveDev->major = 8;
+		else if(drive->type == DRIVE_TYPE_OPTICAL) driveDev->major = 11;
+		else if(drive->type == DRIVE_TYPE_NVME) driveDev->major = 242;
 		driveDev->minor = 0;
 		driveDev->blockSize = 512;
 		driveDev->devOps = NULL; //TODO: This
@@ -164,7 +191,7 @@ int drive_add(drive_t* drive){
 				iCopy/=10;
 			} while (iCopy != 0);
 
-			if(fsPdev->type == DRIVE_TYPE_FLOPPY){
+			if(fsPdev->type == DRIVE_TYPE_FLOPPY || fsPdev->type == DRIVE_TYPE_NVME){
 				partName = kmalloc(strlen(driveDev->name)+1+dCount+1);
 				partName[strlen(driveDev->name)] = 'p';
 			} else {
@@ -175,7 +202,7 @@ int drive_add(drive_t* drive){
 			
 			iCopy = i+1;
 
-			if(fsPdev->type == DRIVE_TYPE_FLOPPY){
+			if(fsPdev->type == DRIVE_TYPE_FLOPPY || fsPdev->type == DRIVE_TYPE_NVME){
 				for(uint32_t i = strlen(driveDev->name) + dCount; i > strlen(driveDev->name); i--){
 					partName[i] = (char)(0x30 + iCopy%10);
 					iCopy/=10;
@@ -189,14 +216,17 @@ int drive_add(drive_t* drive){
 
 			partName[strlen(driveDev->name)+1+dCount] = 0;
 
-			if(fsPdev->type == DRIVE_TYPE_FLOPPY) partName[strlen(driveDev->name)+1+dCount] = 0;
+			if(fsPdev->type == DRIVE_TYPE_FLOPPY || fsPdev->type == DRIVE_TYPE_NVME) partName[strlen(driveDev->name)+1+dCount] = 0;
 			else partName[strlen(driveDev->name)+dCount] = 0;
 
 			fsPdev->name = partName;
 			fsPdev->bus = DEVICE_BUS_NONE;
 			fsPdev->type = DEVICE_TYPE_STORAGE_MEDIUM;
 			fsPdev->category = DEVICE_CAT_BLOCK;
-			fsPdev->major = 3; //WARN: This is not always correct
+			if(drive->type == DRIVE_TYPE_FLOPPY) driveDev->major = 2;
+			else if(drive->type == DRIVE_TYPE_GENERIC) driveDev->major = 8;
+			else if(drive->type == DRIVE_TYPE_OPTICAL) driveDev->major = 11;
+			else if(drive->type == DRIVE_TYPE_NVME) driveDev->major = 242;
 			fsPdev->minor = i+1;
 			fsPdev->blockSize = 512;
 			fsPdev->devOps = NULL; //TODO: This

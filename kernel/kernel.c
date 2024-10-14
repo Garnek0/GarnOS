@@ -74,7 +74,7 @@ void _start(){
     init_kcon(); //start demo console
 
     //We should not proceed if the system FS hasn't been found
-    if(!checksysfs_check()) panic("System FS Not found or Inaccessible!", "DAL");
+    if(!vfs_system_fs_present()) panic("System FS Not found or Inaccessible!", "DAL");
 
     syscall_init();
 
