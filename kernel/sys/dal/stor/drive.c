@@ -67,6 +67,7 @@ static char* _drive_gen_name(int type){
 			name[4+dCount] = 0;
 		}
 
+		// Fill in the name string's drive number
 		for(; i > mni; i--){
 			name[i] = (char)(0x30 + drvCountCopy%10);
 			drvCountCopy/=10;
@@ -90,7 +91,10 @@ static char* _drive_gen_name(int type){
 		
 		sdCountCopy = sdCount+1;
 
-		// Same as above
+		// (Same as the optical drive implementation, except
+		// letters are used instead of numbers and the counting
+		// system is a little different)
+
 		char* name = kmalloc(3 + letterCount);
 
 		name[0] = 's'; name[1] = 'd';
@@ -136,10 +140,14 @@ int drive_add(drive_t* drive){
 		driveDev->bus = DEVICE_BUS_NONE;
 		driveDev->type = DEVICE_TYPE_STORAGE_MEDIUM;
 		driveDev->category = DEVICE_CAT_BLOCK;
+		// Very barebones major number determination based on the drive type.
+		// Although doing major device numbers like this is not the best
+		// idea, device numbers as a whole are barely used anymore nowadays.
 		if(drive->type == DRIVE_TYPE_FLOPPY) driveDev->major = 2;
 		else if(drive->type == DRIVE_TYPE_GENERIC) driveDev->major = 8;
 		else if(drive->type == DRIVE_TYPE_OPTICAL) driveDev->major = 11;
 		else if(drive->type == DRIVE_TYPE_NVME) driveDev->major = 242;
+		// Device minor number is 0 for the whole disk.
 		driveDev->minor = 0;
 		driveDev->blockSize = 512;
 		driveDev->devOps = NULL; //TODO: This
@@ -173,7 +181,7 @@ int drive_add(drive_t* drive){
         }
         //TODO: Add MBR Partition Table support
 		
-        //search for filesystems
+        // Initialise partition devices
 
         for(size_t i = 0; i < drive->partitionCount; i++){
 			if(drive->type == DRIVE_TYPE_OPTICAL) break;
@@ -183,7 +191,8 @@ int drive_add(drive_t* drive){
 
 			char* partName;
 
-			// Generate partition name
+			// Generate partition name. This algorithm is very similar to the one
+			// used in _drive_gen_name.
 			int iCopy = i+1;
 			int dCount = 0;
 			do {
@@ -223,10 +232,12 @@ int drive_add(drive_t* drive){
 			fsPdev->bus = DEVICE_BUS_NONE;
 			fsPdev->type = DEVICE_TYPE_STORAGE_MEDIUM;
 			fsPdev->category = DEVICE_CAT_BLOCK;
-			if(drive->type == DRIVE_TYPE_FLOPPY) driveDev->major = 2;
-			else if(drive->type == DRIVE_TYPE_GENERIC) driveDev->major = 8;
-			else if(drive->type == DRIVE_TYPE_OPTICAL) driveDev->major = 11;
-			else if(drive->type == DRIVE_TYPE_NVME) driveDev->major = 242;
+			if(drive->type == DRIVE_TYPE_FLOPPY) fsPdev->major = 2;
+			else if(drive->type == DRIVE_TYPE_GENERIC) fsPdev->major = 8;
+			else if(drive->type == DRIVE_TYPE_OPTICAL) fsPdev->major = 11;
+			else if(drive->type == DRIVE_TYPE_NVME) fsPdev->major = 242;
+			// Device minor number is i for partition[i], where i > 0;
+			// (i starts at 0 here, so we need to add 1)
 			fsPdev->minor = i+1;
 			fsPdev->blockSize = 512;
 			fsPdev->devOps = NULL; //TODO: This
